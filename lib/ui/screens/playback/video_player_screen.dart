@@ -2594,7 +2594,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                 ? () => unawaited(_activateMobileTemporarySpeedHold())
                 : null,
             onLongPressEnd: PlatformDetection.useMobileUi
-                ? (_) => unawaited(_cancelMobileTemporarySpeedHold())
+                ? (_) => _cancelMobileTemporarySpeedHold()
                 : null,
             onDoubleTapDown: PlatformDetection.isTV
                 ? null
