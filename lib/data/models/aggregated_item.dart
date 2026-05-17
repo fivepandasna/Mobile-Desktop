@@ -309,7 +309,7 @@ class AggregatedItem {
       final s = parentIndexNumber;
       final e = indexNumber;
       if (series.isNotEmpty && s != null && e != null) {
-        return '$series - S${s}E$e - $name';
+        return '$series - S$s:E$e - $name';
       }
     }
     return name;

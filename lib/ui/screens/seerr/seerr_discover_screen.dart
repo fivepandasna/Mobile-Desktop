@@ -112,13 +112,6 @@ class _SeerrDiscoverScreenState extends State<SeerrDiscoverScreen> {
     );
   }
 
-  void _focusNavbarEntry() {
-    final focusNavbar = NavigationLayout.focusNavbarNotifier.value;
-    if (focusNavbar != null) {
-      focusNavbar();
-    }
-  }
-
   KeyEventResult _onContentKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
     if (!_initialFocusResolved && _loadingHoldFocusNode.hasFocus) {
@@ -134,7 +127,7 @@ class _SeerrDiscoverScreenState extends State<SeerrDiscoverScreen> {
     if (!_isFirstRowFocused) return KeyEventResult.ignored;
 
     _restoreNavbarToNormalPosition();
-    _focusNavbarEntry();
+    NavigationLayout.focusNavbarNotifier.value?.call();
     return KeyEventResult.handled;
   }
 
@@ -394,7 +387,7 @@ class _SeerrDiscoverScreenState extends State<SeerrDiscoverScreen> {
       },
       child: LibraryRow(
         title: row.title,
-        rowHeight: 236,
+        rowHeight: 237,
         children: children,
       ),
     );

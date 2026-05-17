@@ -281,14 +281,25 @@ class _SeerrMediaDetailScreenState
           ),
         ),
         if (s.credits != null && s.credits!.cast.isNotEmpty)
-          SliverToBoxAdapter(child: _buildCastRow(s.credits!.cast, l10n)),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: hSidePad),
+              child: _buildCastRow(s.credits!.cast, l10n),
+            ),
+          ),
         if (s.similar.isNotEmpty)
           SliverToBoxAdapter(
-            child: _buildRelatedRow(l10n.similar, s.similar),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: hSidePad),
+              child: _buildRelatedRow(l10n.similar, s.similar),
+            ),
           ),
         if (s.recommendations.isNotEmpty)
           SliverToBoxAdapter(
-            child: _buildRelatedRow(l10n.recommendations, s.recommendations),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: hSidePad),
+              child: _buildRelatedRow(l10n.recommendations, s.recommendations),
+            ),
           ),
         const SliverToBoxAdapter(child: SizedBox(height: 60)),
       ],
@@ -736,11 +747,12 @@ class _SeerrMediaDetailScreenState
       return KeyEventResult.ignored;
     }
     if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-      final cb = NavigationLayout.focusNavbarNotifier.value;
-      if (cb != null) {
-        cb();
+      final navbarPos = _userPrefs.get(UserPreferences.navbarPosition);
+      if (navbarPos == NavbarPosition.top) {
+        NavigationLayout.focusNavbarNotifier.value?.call();
         return KeyEventResult.handled;
       }
+      return KeyEventResult.ignored;
     }
     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
       if (identical(node, _titleFocusNode) && _requestFirstActionFocus()) {
@@ -1188,12 +1200,29 @@ class _SeerrMediaDetailScreenState
       title: l10n.cast,
       rowHeight: 170,
       children: visible
-          .map((m) => _CastCard(
-                member: m,
-                onTap: () => context.push(
-                  Destinations.seerrPerson(m.id.toString()),
-                ),
-              ))
+          .asMap()
+          .entries
+          .map((entry) {
+            final index = entry.key;
+            final m = entry.value;
+            return _CastCard(
+              member: m,
+              onKeyEvent: (event) {
+                if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+                  return KeyEventResult.ignored;
+                }
+                if (event.logicalKey == LogicalKeyboardKey.arrowLeft &&
+                    index == 0) {
+                  NavigationLayout.focusNavbarNotifier.value?.call();
+                  return KeyEventResult.handled;
+                }
+                return KeyEventResult.ignored;
+              },
+              onTap: () => context.push(
+                Destinations.seerrPerson(m.id.toString()),
+              ),
+            );
+          })
           .toList(),
     );
   }
@@ -1206,9 +1235,14 @@ class _SeerrMediaDetailScreenState
         GetIt.instance<UserPreferences>().get(UserPreferences.cardFocusExpansion);
     return LibraryRow(
       title: title,
-      rowHeight: 236,
+      rowHeight: 240,
       children: items
-          .map((item) => MediaCard(
+          .asMap()
+          .entries
+          .map((entry) {
+            final index = entry.key;
+            final item = entry.value;
+            return MediaCard(
                 title: item.displayTitle,
                 subtitle: _yearFromItem(item),
                 imageUrl: item.posterPath != null
@@ -1221,6 +1255,17 @@ class _SeerrMediaDetailScreenState
                 focusColor: focusColor,
                 cardFocusExpansion: cardExpansion,
                 suppressFocusGlow: isNeon,
+                onKeyEvent: (_, event) {
+                  if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+                    return KeyEventResult.ignored;
+                  }
+                  if (event.logicalKey == LogicalKeyboardKey.arrowLeft &&
+                      index == 0) {
+                    NavigationLayout.focusNavbarNotifier.value?.call();
+                    return KeyEventResult.handled;
+                  }
+                  return KeyEventResult.ignored;
+                },
                 onTap: () {
                   final mediaType = item.mediaType ?? 'movie';
                   context.push(
@@ -1228,7 +1273,8 @@ class _SeerrMediaDetailScreenState
                     extra: {'mediaType': mediaType},
                   );
                 },
-              ))
+              );
+          })
           .toList(),
     );
   }
@@ -1549,9 +1595,10 @@ class _BrowseChipState extends State<_BrowseChip> with FocusStateMixin {
 
 class _CastCard extends StatefulWidget {
   final SeerrCastMember member;
+  final KeyEventResult Function(KeyEvent event)? onKeyEvent;
   final VoidCallback? onTap;
 
-  const _CastCard({required this.member, this.onTap});
+  const _CastCard({required this.member, this.onKeyEvent, this.onTap});
 
   @override
   State<_CastCard> createState() => _CastCardState();
@@ -1566,6 +1613,26 @@ class _CastCardState extends State<_CastCard> with FocusStateMixin {
         Color(GetIt.instance<UserPreferences>().get(UserPreferences.focusColor).colorValue);
     return Focus(
       onFocusChange: (f) => setFocused(f),
+      onKeyEvent: (_, event) {
+        final custom = widget.onKeyEvent?.call(event);
+        if (custom != null && custom != KeyEventResult.ignored) {
+          return custom;
+        }
+        if (event is KeyDownEvent || event is KeyRepeatEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.select ||
+              event.logicalKey == LogicalKeyboardKey.enter ||
+              event.logicalKey == LogicalKeyboardKey.gameButtonA) {
+            widget.onTap?.call();
+            return KeyEventResult.handled;
+          }
+        }
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.space) {
+          widget.onTap?.call();
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      },
       child: GestureDetector(
         onTap: widget.onTap,
         child: MouseRegion(

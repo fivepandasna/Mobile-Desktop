@@ -362,7 +362,7 @@ class _TopToolbarState extends State<TopToolbar> {
               return KeyEventResult.ignored;
             },
             child: FocusTraversalGroup(
-              policy: OrderedTraversalPolicy(),
+              policy: WidgetOrderTraversalPolicy(),
               child: isLandscape
                   ? Stack(
                       alignment: Alignment.center,

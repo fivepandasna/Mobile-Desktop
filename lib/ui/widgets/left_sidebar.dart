@@ -88,7 +88,12 @@ class _LeftSidebarState extends State<LeftSidebar> {
   void initState() {
     super.initState();
     _currentTime = ValueNotifier<String>('');
-    _focusNavbarCallback = () => _homeFocusNode.requestFocus();
+    _focusNavbarCallback = () {
+      if (!mounted) return;
+      if (PlatformDetection.isTV || PlatformDetection.isDesktop) {
+        _homeFocusNode.requestFocus();
+      }
+    };
     _previousFocusNavbarCallback = NavigationLayout.focusNavbarNotifier.value;
     NavigationLayout.focusNavbarNotifier.value = _focusNavbarCallback;
     _updateClock();
@@ -310,9 +315,8 @@ class _LeftSidebarState extends State<LeftSidebar> {
     if (PlatformDetection.isTV || PlatformDetection.isDesktop) {
       return;
     }
-    if (hasFocus) {
-      _expand();
-    }
+    // On mobile, keep sidebar opening explicit (menu tap) to avoid
+    // route-to-route focus restoration repeatedly reopening it.
   }
 
   void _armTvFocusGate() {

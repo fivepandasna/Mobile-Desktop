@@ -158,13 +158,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  void _focusNavbarHome() {
-    final focusNavbar = NavigationLayout.focusNavbarNotifier.value;
-    if (focusNavbar != null) {
-      focusNavbar();
-    }
-  }
-
   KeyEventResult _onContentKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
     if (!event.logicalKey.isUpKey) return KeyEventResult.ignored;
@@ -340,7 +333,6 @@ class _SearchScreenState extends State<SearchScreen> {
       return KeyEventResult.ignored;
     }
     if (event.logicalKey.isUpKey) {
-      _focusNavbarHome();
       return KeyEventResult.handled;
     }
     if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
@@ -361,7 +353,6 @@ class _SearchScreenState extends State<SearchScreen> {
       return KeyEventResult.ignored;
     }
     if (event.logicalKey.isUpKey) {
-      _focusNavbarHome();
       return KeyEventResult.handled;
     }
     if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
