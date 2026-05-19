@@ -101,6 +101,30 @@ class Media3VideoView(
         private const val TS_SEARCH_BYTES_DEFAULT = TsExtractor.DEFAULT_TIMESTAMP_SEARCH_BYTES
     }
 
+    private fun DefaultExtractorsFactory.setTsPayloadReaderFactoryFlagsCompat(
+        flags: Int,
+    ): DefaultExtractorsFactory {
+        try {
+            DefaultExtractorsFactory::class.java
+                .getMethod(
+                    "setTsExtractorPayloadReaderFactoryFlags",
+                    Int::class.javaPrimitiveType,
+                )
+                .invoke(this, flags)
+            return this
+        } catch (_: Throwable) {
+        }
+
+        try {
+            DefaultExtractorsFactory::class.java
+                .getMethod("setTsExtractorFlags", Int::class.javaPrimitiveType)
+                .invoke(this, flags)
+        } catch (_: Throwable) {
+        }
+
+        return this
+    }
+
 
     private enum class SubtitleRendererMode(
         val wireValue: String,
@@ -333,7 +357,7 @@ class Media3VideoView(
         val isLowRamDevice = context.getSystemService<ActivityManager>()?.isLowRamDevice == true
         val extractorsFactory = DefaultExtractorsFactory()
             .setTsExtractorMode(TsExtractor.MODE_SINGLE_PMT)
-            .setTsExtractorPayloadReaderFactoryFlags(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES)
+            .setTsPayloadReaderFactoryFlagsCompat(DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES)
             .setTsExtractorTimestampSearchBytes(
                 if (isLowRamDevice) TS_SEARCH_BYTES_LOW_RAM else TS_SEARCH_BYTES_DEFAULT,
             )
