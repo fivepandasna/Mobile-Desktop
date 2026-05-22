@@ -1668,6 +1668,10 @@ class _ContentRowsState extends State<_ContentRows>
     if (!mounted) {
       return;
     }
+    if (PlatformDetection.useMobileUi) {
+      _initialFocusResolved = true;
+      return;
+    }
     if (_shouldRepairInitialFocusAfterMediaBarSync()) {
       _initialFocusResolved = false;
     }
@@ -2667,12 +2671,25 @@ class _ContentRowsState extends State<_ContentRows>
               isV2MobileTouch && _mobilePressedV2Key == previewKey;
           final isHoverFocused =
               isV2MouseHover && _mouseHoveredV2Key == previewKey;
-          final effectiveV2Focused =
-              isRowsV2 ? (isFocused || isTouchFocused || isHoverFocused) : isFocused;
+          final effectiveV2Focused = isRowsV2
+              ? (isV2MobileTouch
+                    ? isTouchFocused
+                    : (isFocused || isHoverFocused))
+              : isFocused;
+            final v2FocusedWidthForCurrentViewport =
+              PlatformDetection.useMobileUi
+              ? v2FocusedWidth
+                .clamp(v2PortraitWidth, v2ExtendedWidth)
+                .toDouble()
+              : v2FocusedWidth;
+          final canUseExpandedV2Card =
+              isRowsV2 && effectiveV2Focused;
 
           if (isRowsV2) {
-            ar = effectiveV2Focused ? v2FocusedAspect : v2PortraitAspect;
-            width = effectiveV2Focused ? v2FocusedWidth : v2PortraitWidth;
+            ar = canUseExpandedV2Card ? v2FocusedAspect : v2PortraitAspect;
+            width = canUseExpandedV2Card
+              ? v2FocusedWidthForCurrentViewport
+              : v2PortraitWidth;
             final posterUrl = _resolveRowImageUrl(
               item,
               imageApi,
@@ -2682,7 +2699,7 @@ class _ContentRowsState extends State<_ContentRows>
               requestScale,
               isMyMediaRow: row.rowType == HomeRowType.libraryTiles,
             );
-            imageUrl = effectiveV2Focused
+            imageUrl = canUseExpandedV2Card
               ? (_resolveV2FocusedImageUrl(
                   item,
                   imageApi,
@@ -2744,24 +2761,6 @@ class _ContentRowsState extends State<_ContentRows>
             externalIsFocused: effectiveV2Focused,
             suppressImageFocusBorder: showPreviewVideo,
             suppressFocusGlow: suppressFocusGlow,
-            onPressStart: isV2MobileTouch
-                ? () {
-                    if (_mobilePressedV2Key == previewKey) {
-                      return;
-                    }
-                    setState(() => _mobilePressedV2Key = previewKey);
-                    widget.onItemSelected(item);
-                    _primeV2FocusedRatings(item);
-                  }
-                : null,
-            onPressEnd: isV2MobileTouch
-                ? () {
-                    if (_mobilePressedV2Key != previewKey) {
-                      return;
-                    }
-                    setState(() => _mobilePressedV2Key = null);
-                  }
-                : null,
             onHoverStart: () {
               unawaited(_revealAndScrollToPinnedInfo());
               widget.onItemSelected(item);
@@ -2835,7 +2834,8 @@ class _ContentRowsState extends State<_ContentRows>
                 );
 
           if (isRowsV2) {
-            final extendedSection = effectiveV2Focused
+            final showExtendedSection = effectiveV2Focused;
+            final extendedSection = showExtendedSection
                 ? _buildV2ExtendedSection(
                     ctx,
                     item,
