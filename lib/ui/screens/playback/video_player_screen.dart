@@ -23,6 +23,7 @@ import '../../../playback/playback_lifecycle_handler.dart';
 import '../../../playback/hdr_stream_capability.dart';
 import '../../../auth/repositories/user_repository.dart';
 import '../../../data/models/aggregated_item.dart';
+import '../../../data/repositories/item_mutation_repository.dart';
 import '../../../data/models/media_segment.dart';
 import '../../../data/models/trickplay_info.dart';
 import '../../../data/services/cast/cast_service.dart';
@@ -279,6 +280,57 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   bool get _isCurrentPreroll => _isPrerollQueueItem(_queue.currentItem);
+
+  bool _queueItemIsFavorite(dynamic item) {
+    if (item is AggregatedItem) {
+      return item.isFavorite;
+    }
+
+    final raw = _rawDataForQueueItem(item);
+    final userData = raw?['UserData'];
+    if (userData is Map) {
+      return userData['IsFavorite'] as bool? ?? false;
+    }
+
+    return false;
+  }
+
+  Future<void> _toggleCurrentItemFavorite() async {
+    final item = _queue.currentItem;
+    final itemId = _itemIdForQueueItem(item);
+    if (itemId == null || itemId.isEmpty) {
+      return;
+    }
+
+    final isFavorite = _queueItemIsFavorite(item);
+    try {
+      final mutations = ItemMutationRepository(_clientForQueueItem(item));
+      await mutations.setFavorite(itemId, isFavorite: !isFavorite);
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        final raw = _rawDataForQueueItem(item);
+        if (raw == null) {
+          return;
+        }
+        final existingUserData = raw['UserData'];
+        final userData = existingUserData is Map<String, dynamic>
+            ? existingUserData
+            : (existingUserData is Map
+                  ? existingUserData.cast<String, dynamic>()
+                  : <String, dynamic>{});
+        userData['IsFavorite'] = !isFavorite;
+        raw['UserData'] = userData;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      _showThrottledPlaybackError(error.toString());
+    }
+  }
 
   void _syncPrerollOsdState() {
     if (!_isCurrentPreroll) return;
@@ -4088,6 +4140,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       builder: (context, _, _) {
         final l10n = AppLocalizations.of(context);
         final item = _queue.currentItem;
+        final canFavorite = !_isPrerollQueueItem(item) &&
+            ((_itemIdForQueueItem(item)?.isNotEmpty) ?? false);
+        final isFavorite = canFavorite && _queueItemIsFavorite(item);
         final hasChapters = item is AggregatedItem && item.chapters.isNotEmpty;
         final hasCast = _hasCastCrew(item);
         final showSubtitleButton = true;
@@ -4131,6 +4186,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             size: secondaryIconSize,
             extent: secondaryExtent,
           ),
+          if (canFavorite)
+            _controlButton(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              onPressed: _toggleCurrentItemFavorite,
+              size: secondaryIconSize,
+              extent: secondaryExtent,
+              tooltip: isFavorite
+                  ? l10n.contextMenuRemoveFromFavorites
+                  : l10n.contextMenuAddToFavorites,
+              iconColor: isFavorite
+                  ? Theme.of(context).colorScheme.error
+                  : Colors.white,
+            ),
           speedButton,
           if (hasChapters)
             _controlButton(
