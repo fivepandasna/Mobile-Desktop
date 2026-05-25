@@ -1,6 +1,14 @@
-enum AudioBehavior {
-  directStream,
-  downmixToStereo,
+enum AudioOutputMode {
+  auto,
+  forceStereo,
+  avrPassthrough,
+}
+
+enum AudioFallbackCodec {
+  auto,
+  aacStereo,
+  ac3_5_1,
+  eac3_5_1,
 }
 
 enum PlaybackEnginePreference {

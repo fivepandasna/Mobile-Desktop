@@ -56,9 +56,20 @@ class PlatformDetection {
   static bool get supportsDoViProfile8 => _supportsDoViProfile8;
 
   static bool get hasAudioCapabilities => _audioCapabilities.isNotEmpty;
+    static Map<String, dynamic> get audioCapabilitiesSnapshot =>
+      Map<String, dynamic>.from(_audioCapabilities);
   static bool get supportsAc3Audio => _audioCapabilityBool('supportsAc3');
   static bool get supportsDtsAudio => _audioCapabilityBool('supportsDts');
   static bool get supportsTrueHdAudio => _audioCapabilityBool('supportsTrueHd');
+    static bool get supportsEac3Audio => _audioCapabilityBool('canPassthroughEac3');
+    static bool get supportsDtsHdAudio => _audioCapabilityBool('canPassthroughDtsHd');
+    static bool get supportsEac3JocAudio =>
+      _audioCapabilityBool('canPassthroughEac3Joc');
+    static int get maxPcmChannelsAudio => _audioCapabilityInt('maxPcmChannels');
+    static String get activeAudioRouteType =>
+      _audioCapabilityString('activeRouteType') ?? 'other';
+    static bool get routeSupportsHdAudio =>
+      _audioCapabilityBool('routeSupportsHdAudio');
 
     static bool get supportsAvc => _capabilityBool('supportsAvc');
     static bool get supportsAvcHigh10 => _capabilityBool('supportsAvcHigh10');
@@ -186,6 +197,23 @@ class PlatformDetection {
 
   static bool _audioCapabilityBool(String key) {
     return _asBool(_audioCapabilities[key]);
+  }
+
+  static int _audioCapabilityInt(String key) {
+    final value = _audioCapabilities[key];
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  static String? _audioCapabilityString(String key) {
+    final value = _audioCapabilities[key];
+    final text = value?.toString().trim();
+    if (text == null || text.isEmpty || text.toLowerCase() == 'null') {
+      return null;
+    }
+    return text;
   }
 
   static bool _asBool(Object? value) {

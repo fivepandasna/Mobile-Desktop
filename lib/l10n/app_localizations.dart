@@ -3983,6 +3983,252 @@ abstract class AppLocalizations {
   /// **'Enable TrueHD audio (may not work on all platforms)'**
   String get enableTrueHdAudio;
 
+  /// Setting for audio output mode
+  ///
+  /// In en, this message translates to:
+  /// **'Audio Output Mode'**
+  String get settingsAudioOutputMode;
+
+  /// Audio output mode option for AVR passthrough
+  ///
+  /// In en, this message translates to:
+  /// **'AVR Passthrough'**
+  String get settingsAudioOutputModeAvrPassthrough;
+
+  /// Setting for fallback audio codec
+  ///
+  /// In en, this message translates to:
+  /// **'Audio Fallback Codec'**
+  String get settingsAudioFallbackCodec;
+
+  /// Fallback codec option for AAC stereo
+  ///
+  /// In en, this message translates to:
+  /// **'AAC Stereo'**
+  String get settingsAudioFallbackAacStereo;
+
+  /// Fallback codec option for AC3 5.1
+  ///
+  /// In en, this message translates to:
+  /// **'AC3 5.1'**
+  String get settingsAudioFallbackAc35_1;
+
+  /// Fallback codec option for EAC3 5.1
+  ///
+  /// In en, this message translates to:
+  /// **'EAC3 5.1'**
+  String get settingsAudioFallbackEac35_1;
+
+  /// Section title for advanced passthrough controls
+  ///
+  /// In en, this message translates to:
+  /// **'Passthrough (Advanced)'**
+  String get settingsAudioPassthroughAdvanced;
+
+  /// Title for codec passthrough settings group
+  ///
+  /// In en, this message translates to:
+  /// **'Codec Passthrough'**
+  String get settingsAudioCodecPassthrough;
+
+  /// Description for codec passthrough settings group
+  ///
+  /// In en, this message translates to:
+  /// **'Enable only formats your AVR or HDMI sink supports.'**
+  String get settingsAudioCodecPassthroughDescription;
+
+  /// Setting for EAC3 passthrough
+  ///
+  /// In en, this message translates to:
+  /// **'EAC3 Passthrough'**
+  String get settingsAudioEac3Passthrough;
+
+  /// Setting for EAC3 JOC Atmos passthrough
+  ///
+  /// In en, this message translates to:
+  /// **'EAC3 JOC (Atmos) Passthrough'**
+  String get settingsAudioEac3JocPassthrough;
+
+  /// Setting for DTS core passthrough
+  ///
+  /// In en, this message translates to:
+  /// **'DTS Core Passthrough'**
+  String get settingsAudioDtsCorePassthrough;
+
+  /// Setting for DTS-HD MA passthrough
+  ///
+  /// In en, this message translates to:
+  /// **'DTS-HD MA Passthrough'**
+  String get settingsAudioDtsHdPassthrough;
+
+  /// Setting for TrueHD passthrough
+  ///
+  /// In en, this message translates to:
+  /// **'TrueHD Passthrough'**
+  String get settingsAudioTrueHdPassthrough;
+
+  /// Setting for TrueHD Atmos passthrough
+  ///
+  /// In en, this message translates to:
+  /// **'TrueHD Atmos Passthrough'**
+  String get settingsAudioTrueHdAtmosPassthrough;
+
+  /// Description for EAC3 passthrough
+  ///
+  /// In en, this message translates to:
+  /// **'Bitstream Dolby Digital Plus (EAC3) to external decoder.'**
+  String get settingsAudioBitstreamEac3ToExternalDecoder;
+
+  /// Description for EAC3 JOC passthrough
+  ///
+  /// In en, this message translates to:
+  /// **'Bitstream Dolby Atmos over EAC3 (JOC) to external decoder.'**
+  String get settingsAudioBitstreamEac3JocToExternalDecoder;
+
+  /// Description for DTS-HD MA passthrough
+  ///
+  /// In en, this message translates to:
+  /// **'Bitstream DTS-HD MA (includes DTS core) to external decoder.'**
+  String get settingsAudioBitstreamDtsHdToExternalDecoder;
+
+  /// Description for TrueHD Atmos passthrough
+  ///
+  /// In en, this message translates to:
+  /// **'Bitstream Dolby TrueHD with Atmos metadata to external decoder.'**
+  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder;
+
+  /// Section title for detected runtime audio capabilities
+  ///
+  /// In en, this message translates to:
+  /// **'Detected Audio Capabilities'**
+  String get settingsDetectedAudioCapabilities;
+
+  /// Message shown when runtime audio capability snapshot is missing
+  ///
+  /// In en, this message translates to:
+  /// **'No runtime capability snapshot available yet.'**
+  String get settingsDetectedAudioCapabilitiesUnavailable;
+
+  /// Label for active audio route row
+  ///
+  /// In en, this message translates to:
+  /// **'Route'**
+  String get settingsAudioRouteLabel;
+
+  /// Label for audio decode capability row
+  ///
+  /// In en, this message translates to:
+  /// **'Decode'**
+  String get settingsAudioDecodeLabel;
+
+  /// Label for audio passthrough capability row
+  ///
+  /// In en, this message translates to:
+  /// **'Passthrough'**
+  String get settingsAudioPassthroughLabel;
+
+  /// Label indicating the active route supports HD audio
+  ///
+  /// In en, this message translates to:
+  /// **'HD audio route'**
+  String get settingsAudioHdRoute;
+
+  /// Audio route type HDMI
+  ///
+  /// In en, this message translates to:
+  /// **'HDMI'**
+  String get settingsAudioRouteHdmi;
+
+  /// Audio route type ARC
+  ///
+  /// In en, this message translates to:
+  /// **'ARC'**
+  String get settingsAudioRouteArc;
+
+  /// Audio route type eARC
+  ///
+  /// In en, this message translates to:
+  /// **'eARC'**
+  String get settingsAudioRouteEarc;
+
+  /// Audio route type Bluetooth
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth'**
+  String get settingsAudioRouteBluetooth;
+
+  /// Audio route type speaker
+  ///
+  /// In en, this message translates to:
+  /// **'Speaker'**
+  String get settingsAudioRouteSpeaker;
+
+  /// Audio route subtitle showing max PCM channels
+  ///
+  /// In en, this message translates to:
+  /// **'{count}ch PCM'**
+  String settingsAudioPcmChannels(int count);
+
+  /// Section title for playback diagnostics
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get settingsAudioDiagnostics;
+
+  /// Diagnostics label for video level
+  ///
+  /// In en, this message translates to:
+  /// **'Video Level'**
+  String get settingsAudioDiagnosticsVideoLevel;
+
+  /// Diagnostics label for video range
+  ///
+  /// In en, this message translates to:
+  /// **'Video Range'**
+  String get settingsAudioDiagnosticsVideoRange;
+
+  /// Diagnostics label for subtitle codec
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle Codec'**
+  String get settingsAudioDiagnosticsSubtitleCodec;
+
+  /// Diagnostics label for allowed audio codecs
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed Audio Codecs'**
+  String get settingsAudioDiagnosticsAllowedAudioCodecs;
+
+  /// Diagnostics label for HLS MPEG-TS audio codecs
+  ///
+  /// In en, this message translates to:
+  /// **'HLS MPEG-TS Audio Codecs'**
+  String get settingsAudioDiagnosticsHlsMpegTsAudioCodecs;
+
+  /// Diagnostics label for HLS fMP4 audio codecs
+  ///
+  /// In en, this message translates to:
+  /// **'HLS fMP4 Audio Codecs'**
+  String get settingsAudioDiagnosticsHlsFmp4AudioCodecs;
+
+  /// Diagnostics label for audio-spdif passthrough codecs
+  ///
+  /// In en, this message translates to:
+  /// **'audio-spdif passthrough'**
+  String get settingsAudioDiagnosticsAudioSpdifPassthrough;
+
+  /// Diagnostics label for active audio route
+  ///
+  /// In en, this message translates to:
+  /// **'Active Audio Route'**
+  String get settingsAudioDiagnosticsActiveAudioRoute;
+
+  /// Diagnostics label for route HD audio support
+  ///
+  /// In en, this message translates to:
+  /// **'Route HD Audio Support'**
+  String get settingsAudioDiagnosticsRouteHdAudioSupport;
+
   /// Setting for night mode
   ///
   /// In en, this message translates to:

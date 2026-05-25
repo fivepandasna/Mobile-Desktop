@@ -12,6 +12,7 @@ import 'package:playback_core/playback_core.dart';
 import '../preference/preference_constants.dart';
 import '../preference/user_preferences.dart';
 import '../util/platform_detection.dart';
+import 'audio_capability_profile.dart';
 import 'device_profile_builder.dart';
 import 'known_defects.dart';
 
@@ -377,9 +378,6 @@ class MediaKitPlayerBackend implements PlayerBackend {
     bool useProgressiveTranscode = false,
   }) {
     final maxBitrate = int.tryParse(_prefs.get(UserPreferences.maxBitrate));
-    final ac3Enabled = _prefs.get(UserPreferences.ac3Enabled);
-    final trueHdEnabled = _prefs.get(UserPreferences.trueHdEnabled);
-    final dtsEnabled = _prefs.get(UserPreferences.dtsEnabled);
     final maxResolution = _prefs.get(UserPreferences.maxVideoResolution);
     final allowDolbyVisionProfile7DirectPlay =
         KnownDefects.shouldAllowDolbyVisionProfile7ElDirectPlay(
@@ -395,18 +393,27 @@ class MediaKitPlayerBackend implements PlayerBackend {
             allowDolbyVisionProfile7DirectPlay:
                 allowDolbyVisionProfile7DirectPlay,
           );
+    final audioCapabilityProfile = PlatformDetection.hasAudioCapabilities
+        ? AudioCapabilityProfile.fromMap(
+            PlatformDetection.audioCapabilitiesSnapshot,
+          )
+        : const AudioCapabilityProfile.optimistic();
 
     return DeviceProfileBuilder.build(
       maxBitrateMbps: maxBitrate,
-      ac3Enabled: ac3Enabled,
-      trueHdEnabled: trueHdEnabled,
-      dtsEnabled: dtsEnabled,
-      downMixAudio:
-          _prefs.get(UserPreferences.audioBehavior) ==
-          AudioBehavior.downmixToStereo,
-      audioFallbackToStereoAac: _prefs.get(
-        UserPreferences.audioFallbackToStereoAac,
-      ),
+      audioCapabilityProfile: audioCapabilityProfile,
+      audioOutputMode: _prefs.resolveAudioOutputMode(),
+      audioFallbackCodec: _prefs.resolveAudioFallbackCodec(),
+      ac3PassthroughEnabled: _prefs.resolveAc3PassthroughEnabled(),
+      eac3PassthroughEnabled: _prefs.resolveEac3PassthroughEnabled(),
+      eac3JocPassthroughEnabled: _prefs.resolveEac3JocPassthroughEnabled(),
+      dtsCorePassthroughEnabled: _prefs.resolveDtsCorePassthroughEnabled(),
+      dtsHdPassthroughEnabled: _prefs.resolveDtsHdPassthroughEnabled(),
+      trueHdPassthroughEnabled: _prefs.resolveTrueHdPassthroughEnabled(),
+      trueHdAtmosPassthroughEnabled: _prefs.resolveTrueHdAtmosPassthroughEnabled(),
+      downMixAudio: _prefs.resolveAudioOutputMode() == AudioOutputMode.forceStereo,
+      audioFallbackToStereoAac:
+          _prefs.resolveAudioFallbackCodec() == AudioFallbackCodec.aacStereo,
       maxResolution: maxResolution,
       pgsDirectPlay: _prefs.get(UserPreferences.pgsDirectPlay),
       assDirectPlay: _prefs.get(UserPreferences.assDirectPlay),
@@ -515,23 +522,32 @@ class MediaKitPlayerBackend implements PlayerBackend {
 
   @visibleForTesting
   static List<String> passthroughCodecsFromPreferences({
-    required AudioBehavior audioBehavior,
-    required bool ac3Enabled,
-    required bool dtsEnabled,
-    required bool trueHdEnabled,
+    required AudioOutputMode audioOutputMode,
+    required bool ac3PassthroughEnabled,
+    required bool eac3PassthroughEnabled,
+    required bool eac3JocPassthroughEnabled,
+    required bool dtsCorePassthroughEnabled,
+    required bool dtsHdPassthroughEnabled,
+    required bool trueHdPassthroughEnabled,
+    required bool trueHdAtmosPassthroughEnabled,
   }) {
-    if (audioBehavior == AudioBehavior.downmixToStereo) {
+    if (audioOutputMode == AudioOutputMode.forceStereo) {
       return const <String>[];
     }
 
     final codecs = <String>[];
-    if (ac3Enabled) {
-      codecs.addAll(const <String>['ac3', 'eac3']);
+    if (ac3PassthroughEnabled) {
+      codecs.add('ac3');
     }
-    if (dtsEnabled) {
+    if (eac3PassthroughEnabled || eac3JocPassthroughEnabled) {
+      codecs.add('eac3');
+    }
+    if (dtsHdPassthroughEnabled) {
+      codecs.add('dts-hd');
+    } else if (dtsCorePassthroughEnabled) {
       codecs.add('dts');
     }
-    if (trueHdEnabled) {
+    if (trueHdPassthroughEnabled || trueHdAtmosPassthroughEnabled) {
       codecs.add('truehd');
     }
     return codecs;
@@ -539,17 +555,25 @@ class MediaKitPlayerBackend implements PlayerBackend {
 
   @visibleForTesting
   static Map<String, String> passthroughMpvPropertiesFromPreferences({
-    required AudioBehavior audioBehavior,
-    required bool ac3Enabled,
-    required bool dtsEnabled,
-    required bool trueHdEnabled,
+    required AudioOutputMode audioOutputMode,
+    required bool ac3PassthroughEnabled,
+    required bool eac3PassthroughEnabled,
+    required bool eac3JocPassthroughEnabled,
+    required bool dtsCorePassthroughEnabled,
+    required bool dtsHdPassthroughEnabled,
+    required bool trueHdPassthroughEnabled,
+    required bool trueHdAtmosPassthroughEnabled,
     required bool includeAudioExclusive,
   }) {
     final codecs = passthroughCodecsFromPreferences(
-      audioBehavior: audioBehavior,
-      ac3Enabled: ac3Enabled,
-      dtsEnabled: dtsEnabled,
-      trueHdEnabled: trueHdEnabled,
+      audioOutputMode: audioOutputMode,
+      ac3PassthroughEnabled: ac3PassthroughEnabled,
+      eac3PassthroughEnabled: eac3PassthroughEnabled,
+      eac3JocPassthroughEnabled: eac3JocPassthroughEnabled,
+      dtsCorePassthroughEnabled: dtsCorePassthroughEnabled,
+      dtsHdPassthroughEnabled: dtsHdPassthroughEnabled,
+      trueHdPassthroughEnabled: trueHdPassthroughEnabled,
+      trueHdAtmosPassthroughEnabled: trueHdAtmosPassthroughEnabled,
     );
 
     final properties = <String, String>{'audio-spdif': codecs.join(',')};
@@ -567,10 +591,15 @@ class MediaKitPlayerBackend implements PlayerBackend {
     try {
       final native = _player.platform as NativePlayer;
       final properties = passthroughMpvPropertiesFromPreferences(
-        audioBehavior: _prefs.get(UserPreferences.audioBehavior),
-        ac3Enabled: _prefs.get(UserPreferences.ac3Enabled),
-        dtsEnabled: _prefs.get(UserPreferences.dtsEnabled),
-        trueHdEnabled: _prefs.get(UserPreferences.trueHdEnabled),
+        audioOutputMode: _prefs.resolveAudioOutputMode(),
+        ac3PassthroughEnabled: _prefs.resolveAc3PassthroughEnabled(),
+        eac3PassthroughEnabled: _prefs.resolveEac3PassthroughEnabled(),
+        eac3JocPassthroughEnabled: _prefs.resolveEac3JocPassthroughEnabled(),
+        dtsCorePassthroughEnabled: _prefs.resolveDtsCorePassthroughEnabled(),
+        dtsHdPassthroughEnabled: _prefs.resolveDtsHdPassthroughEnabled(),
+        trueHdPassthroughEnabled: _prefs.resolveTrueHdPassthroughEnabled(),
+        trueHdAtmosPassthroughEnabled:
+            _prefs.resolveTrueHdAtmosPassthroughEnabled(),
         includeAudioExclusive: PlatformDetection.isDesktop,
       );
 

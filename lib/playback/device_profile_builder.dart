@@ -1,3 +1,4 @@
+import 'audio_capability_profile.dart';
 import '../preference/preference_constants.dart';
 import '../util/platform_detection.dart';
 import 'known_defects.dart';
@@ -73,9 +74,16 @@ class DeviceProfileBuilder {
 
   static Map<String, dynamic> build({
     int? maxBitrateMbps,
-    bool ac3Enabled = true,
-    bool trueHdEnabled = true,
-    bool dtsEnabled = true,
+    AudioCapabilityProfile? audioCapabilityProfile,
+    AudioOutputMode audioOutputMode = AudioOutputMode.auto,
+    AudioFallbackCodec audioFallbackCodec = AudioFallbackCodec.auto,
+    bool ac3PassthroughEnabled = false,
+    bool eac3PassthroughEnabled = false,
+    bool eac3JocPassthroughEnabled = false,
+    bool dtsCorePassthroughEnabled = false,
+    bool dtsHdPassthroughEnabled = false,
+    bool trueHdPassthroughEnabled = false,
+    bool trueHdAtmosPassthroughEnabled = false,
     bool downMixAudio = false,
     bool audioFallbackToStereoAac = true,
     MaxVideoResolution maxResolution = MaxVideoResolution.auto,
@@ -113,21 +121,41 @@ class DeviceProfileBuilder {
     bool allowDolbyVisionProfile7ElDirectPlay = false,
   }) {
     final bitrateBps = maxBitrateMbps == null ? null : maxBitrateMbps * 1000000;
+    final capabilityProfile =
+        audioCapabilityProfile ?? const AudioCapabilityProfile.optimistic();
+    final forceStereo = _isForceStereo(
+      audioOutputMode: audioOutputMode,
+      legacyDownMixAudio: downMixAudio,
+    );
+    final effectiveAudioFallbackCodec = _resolveAudioFallbackCodec(
+      requested: audioFallbackCodec,
+      legacyStereoAacFallback: audioFallbackToStereoAac,
+      capabilityProfile: capabilityProfile,
+      forceStereo: forceStereo,
+    );
 
-    final allowedAudioCodecs = downMixAudio
+    final allowedAudioCodecs = forceStereo
         ? _downmixSupportedAudioCodecs
-        : _supportedAudioCodecs.where((codec) {
-            if (!ac3Enabled && (codec == 'ac3' || codec == 'eac3')) {
-              return false;
-            }
-            if (!trueHdEnabled && (codec == 'truehd' || codec == 'mlp')) {
-              return false;
-            }
-            if (!dtsEnabled && (codec == 'dts' || codec == 'dca')) {
-              return false;
-            }
-            return true;
-          }).toList(growable: false);
+        : _supportedAudioCodecs
+              .where(
+                (codec) => _isAudioCodecAllowed(
+                  codec: codec,
+                  capabilityProfile: capabilityProfile,
+                  ac3PassthroughEnabled: ac3PassthroughEnabled,
+                  eac3PassthroughEnabled: eac3PassthroughEnabled,
+                  eac3JocPassthroughEnabled: eac3JocPassthroughEnabled,
+                  dtsCorePassthroughEnabled: dtsCorePassthroughEnabled,
+                  dtsHdPassthroughEnabled: dtsHdPassthroughEnabled,
+                  trueHdPassthroughEnabled: trueHdPassthroughEnabled,
+                  trueHdAtmosPassthroughEnabled: trueHdAtmosPassthroughEnabled,
+                ),
+              )
+              .toList(growable: false);
+
+    final mpegTsAudioCodecs = _mpegTsAudioCodecsForFallback(
+      effectiveAudioFallbackCodec: effectiveAudioFallbackCodec,
+      allowedAudioCodecs: allowedAudioCodecs,
+    );
 
     final hlsVideoCodecs = <String>[
       if (supportsHevc) 'hevc',
@@ -138,8 +166,9 @@ class DeviceProfileBuilder {
         knownHevcDoviHdr10PlusBug || KnownDefects.hevcDoviHdr10PlusBug;
 
     final codecProfiles = _codecProfiles(
-      downMixAudio: downMixAudio,
-      audioFallbackToStereoAac: audioFallbackToStereoAac,
+      downMixAudio: forceStereo,
+      audioFallbackToStereoAac:
+          effectiveAudioFallbackCodec == AudioFallbackCodec.aacStereo,
       maxResolution: maxResolution,
       supportsAvc: supportsAvc,
       supportsAvcHigh10: supportsAvcHigh10,
@@ -200,9 +229,7 @@ class DeviceProfileBuilder {
           'Container': 'ts',
           'Protocol': 'hls',
           'VideoCodec': hlsVideoCodecs,
-          'AudioCodec': _hlsMpegTsAudioCodecs
-              .where(allowedAudioCodecs.contains)
-              .join(','),
+          'AudioCodec': mpegTsAudioCodecs.join(','),
           'CopyTimestamps': false,
           'EnableSubtitlesInManifest': true,
         },
@@ -233,6 +260,164 @@ class DeviceProfileBuilder {
         assDirectPlay: assDirectPlay,
       ),
     };
+  }
+
+  static bool _isForceStereo({
+    required AudioOutputMode audioOutputMode,
+    required bool legacyDownMixAudio,
+  }) {
+    switch (audioOutputMode) {
+      case AudioOutputMode.forceStereo:
+        return true;
+      case AudioOutputMode.avrPassthrough:
+        return false;
+      case AudioOutputMode.auto:
+        return legacyDownMixAudio;
+    }
+  }
+
+  static AudioFallbackCodec _resolveAudioFallbackCodec({
+    required AudioFallbackCodec requested,
+    required bool legacyStereoAacFallback,
+    required AudioCapabilityProfile capabilityProfile,
+    required bool forceStereo,
+  }) {
+    if (forceStereo) {
+      return AudioFallbackCodec.aacStereo;
+    }
+    if (requested != AudioFallbackCodec.auto) {
+      return requested;
+    }
+    if (legacyStereoAacFallback || !capabilityProfile.hasMultichannelCapability) {
+      return AudioFallbackCodec.aacStereo;
+    }
+    return AudioFallbackCodec.auto;
+  }
+
+  static List<String> _mpegTsAudioCodecsForFallback({
+    required AudioFallbackCodec effectiveAudioFallbackCodec,
+    required List<String> allowedAudioCodecs,
+  }) {
+    final preferredTargets = switch (effectiveAudioFallbackCodec) {
+      AudioFallbackCodec.auto => _hlsMpegTsAudioCodecs,
+      AudioFallbackCodec.aacStereo => const <String>['aac', 'mp3'],
+      AudioFallbackCodec.ac3_5_1 => const <String>['ac3', 'aac', 'mp3'],
+      AudioFallbackCodec.eac3_5_1 => const <String>[
+        'eac3',
+        'ac3',
+        'aac',
+        'mp3',
+      ],
+    };
+
+    return preferredTargets
+        .where(allowedAudioCodecs.contains)
+        .toList(growable: false);
+  }
+
+  static bool _isAudioCodecAllowed({
+    required String codec,
+    required AudioCapabilityProfile capabilityProfile,
+    required bool ac3PassthroughEnabled,
+    required bool eac3PassthroughEnabled,
+    required bool eac3JocPassthroughEnabled,
+    required bool dtsCorePassthroughEnabled,
+    required bool dtsHdPassthroughEnabled,
+    required bool trueHdPassthroughEnabled,
+    required bool trueHdAtmosPassthroughEnabled,
+  }) {
+    if (_isAudioCodecDecodeSupported(codec, capabilityProfile)) {
+      return true;
+    }
+
+    final passthroughSupported = _isAudioCodecPassthroughSupported(
+      codec,
+      capabilityProfile,
+    );
+    if (!passthroughSupported) {
+      return false;
+    }
+
+    return _isAudioCodecPassthroughEnabled(
+      codec: codec,
+      ac3PassthroughEnabled: ac3PassthroughEnabled,
+      eac3PassthroughEnabled: eac3PassthroughEnabled,
+      eac3JocPassthroughEnabled: eac3JocPassthroughEnabled,
+      dtsCorePassthroughEnabled: dtsCorePassthroughEnabled,
+      dtsHdPassthroughEnabled: dtsHdPassthroughEnabled,
+      trueHdPassthroughEnabled: trueHdPassthroughEnabled,
+      trueHdAtmosPassthroughEnabled: trueHdAtmosPassthroughEnabled,
+    );
+  }
+
+  static bool _isAudioCodecDecodeSupported(
+    String codec,
+    AudioCapabilityProfile capabilityProfile,
+  ) {
+    switch (codec) {
+      case 'ac3':
+        return capabilityProfile.canDecodeAc3;
+      case 'eac3':
+        return capabilityProfile.canDecodeEac3;
+      case 'dts':
+      case 'dca':
+        return capabilityProfile.canDecodeDts || capabilityProfile.canDecodeDtsHd;
+      case 'truehd':
+      case 'mlp':
+        return capabilityProfile.canDecodeTrueHd;
+      case 'flac':
+        return capabilityProfile.canDecodeFlac;
+      default:
+        return true;
+    }
+  }
+
+  static bool _isAudioCodecPassthroughSupported(
+    String codec,
+    AudioCapabilityProfile capabilityProfile,
+  ) {
+    switch (codec) {
+      case 'ac3':
+        return capabilityProfile.canPassthroughAc3;
+      case 'eac3':
+        return capabilityProfile.canPassthroughEac3 ||
+            capabilityProfile.canPassthroughEac3Joc;
+      case 'dts':
+      case 'dca':
+        return capabilityProfile.canPassthroughDts ||
+            capabilityProfile.canPassthroughDtsHd;
+      case 'truehd':
+      case 'mlp':
+        return capabilityProfile.canPassthroughTrueHd;
+      default:
+        return false;
+    }
+  }
+
+  static bool _isAudioCodecPassthroughEnabled({
+    required String codec,
+    required bool ac3PassthroughEnabled,
+    required bool eac3PassthroughEnabled,
+    required bool eac3JocPassthroughEnabled,
+    required bool dtsCorePassthroughEnabled,
+    required bool dtsHdPassthroughEnabled,
+    required bool trueHdPassthroughEnabled,
+    required bool trueHdAtmosPassthroughEnabled,
+  }) {
+    switch (codec) {
+      case 'ac3':
+        return ac3PassthroughEnabled;
+      case 'eac3':
+        return eac3PassthroughEnabled || eac3JocPassthroughEnabled;
+      case 'dts':
+      case 'dca':
+        return dtsCorePassthroughEnabled || dtsHdPassthroughEnabled;
+      case 'truehd':
+      case 'mlp':
+        return trueHdPassthroughEnabled || trueHdAtmosPassthroughEnabled;
+      default:
+        return false;
+    }
   }
 
   static String _profileName() {

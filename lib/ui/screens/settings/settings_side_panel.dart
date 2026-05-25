@@ -19,6 +19,7 @@ import '../../widgets/app_update_dialog.dart';
 
 import '../../../auth/store/authentication_preferences.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../playback/audio_capability_profile.dart';
 import '../../../playback/external_player_service.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
@@ -2235,10 +2236,93 @@ class _AudioPreferencesScreenState extends State<_AudioPreferencesScreen> {
   }
 
   bool get _showPassthroughToggles {
-    if (PlatformDetection.isWeb) {
+    if (PlatformDetection.isWeb || PlatformDetection.useMobileUi) {
       return false;
     }
-    return true;
+    return (PlatformDetection.isAndroid && PlatformDetection.isTV) ||
+        PlatformDetection.isDesktop;
+  }
+
+  AudioCapabilityProfile get _audioCapabilityProfile =>
+      AudioCapabilityProfile.fromMap(
+        PlatformDetection.hasAudioCapabilities
+            ? PlatformDetection.audioCapabilitiesSnapshot
+            : null,
+      );
+
+  String _audioRouteLabel(AppLocalizations l10n, AudioRouteType routeType) {
+    return switch (routeType) {
+      AudioRouteType.hdmi => l10n.settingsAudioRouteHdmi,
+      AudioRouteType.arc => l10n.settingsAudioRouteArc,
+      AudioRouteType.earc => l10n.settingsAudioRouteEarc,
+      AudioRouteType.bluetooth => l10n.settingsAudioRouteBluetooth,
+      AudioRouteType.speaker => l10n.settingsAudioRouteSpeaker,
+      AudioRouteType.other => l10n.unknown,
+    };
+  }
+
+  String _joinedOrUnknown(AppLocalizations l10n, List<String> values) {
+    if (values.isEmpty) {
+      return l10n.unknown;
+    }
+    return values.join(', ');
+  }
+
+  List<Widget> _buildDetectedCapabilities(AppLocalizations l10n) {
+    final hasSnapshot = PlatformDetection.hasAudioCapabilities;
+    if (!hasSnapshot) {
+      return <Widget>[
+        _SectionHeader(l10n.settingsDetectedAudioCapabilities),
+        _TvSettingsListTile(
+          leading: const Icon(Icons.hearing_disabled),
+          title: Text(l10n.settingsDetectedAudioCapabilitiesUnavailable),
+        ),
+      ];
+    }
+
+    final profile = _audioCapabilityProfile;
+    final decodeCodecs = <String>[
+      if (profile.canDecodeAc3) 'AC3',
+      if (profile.canDecodeEac3) 'EAC3',
+      if (profile.canDecodeDts) 'DTS',
+      if (profile.canDecodeDtsHd) 'DTS-HD',
+      if (profile.canDecodeTrueHd) 'TrueHD',
+      if (profile.canDecodeFlac) 'FLAC',
+    ];
+
+    final passthroughCodecs = <String>[
+      if (profile.canPassthroughAc3) 'AC3',
+      if (profile.canPassthroughEac3) 'EAC3',
+      if (profile.canPassthroughEac3Joc) 'EAC3 JOC',
+      if (profile.canPassthroughDts) 'DTS',
+      if (profile.canPassthroughDtsHd) 'DTS-HD',
+      if (profile.canPassthroughTrueHd) 'TrueHD',
+    ];
+
+    final routeSubtitleParts = <String>[
+      _audioRouteLabel(l10n, profile.activeRouteType),
+      l10n.settingsAudioPcmChannels(profile.maxPcmChannels),
+      if (profile.routeSupportsHdAudio) l10n.settingsAudioHdRoute,
+    ];
+
+    return <Widget>[
+      _SectionHeader(l10n.settingsDetectedAudioCapabilities),
+      _TvSettingsListTile(
+        leading: const Icon(Icons.router),
+        title: Text(l10n.settingsAudioRouteLabel),
+        subtitle: Text(routeSubtitleParts.join(' • ')),
+      ),
+      _TvSettingsListTile(
+        leading: const Icon(Icons.memory),
+        title: Text(l10n.settingsAudioDecodeLabel),
+        subtitle: Text(_joinedOrUnknown(l10n, decodeCodecs)),
+      ),
+      _TvSettingsListTile(
+        leading: const Icon(Icons.settings_input_hdmi),
+        title: Text(l10n.settingsAudioPassthroughLabel),
+        subtitle: Text(_joinedOrUnknown(l10n, passthroughCodecs)),
+      ),
+    ];
   }
 
   String _capabilitySubtitle(
@@ -2299,54 +2383,120 @@ class _AudioPreferencesScreenState extends State<_AudioPreferencesScreen> {
               'pol': l10n.polish,
             },
           ),
-          EnumPreferenceTile<AudioBehavior>(
-            preference: UserPreferences.audioBehavior,
-            title: l10n.audioBehavior,
+          EnumPreferenceTile<AudioOutputMode>(
+            preference: UserPreferences.audioOutputMode,
+            title: l10n.settingsAudioOutputMode,
             icon: Icons.surround_sound,
             labelOf: (v) => switch (v) {
-              AudioBehavior.directStream => l10n.directStream,
-              AudioBehavior.downmixToStereo => l10n.downmixToStereo,
+              AudioOutputMode.auto => l10n.auto,
+              AudioOutputMode.forceStereo => l10n.downmixToStereo,
+              AudioOutputMode.avrPassthrough =>
+                l10n.settingsAudioOutputModeAvrPassthrough,
             },
           ),
-          SwitchPreferenceTile(
-            preference: UserPreferences.audioFallbackToStereoAac,
-            title: 'Stereo AAC fallback',
-            subtitle:
-                'Allow server fallback to stereo AAC when passthrough audio codecs fail.',
+          EnumPreferenceTile<AudioFallbackCodec>(
+            preference: UserPreferences.audioFallbackCodec,
+            title: l10n.settingsAudioFallbackCodec,
             icon: Icons.hearing,
+            labelOf: (v) => switch (v) {
+              AudioFallbackCodec.auto => l10n.auto,
+              AudioFallbackCodec.aacStereo =>
+                l10n.settingsAudioFallbackAacStereo,
+              AudioFallbackCodec.ac3_5_1 =>
+                l10n.settingsAudioFallbackAc35_1,
+              AudioFallbackCodec.eac3_5_1 =>
+                l10n.settingsAudioFallbackEac35_1,
+            },
           ),
           if (_showPassthroughToggles) ...[
-            SwitchPreferenceTile(
-              preference: UserPreferences.ac3Enabled,
-              title: l10n.ac3Passthrough,
-              subtitle: _capabilitySubtitle(
-                l10n,
-                baseSubtitle: l10n.settingsBitstreamAc3ToExternalDecoder,
-                isSupported: PlatformDetection.supportsAc3Audio,
+            _SectionHeader(l10n.settingsAudioPassthroughAdvanced),
+            ExpansionTile(
+              leading: const Icon(Icons.settings_input_hdmi),
+              title: Text(l10n.settingsAudioCodecPassthrough),
+              subtitle: Text(
+                l10n.settingsAudioCodecPassthroughDescription,
               ),
-              icon: Icons.speaker,
-            ),
-            SwitchPreferenceTile(
-              preference: UserPreferences.dtsEnabled,
-              title: l10n.dtsPassthrough,
-              subtitle: _capabilitySubtitle(
-                l10n,
-                baseSubtitle: l10n.enableDtsPassthrough,
-                isSupported: PlatformDetection.supportsDtsAudio,
-              ),
-              icon: Icons.audiotrack,
-            ),
-            SwitchPreferenceTile(
-              preference: UserPreferences.trueHdEnabled,
-              title: l10n.trueHdSupport,
-              subtitle: _capabilitySubtitle(
-                l10n,
-                baseSubtitle: l10n.enableTrueHdAudio,
-                isSupported: PlatformDetection.supportsTrueHdAudio,
-              ),
-              icon: Icons.graphic_eq,
+              children: [
+                SwitchPreferenceTile(
+                  preference: UserPreferences.ac3PassthroughEnabled,
+                  title: l10n.ac3Passthrough,
+                  subtitle: _capabilitySubtitle(
+                    l10n,
+                    baseSubtitle: l10n.settingsBitstreamAc3ToExternalDecoder,
+                    isSupported: PlatformDetection.supportsAc3Audio,
+                  ),
+                  icon: Icons.speaker,
+                ),
+                SwitchPreferenceTile(
+                  preference: UserPreferences.eac3PassthroughEnabled,
+                  title: l10n.settingsAudioEac3Passthrough,
+                  subtitle: _capabilitySubtitle(
+                    l10n,
+                    baseSubtitle:
+                        l10n.settingsAudioBitstreamEac3ToExternalDecoder,
+                    isSupported: PlatformDetection.supportsEac3Audio,
+                  ),
+                  icon: Icons.surround_sound,
+                ),
+                SwitchPreferenceTile(
+                  preference: UserPreferences.eac3JocPassthroughEnabled,
+                  title: l10n.settingsAudioEac3JocPassthrough,
+                  subtitle: _capabilitySubtitle(
+                    l10n,
+                    baseSubtitle:
+                        l10n.settingsAudioBitstreamEac3JocToExternalDecoder,
+                    isSupported: PlatformDetection.supportsEac3JocAudio,
+                  ),
+                  icon: Icons.surround_sound,
+                ),
+                SwitchPreferenceTile(
+                  preference: UserPreferences.dtsCorePassthroughEnabled,
+                  title: l10n.settingsAudioDtsCorePassthrough,
+                  subtitle: _capabilitySubtitle(
+                    l10n,
+                    baseSubtitle: l10n.enableDtsPassthrough,
+                    isSupported: PlatformDetection.supportsDtsAudio,
+                  ),
+                  icon: Icons.audiotrack,
+                ),
+                SwitchPreferenceTile(
+                  preference: UserPreferences.dtsHdPassthroughEnabled,
+                  title: l10n.settingsAudioDtsHdPassthrough,
+                  subtitle: _capabilitySubtitle(
+                    l10n,
+                    baseSubtitle:
+                        l10n.settingsAudioBitstreamDtsHdToExternalDecoder,
+                    isSupported: PlatformDetection.supportsDtsHdAudio,
+                  ),
+                  icon: Icons.high_quality,
+                ),
+                SwitchPreferenceTile(
+                  preference: UserPreferences.trueHdPassthroughEnabled,
+                  title: l10n.settingsAudioTrueHdPassthrough,
+                  subtitle: _capabilitySubtitle(
+                    l10n,
+                    baseSubtitle: l10n.enableTrueHdAudio,
+                    isSupported: PlatformDetection.supportsTrueHdAudio,
+                  ),
+                  icon: Icons.graphic_eq,
+                ),
+                SwitchPreferenceTile(
+                  preference: UserPreferences.trueHdAtmosPassthroughEnabled,
+                  title: l10n.settingsAudioTrueHdAtmosPassthrough,
+                  subtitle: _capabilitySubtitle(
+                    l10n,
+                    baseSubtitle:
+                        l10n.settingsAudioBitstreamTrueHdAtmosToExternalDecoder,
+                    isSupported:
+                        PlatformDetection.supportsTrueHdAudio &&
+                        PlatformDetection.routeSupportsHdAudio,
+                  ),
+                  icon: Icons.graphic_eq,
+                ),
+              ],
             ),
           ],
+          ..._buildDetectedCapabilities(l10n),
         ],
       ),
     );

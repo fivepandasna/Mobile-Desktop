@@ -35,6 +35,7 @@ class PlaybackManager {
     PlaybackStartupFailureContext context,
   )?
   _startupRecoveryDecider;
+  void Function(PlaybackDecisionContext context)? _playbackDecisionLogger;
   final QueueService queueService = QueueService();
   final PlayerState state = PlayerState();
   final Set<PlayerBackend> _retainedBackends = <PlayerBackend>{};
@@ -313,6 +314,12 @@ class PlaybackManager {
     decider,
   ) {
     _startupRecoveryDecider = decider;
+  }
+
+  void setPlaybackDecisionLogger(
+    void Function(PlaybackDecisionContext context)? logger,
+  ) {
+    _playbackDecisionLogger = logger;
   }
 
   void _resetBackendSelectionLock() {
@@ -812,6 +819,23 @@ class PlaybackManager {
     _lastPlaybackResolution = resolution;
     _mediaSourceId = resolution.mediaSourceId;
     _itemKnownDuration = _resolvedItemDuration(item, resolution.mediaSourceId);
+
+    final playbackDecisionLogger = _playbackDecisionLogger;
+    if (playbackDecisionLogger != null && _backend != null) {
+      try {
+        playbackDecisionLogger(
+          PlaybackDecisionContext(
+            mediaItem: item,
+            resolution: resolution,
+            backend: _backend!,
+            deviceProfile: Map<String, dynamic>.from(profile),
+            maxStreamingBitrate: maxBitrate,
+            audioStreamIndex: _audioStreamIndex,
+            subtitleStreamIndex: _subtitleStreamIndex,
+          ),
+        );
+      } catch (_) {}
+    }
 
     if (_itemKnownDuration > Duration.zero) {
       state.setDuration(_itemKnownDuration);
@@ -1818,6 +1842,26 @@ class PlaybackManager {
 enum TransportAction { resume, pause, seek, stop, next, previous }
 
 enum PlaybackStartupRecoveryDecision { retryWithTranscode, abortPlayback }
+
+class PlaybackDecisionContext {
+  final dynamic mediaItem;
+  final StreamResolutionResult resolution;
+  final PlayerBackend backend;
+  final Map<String, dynamic> deviceProfile;
+  final int? maxStreamingBitrate;
+  final int? audioStreamIndex;
+  final int? subtitleStreamIndex;
+
+  const PlaybackDecisionContext({
+    required this.mediaItem,
+    required this.resolution,
+    required this.backend,
+    required this.deviceProfile,
+    required this.maxStreamingBitrate,
+    this.audioStreamIndex,
+    this.subtitleStreamIndex,
+  });
+}
 
 class PlaybackStartupFailureContext {
   final StreamResolutionResult resolution;

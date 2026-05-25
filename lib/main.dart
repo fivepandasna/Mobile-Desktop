@@ -13,8 +13,10 @@ import 'data/services/cast/airplay_command_bridge.dart';
 import 'data/services/download_notification_service.dart';
 import 'data/services/media_server_client_factory.dart';
 import 'di/injection.dart';
+import 'playback/audio_capability_profile.dart';
 import 'playback/audio_handler.dart';
 import 'playback/playback_lifecycle_handler.dart';
+import 'preference/preference_constants.dart';
 import 'preference/user_preferences.dart';
 import 'util/platform_detection.dart';
 
@@ -123,27 +125,86 @@ Future<void> _detectAndApplyAudioCapabilities(UserPreferences prefs) async {
       return;
     }
 
-    PlatformDetection.setAudioCapabilities(
+    final profile = AudioCapabilityProfile.fromMap(
       audioCaps.map((key, value) => MapEntry(key.toString(), value)),
     );
 
+    PlatformDetection.setAudioCapabilities(profile.toMap());
+
     final hasAutoDetected = prefs.get(UserPreferences.audioPrefsAutoDetected);
-    if (hasAutoDetected) return;
+    final hasPassthroughProbeSeeding =
+      prefs.get(UserPreferences.audioPassthroughProbeSeeded);
+    final hasOutputModeProbeSeeding =
+      prefs.get(UserPreferences.audioOutputModeProbeSeeded);
+    final hasSplitPrefsConfigured =
+        prefs.containsPreference(UserPreferences.audioOutputMode) &&
+        prefs.containsPreference(UserPreferences.ac3PassthroughEnabled) &&
+        prefs.containsPreference(UserPreferences.eac3PassthroughEnabled) &&
+        prefs.containsPreference(UserPreferences.eac3JocPassthroughEnabled) &&
+        prefs.containsPreference(UserPreferences.dtsCorePassthroughEnabled) &&
+        prefs.containsPreference(UserPreferences.dtsHdPassthroughEnabled) &&
+        prefs.containsPreference(UserPreferences.trueHdPassthroughEnabled) &&
+        prefs.containsPreference(UserPreferences.trueHdAtmosPassthroughEnabled) &&
+        prefs.containsPreference(UserPreferences.audioFallbackCodec);
 
-    final supportsAc3 = PlatformDetection.supportsAc3Audio;
-    final supportsTrueHd = PlatformDetection.supportsTrueHdAudio;
-    final supportsDts = PlatformDetection.supportsDtsAudio;
-
-    if (prefs.get(UserPreferences.ac3Enabled) != supportsAc3) {
-      await prefs.set(UserPreferences.ac3Enabled, supportsAc3);
-    }
-    if (prefs.get(UserPreferences.trueHdEnabled) != supportsTrueHd) {
-      await prefs.set(UserPreferences.trueHdEnabled, supportsTrueHd);
-    }
-    if (prefs.get(UserPreferences.dtsEnabled) != supportsDts) {
-      await prefs.set(UserPreferences.dtsEnabled, supportsDts);
+    if (hasAutoDetected &&
+        hasSplitPrefsConfigured &&
+        hasPassthroughProbeSeeding &&
+        hasOutputModeProbeSeeding) {
+      return;
     }
 
+    final routePrefersAvrMode =
+        profile.hasCompressedPassthroughRoute &&
+        (profile.activeRouteType == AudioRouteType.arc ||
+            profile.activeRouteType == AudioRouteType.earc);
+    final outputMode = routePrefersAvrMode
+        ? AudioOutputMode.avrPassthrough
+        : AudioOutputMode.auto;
+
+    final currentOutputMode = prefs.get(UserPreferences.audioOutputMode);
+    if (!hasOutputModeProbeSeeding &&
+        (currentOutputMode == AudioOutputMode.auto ||
+            currentOutputMode == AudioOutputMode.avrPassthrough) &&
+        currentOutputMode != outputMode) {
+      await prefs.set(UserPreferences.audioOutputMode, outputMode);
+    }
+
+    if (prefs.get(UserPreferences.audioFallbackCodec) != AudioFallbackCodec.auto) {
+      await prefs.set(UserPreferences.audioFallbackCodec, AudioFallbackCodec.auto);
+    }
+
+    await prefs.set(
+      UserPreferences.ac3PassthroughEnabled,
+      profile.canPassthroughAc3,
+    );
+    await prefs.set(
+      UserPreferences.eac3PassthroughEnabled,
+      profile.canPassthroughEac3,
+    );
+    await prefs.set(
+      UserPreferences.eac3JocPassthroughEnabled,
+      profile.canPassthroughEac3Joc,
+    );
+    await prefs.set(
+      UserPreferences.dtsCorePassthroughEnabled,
+      profile.canPassthroughDts,
+    );
+    await prefs.set(
+      UserPreferences.dtsHdPassthroughEnabled,
+      profile.canPassthroughDtsHd,
+    );
+    await prefs.set(
+      UserPreferences.trueHdPassthroughEnabled,
+      profile.canPassthroughTrueHd,
+    );
+    await prefs.set(
+      UserPreferences.trueHdAtmosPassthroughEnabled,
+      profile.canPassthroughTrueHd && profile.routeSupportsHdAudio,
+    );
+
+    await prefs.set(UserPreferences.audioOutputModeProbeSeeded, true);
+    await prefs.set(UserPreferences.audioPassthroughProbeSeeded, true);
     await prefs.set(UserPreferences.audioPrefsAutoDetected, true);
   } catch (_) {}
 }

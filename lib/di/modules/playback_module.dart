@@ -8,12 +8,14 @@ import '../../data/models/aggregated_item.dart';
 import '../../data/repositories/offline_repository.dart';
 import '../../data/services/media_server_client_factory.dart';
 import '../../data/services/offline_playback_tracker.dart';
+import '../../playback/audio_capability_profile.dart';
 import '../../playback/hdr_stream_capability.dart';
 import '../../playback/known_defects.dart';
 import '../../playback/external_player_policy.dart';
 import '../../playback/media_kit_player_backend.dart';
 import '../../playback/media3_player_backend.dart';
 import '../../playback/offline_stream_resolver.dart';
+import '../../playback/playback_profile_diagnostics.dart';
 import '../../platform/pip_service.dart';
 import '../../preference/preference_constants.dart';
 import '../../preference/user_preferences.dart';
@@ -58,6 +60,31 @@ bool _hasUnsupportedDolbyVisionProfile(StreamResolutionResult resolution) {
 bool _isEpisodeQueueItem(AggregatedItem item) {
   final type = item.type?.trim().toLowerCase();
   return type == 'episode';
+}
+
+List<String> _passthroughCodecsForDiagnostics(UserPreferences prefs) {
+  if (prefs.resolveAudioOutputMode() == AudioOutputMode.forceStereo) {
+    return const <String>[];
+  }
+
+  final codecs = <String>[];
+  if (prefs.resolveAc3PassthroughEnabled()) {
+    codecs.add('ac3');
+  }
+  if (prefs.resolveEac3PassthroughEnabled() ||
+      prefs.resolveEac3JocPassthroughEnabled()) {
+    codecs.add('eac3');
+  }
+  if (prefs.resolveDtsHdPassthroughEnabled()) {
+    codecs.add('dts-hd');
+  } else if (prefs.resolveDtsCorePassthroughEnabled()) {
+    codecs.add('dts');
+  }
+  if (prefs.resolveTrueHdPassthroughEnabled() ||
+      prefs.resolveTrueHdAtmosPassthroughEnabled()) {
+    codecs.add('truehd');
+  }
+  return codecs;
 }
 
 MediaServerClient? _resolveClientForServerId(String serverId) {
@@ -359,6 +386,26 @@ void registerPlaybackModule() {
     final rewind = Duration(seconds: secs);
     if (startPosition <= rewind) return Duration.zero;
     return startPosition - rewind;
+  });
+  manager.setPlaybackDecisionLogger((context) {
+    final audioCapabilityProfile = AudioCapabilityProfile.fromMap(
+      PlatformDetection.hasAudioCapabilities
+          ? PlatformDetection.audioCapabilitiesSnapshot
+          : null,
+    );
+
+    final audioSpdifCodecs = context.backend is MediaKitPlayerBackend
+        ? _passthroughCodecsForDiagnostics(prefs)
+        : const <String>[];
+
+    PlaybackProfileDiagnostics.instance.logPlaybackDecision(
+      context: context,
+      audioCapabilityProfile: audioCapabilityProfile,
+      media3Capabilities: PlatformDetection.hasAudioCapabilities
+          ? PlatformDetection.audioCapabilitiesSnapshot
+          : const <String, dynamic>{},
+      audioSpdifCodecs: audioSpdifCodecs,
+    );
   });
   manager.setExternalPlaybackDecider((items) {
     if (!(PlatformDetection.isAndroid && PlatformDetection.isTV)) {

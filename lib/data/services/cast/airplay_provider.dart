@@ -75,7 +75,6 @@ class AirPlayProvider implements CastProvider, CastTransportControls {
     final resolution = await _resolverForClient(client).resolve(
       item,
       deviceProfile: DeviceProfileBuilder.build(
-        ac3Enabled: false,
         maxBitrateMbps: 15,
       ),
       audioStreamIndex: audioStreamIndex,

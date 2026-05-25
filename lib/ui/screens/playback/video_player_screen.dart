@@ -20,6 +20,7 @@ import '../../widgets/playback/seek_icons.dart';
 
 import '../../../playback/media_kit_player_backend.dart';
 import '../../../playback/playback_lifecycle_handler.dart';
+import '../../../playback/playback_profile_diagnostics.dart';
 import '../../../playback/hdr_stream_capability.dart';
 import '../../../auth/repositories/user_repository.dart';
 import '../../../data/models/aggregated_item.dart';
@@ -1569,6 +1570,88 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         ),
       ];
       addSection(l10n.subtitles, subtitleRows);
+    }
+
+    final diagnostics = PlaybackProfileDiagnostics.instance.lastDecision;
+    if (diagnostics != null) {
+      final diagnosticsMediaSourceId = diagnostics['mediaSourceId']?.toString();
+      final currentMediaSourceId = resolution?.mediaSourceId ??
+          mediaSource?['Id']?.toString();
+      final matchesCurrentMediaSource =
+          diagnosticsMediaSourceId == null ||
+          currentMediaSourceId == null ||
+          diagnosticsMediaSourceId == currentMediaSourceId;
+
+      if (matchesCurrentMediaSource) {
+        String listValue(String key) {
+          final raw = diagnostics[key];
+          if (raw is List) {
+            final values = raw
+                .map((entry) => entry.toString().trim())
+                .where((entry) => entry.isNotEmpty)
+                .toList(growable: false);
+            return values.isEmpty ? l10n.unknown : values.join(', ');
+          }
+          final text = raw?.toString().trim() ?? '';
+          return text.isEmpty ? l10n.unknown : text;
+        }
+
+        String scalarValue(String key) {
+          final text = diagnostics[key]?.toString().trim() ?? '';
+          return text.isEmpty ? l10n.unknown : text;
+        }
+
+        final maxStreamingBitrate = switch (diagnostics['maxStreamingBitrate']) {
+          int value => value,
+          num value => value.toInt(),
+          _ => null,
+        };
+
+        final diagnosticsRows = <Map<String, dynamic>>[
+          row(l10n.player, scalarValue('backend')),
+          row(l10n.playMethod, scalarValue('playMethod')),
+          row(l10n.transcodeReasons, listValue('transcodingReasons')),
+          row(l10n.container, scalarValue('container')),
+          row(l10n.videoCodec, scalarValue('videoCodec')),
+          row(l10n.profile, scalarValue('videoProfile')),
+          row(l10n.settingsAudioDiagnosticsVideoLevel, scalarValue('videoLevel')),
+          row(l10n.settingsAudioDiagnosticsVideoRange, scalarValue('videoRange')),
+          row(l10n.audioCodec, scalarValue('audioCodec')),
+          row(l10n.profile, scalarValue('audioProfile')),
+          row(l10n.channels, scalarValue('audioChannels')),
+          row(l10n.settingsAudioDiagnosticsSubtitleCodec, scalarValue('subtitleCodec')),
+          row(
+            l10n.settingsAudioDiagnosticsAllowedAudioCodecs,
+            listValue('allowedAudioCodecs'),
+          ),
+          row(
+            l10n.settingsAudioDiagnosticsHlsMpegTsAudioCodecs,
+            listValue('hlsMpegTsAudioCodecs'),
+          ),
+          row(
+            l10n.settingsAudioDiagnosticsHlsFmp4AudioCodecs,
+            listValue('hlsFmp4AudioCodecs'),
+          ),
+          row(
+            l10n.settingsAudioDiagnosticsAudioSpdifPassthrough,
+            listValue('audioSpdifCodecs'),
+          ),
+          row(
+            l10n.settingsAudioDiagnosticsActiveAudioRoute,
+            scalarValue('activeRouteType'),
+          ),
+          row(
+            l10n.settingsAudioDiagnosticsRouteHdAudioSupport,
+            diagnostics['routeSupportsHdAudio'] == true
+                ? l10n.settingsEnabledOnThisDevice
+                : l10n.no,
+          ),
+          if (maxStreamingBitrate != null)
+            row(l10n.maxStreamingBitrate, _formatBitrate(maxStreamingBitrate)),
+        ];
+
+        addSection(l10n.settingsAudioDiagnostics, diagnosticsRows);
+      }
     }
 
     return sections;

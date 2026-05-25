@@ -26,6 +26,31 @@ class UserPreferences extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool containsPreferenceKey(String key) => _store.containsKey(key);
+
+  bool containsPreference<T>(Preference<T> pref) => _store.containsKey(pref.key);
+
+  AudioOutputMode resolveAudioOutputMode() => get(audioOutputMode);
+
+  AudioFallbackCodec resolveAudioFallbackCodec() => get(audioFallbackCodec);
+
+  bool resolveAc3PassthroughEnabled() => get(ac3PassthroughEnabled);
+
+  bool resolveEac3PassthroughEnabled() => get(eac3PassthroughEnabled);
+
+  bool resolveEac3JocPassthroughEnabled() {
+    return get(eac3JocPassthroughEnabled);
+  }
+
+  bool resolveDtsCorePassthroughEnabled() => get(dtsCorePassthroughEnabled);
+
+  bool resolveDtsHdPassthroughEnabled() => get(dtsHdPassthroughEnabled);
+
+  bool resolveTrueHdPassthroughEnabled() => get(trueHdPassthroughEnabled);
+
+  bool resolveTrueHdAtmosPassthroughEnabled() =>
+      get(trueHdAtmosPassthroughEnabled);
+
   void notifyPreferenceChanged() {
     notifyListeners();
   }
@@ -318,15 +343,51 @@ class UserPreferences extends ChangeNotifier {
     key: 'video_start_delay',
     defaultValue: 0,
   );
-  static final audioBehavior = EnumPreference(
-    key: 'audio_behavior',
-    defaultValue: AudioBehavior.directStream,
-    values: AudioBehavior.values,
+  static final audioOutputMode = EnumPreference(
+    key: 'audio_output_mode',
+    defaultValue: AudioOutputMode.auto,
+    values: AudioOutputMode.values,
   );
 
-  static final audioFallbackToStereoAac = Preference(
-    key: 'audio_fallback_to_stereo_aac',
-    defaultValue: !PlatformDetection.isAndroid || PlatformDetection.isTV,
+  static final audioFallbackCodec = EnumPreference(
+    key: 'audio_fallback_codec',
+    defaultValue: AudioFallbackCodec.auto,
+    values: AudioFallbackCodec.values,
+  );
+
+  static final ac3PassthroughEnabled = Preference(
+    key: 'pref_passthrough_ac3',
+    defaultValue: false,
+  );
+
+  static final eac3PassthroughEnabled = Preference(
+    key: 'pref_passthrough_eac3',
+    defaultValue: false,
+  );
+
+  static final eac3JocPassthroughEnabled = Preference(
+    key: 'pref_passthrough_eac3_joc',
+    defaultValue: false,
+  );
+
+  static final dtsCorePassthroughEnabled = Preference(
+    key: 'pref_passthrough_dts_core',
+    defaultValue: false,
+  );
+
+  static final dtsHdPassthroughEnabled = Preference(
+    key: 'pref_passthrough_dts_hd',
+    defaultValue: false,
+  );
+
+  static final trueHdPassthroughEnabled = Preference(
+    key: 'pref_passthrough_truehd',
+    defaultValue: false,
+  );
+
+  static final trueHdAtmosPassthroughEnabled = Preference(
+    key: 'pref_passthrough_truehd_atmos',
+    defaultValue: false,
   );
 
   static final audioNightMode = Preference(
@@ -334,23 +395,18 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
-  static final ac3Enabled = Preference(
-    key: 'pref_bitstream_ac3',
-    defaultValue: !(PlatformDetection.isAndroid && PlatformDetection.isTV),
-  );
-
-  static final trueHdEnabled = Preference(
-    key: 'pref_bitstream_truncated_hd',
-    defaultValue: !(PlatformDetection.isAndroid && PlatformDetection.isTV),
-  );
-
-  static final dtsEnabled = Preference(
-    key: 'pref_bitstream_dts',
+  static final audioPrefsAutoDetected = Preference(
+    key: 'pref_audio_caps_auto_detected',
     defaultValue: false,
   );
 
-  static final audioPrefsAutoDetected = Preference(
-    key: 'pref_audio_caps_auto_detected',
+  static final audioPassthroughProbeSeeded = Preference(
+    key: 'pref_audio_passthrough_probe_seeded_v1',
+    defaultValue: false,
+  );
+
+  static final audioOutputModeProbeSeeded = Preference(
+    key: 'pref_audio_output_mode_probe_seeded_v2',
     defaultValue: false,
   );
 

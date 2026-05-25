@@ -12,6 +12,7 @@ import '../data/repositories/offline_repository.dart';
 import '../data/services/connectivity_service.dart';
 import '../data/services/recent_searches_store.dart';
 import '../data/services/storage_path_service.dart';
+import '../preference/preference_constants.dart';
 import '../preference/user_preferences.dart';
 import '../util/platform_detection.dart';
 import 'modules/app_module.dart';
@@ -21,6 +22,21 @@ import 'modules/playback_module.dart';
 import 'modules/preference_module.dart';
 
 final getIt = GetIt.instance;
+
+const _legacyAudioBehaviorKey = 'audio_behavior';
+const _legacyAudioBehaviorDownmixValue = 'downmixToStereo';
+const _legacyAudioFallbackToStereoAacKey = 'audio_fallback_to_stereo_aac';
+const _legacyAc3EnabledKey = 'pref_bitstream_ac3';
+const _legacyTrueHdEnabledKey = 'pref_bitstream_truncated_hd';
+const _legacyDtsEnabledKey = 'pref_bitstream_dts';
+
+bool _legacyBitstreamDefaultForPlatform() {
+  return !(PlatformDetection.isAndroid && PlatformDetection.isTV);
+}
+
+bool _legacyStereoAacFallbackDefaultForPlatform() {
+  return !PlatformDetection.isAndroid || PlatformDetection.isTV;
+}
 
 String _clientName() {
   if (PlatformDetection.isAndroid && PlatformDetection.isTV) {
@@ -194,11 +210,7 @@ Future<void> _migrateAndroidTvPassthroughDefaults(
     return;
   }
 
-  await store.setBool(UserPreferences.ac3Enabled.key, false);
-  await store.setBool(UserPreferences.trueHdEnabled.key, false);
-  await store.setBool(UserPreferences.dtsEnabled.key, false);
-
-  await store.setBool(UserPreferences.audioPrefsAutoDetected.key, true);
+  await store.setBool(UserPreferences.audioPrefsAutoDetected.key, false);
 
   await store.setBool(migrationKey, true);
 }
@@ -216,7 +228,9 @@ Future<void> _migrateAndroidMobileStereoAacFallbackDefault(
     return;
   }
 
-  await store.setBool(UserPreferences.audioFallbackToStereoAac.key, false);
+  if (!store.containsKey(_legacyAudioFallbackToStereoAacKey)) {
+    await store.setBool(_legacyAudioFallbackToStereoAacKey, false);
+  }
   await store.setBool(migrationKey, true);
 }
 
@@ -233,24 +247,81 @@ Future<void> _migrateAndroidMobileAudioDefaults(
     return;
   }
 
-  final shouldResetAc3 =
-      store.containsKey(UserPreferences.ac3Enabled.key) &&
-      store.getBool(UserPreferences.ac3Enabled.key) == false;
-  final shouldResetTrueHd =
-      store.containsKey(UserPreferences.trueHdEnabled.key) &&
-      store.getBool(UserPreferences.trueHdEnabled.key) == false;
-  final shouldResetPreferFfmpeg =
-      store.containsKey(UserPreferences.preferExoPlayerFfmpeg.key) &&
-      store.getBool(UserPreferences.preferExoPlayerFfmpeg.key) == false;
+  await store.setBool(migrationKey, true);
+}
 
-  if (shouldResetAc3) {
-    await store.setBool(UserPreferences.ac3Enabled.key, true);
+Future<void> migrateAudioPreferenceSplit(PreferenceStore store) async {
+  const migrationKey = 'pref_audio_preference_split_v1';
+
+  if (store.getBool(migrationKey) == true) {
+    return;
   }
-  if (shouldResetTrueHd) {
-    await store.setBool(UserPreferences.trueHdEnabled.key, true);
+
+  Future<void> setBoolIfMissing(Preference<bool> pref, bool value) async {
+    if (!store.containsKey(pref.key)) {
+      await store.setBool(pref.key, value);
+    }
   }
-  if (shouldResetPreferFfmpeg) {
-    await store.setBool(UserPreferences.preferExoPlayerFfmpeg.key, true);
+
+  Future<void> setEnumIfMissing<T extends Enum>(
+    EnumPreference<T> pref,
+    T value,
+  ) async {
+    if (!store.containsKey(pref.key)) {
+      await store.setString(pref.key, value.name);
+    }
+  }
+
+  if (store.containsKey(_legacyAudioBehaviorKey)) {
+    final legacyAudioBehavior = store.getString(_legacyAudioBehaviorKey);
+    await setEnumIfMissing(
+      UserPreferences.audioOutputMode,
+      legacyAudioBehavior == _legacyAudioBehaviorDownmixValue
+          ? AudioOutputMode.forceStereo
+          : AudioOutputMode.auto,
+    );
+  }
+
+  if (store.containsKey(_legacyAc3EnabledKey)) {
+    final legacyAc3 =
+        store.getBool(_legacyAc3EnabledKey) ??
+        _legacyBitstreamDefaultForPlatform();
+    await setBoolIfMissing(UserPreferences.ac3PassthroughEnabled, legacyAc3);
+    await setBoolIfMissing(UserPreferences.eac3PassthroughEnabled, legacyAc3);
+  }
+
+  if (store.containsKey(_legacyDtsEnabledKey)) {
+    final legacyDts =
+        store.getBool(_legacyDtsEnabledKey) ?? false;
+    await setBoolIfMissing(UserPreferences.dtsCorePassthroughEnabled, legacyDts);
+    await setBoolIfMissing(UserPreferences.dtsHdPassthroughEnabled, legacyDts);
+  }
+
+  if (store.containsKey(_legacyTrueHdEnabledKey)) {
+    final legacyTrueHd =
+        store.getBool(_legacyTrueHdEnabledKey) ??
+        _legacyBitstreamDefaultForPlatform();
+    await setBoolIfMissing(UserPreferences.trueHdPassthroughEnabled, legacyTrueHd);
+    await setBoolIfMissing(
+      UserPreferences.trueHdAtmosPassthroughEnabled,
+      legacyTrueHd,
+    );
+  }
+
+  if (store.containsKey(_legacyAudioFallbackToStereoAacKey)) {
+    final legacyStereoAacFallback =
+        store.getBool(_legacyAudioFallbackToStereoAacKey) ??
+        _legacyStereoAacFallbackDefaultForPlatform();
+    await setEnumIfMissing(
+      UserPreferences.audioFallbackCodec,
+      legacyStereoAacFallback
+          ? AudioFallbackCodec.aacStereo
+          : AudioFallbackCodec.auto,
+    );
+  }
+
+  if (store.containsKey(_legacyAc3EnabledKey)) {
+    await setBoolIfMissing(UserPreferences.eac3JocPassthroughEnabled, false);
   }
 
   await store.setBool(migrationKey, true);
@@ -265,6 +336,7 @@ Future<void> configureDependencies() async {
   await _migrateAndroidTvPassthroughDefaults(preferenceStore);
   await _migrateAndroidMobileStereoAacFallbackDefault(preferenceStore);
   await _migrateAndroidMobileAudioDefaults(preferenceStore);
+  await migrateAudioPreferenceSplit(preferenceStore);
 
   var deviceId = preferenceStore.getString('device_id');
   if (deviceId == null) {

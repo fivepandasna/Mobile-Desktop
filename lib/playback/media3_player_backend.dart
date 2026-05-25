@@ -6,6 +6,7 @@ import 'package:playback_core/playback_core.dart';
 import '../preference/preference_constants.dart';
 import '../preference/user_preferences.dart';
 import '../util/platform_detection.dart';
+import 'audio_capability_profile.dart';
 import 'device_profile_builder.dart';
 import 'known_defects.dart';
 
@@ -331,25 +332,28 @@ class Media3PlayerBackend implements PlayerBackend {
     bool useProgressiveTranscode = false,
   }) {
     final maxBitrate = int.tryParse(_prefs.get(UserPreferences.maxBitrate));
-    final ac3Enabled =
-        PlatformDetection.useMobileUi || _prefs.get(UserPreferences.ac3Enabled);
-    final trueHdEnabled =
-        PlatformDetection.useMobileUi ||
-        _prefs.get(UserPreferences.trueHdEnabled);
-    final dtsEnabled = _prefs.get(UserPreferences.dtsEnabled);
     final maxResolution = _prefs.get(UserPreferences.maxVideoResolution);
+    final audioCapabilityProfile = PlatformDetection.hasAudioCapabilities
+        ? AudioCapabilityProfile.fromMap(
+            PlatformDetection.audioCapabilitiesSnapshot,
+          )
+        : const AudioCapabilityProfile.optimistic();
 
     return DeviceProfileBuilder.build(
       maxBitrateMbps: maxBitrate,
-      ac3Enabled: ac3Enabled,
-      trueHdEnabled: trueHdEnabled,
-      dtsEnabled: dtsEnabled,
-      downMixAudio:
-          _prefs.get(UserPreferences.audioBehavior) ==
-          AudioBehavior.downmixToStereo,
-      audioFallbackToStereoAac: _prefs.get(
-        UserPreferences.audioFallbackToStereoAac,
-      ),
+      audioCapabilityProfile: audioCapabilityProfile,
+      audioOutputMode: _prefs.resolveAudioOutputMode(),
+      audioFallbackCodec: _prefs.resolveAudioFallbackCodec(),
+      ac3PassthroughEnabled: _prefs.resolveAc3PassthroughEnabled(),
+      eac3PassthroughEnabled: _prefs.resolveEac3PassthroughEnabled(),
+      eac3JocPassthroughEnabled: _prefs.resolveEac3JocPassthroughEnabled(),
+      dtsCorePassthroughEnabled: _prefs.resolveDtsCorePassthroughEnabled(),
+      dtsHdPassthroughEnabled: _prefs.resolveDtsHdPassthroughEnabled(),
+      trueHdPassthroughEnabled: _prefs.resolveTrueHdPassthroughEnabled(),
+      trueHdAtmosPassthroughEnabled: _prefs.resolveTrueHdAtmosPassthroughEnabled(),
+      downMixAudio: _prefs.resolveAudioOutputMode() == AudioOutputMode.forceStereo,
+      audioFallbackToStereoAac:
+          _prefs.resolveAudioFallbackCodec() == AudioFallbackCodec.aacStereo,
       maxResolution: maxResolution,
       pgsDirectPlay: _prefs.get(UserPreferences.pgsDirectPlay),
       assDirectPlay: _prefs.get(UserPreferences.assDirectPlay),

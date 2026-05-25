@@ -2182,6 +2182,142 @@ class AppLocalizationsTr extends AppLocalizations {
       'TrueHD sesi etkinleştirin (tüm platformlarda çalışmayabilir)';
 
   @override
+  String get settingsAudioOutputMode => 'Audio Output Mode';
+
+  @override
+  String get settingsAudioOutputModeAvrPassthrough => 'AVR Passthrough';
+
+  @override
+  String get settingsAudioFallbackCodec => 'Audio Fallback Codec';
+
+  @override
+  String get settingsAudioFallbackAacStereo => 'AAC Stereo';
+
+  @override
+  String get settingsAudioFallbackAc35_1 => 'AC3 5.1';
+
+  @override
+  String get settingsAudioFallbackEac35_1 => 'EAC3 5.1';
+
+  @override
+  String get settingsAudioPassthroughAdvanced => 'Passthrough (Advanced)';
+
+  @override
+  String get settingsAudioCodecPassthrough => 'Codec Passthrough';
+
+  @override
+  String get settingsAudioCodecPassthroughDescription =>
+      'Enable only formats your AVR or HDMI sink supports.';
+
+  @override
+  String get settingsAudioEac3Passthrough => 'EAC3 Passthrough';
+
+  @override
+  String get settingsAudioEac3JocPassthrough => 'EAC3 JOC (Atmos) Passthrough';
+
+  @override
+  String get settingsAudioDtsCorePassthrough => 'DTS Core Passthrough';
+
+  @override
+  String get settingsAudioDtsHdPassthrough => 'DTS-HD MA Passthrough';
+
+  @override
+  String get settingsAudioTrueHdPassthrough => 'TrueHD Passthrough';
+
+  @override
+  String get settingsAudioTrueHdAtmosPassthrough => 'TrueHD Atmos Passthrough';
+
+  @override
+  String get settingsAudioBitstreamEac3ToExternalDecoder =>
+      'Bitstream Dolby Digital Plus (EAC3) to external decoder.';
+
+  @override
+  String get settingsAudioBitstreamEac3JocToExternalDecoder =>
+      'Bitstream Dolby Atmos over EAC3 (JOC) to external decoder.';
+
+  @override
+  String get settingsAudioBitstreamDtsHdToExternalDecoder =>
+      'Bitstream DTS-HD MA (includes DTS core) to external decoder.';
+
+  @override
+  String get settingsAudioBitstreamTrueHdAtmosToExternalDecoder =>
+      'Bitstream Dolby TrueHD with Atmos metadata to external decoder.';
+
+  @override
+  String get settingsDetectedAudioCapabilities => 'Detected Audio Capabilities';
+
+  @override
+  String get settingsDetectedAudioCapabilitiesUnavailable =>
+      'No runtime capability snapshot available yet.';
+
+  @override
+  String get settingsAudioRouteLabel => 'Route';
+
+  @override
+  String get settingsAudioDecodeLabel => 'Decode';
+
+  @override
+  String get settingsAudioPassthroughLabel => 'Passthrough';
+
+  @override
+  String get settingsAudioHdRoute => 'HD audio route';
+
+  @override
+  String get settingsAudioRouteHdmi => 'HDMI';
+
+  @override
+  String get settingsAudioRouteArc => 'ARC';
+
+  @override
+  String get settingsAudioRouteEarc => 'eARC';
+
+  @override
+  String get settingsAudioRouteBluetooth => 'Bluetooth';
+
+  @override
+  String get settingsAudioRouteSpeaker => 'Speaker';
+
+  @override
+  String settingsAudioPcmChannels(int count) {
+    return '${count}ch PCM';
+  }
+
+  @override
+  String get settingsAudioDiagnostics => 'Diagnostics';
+
+  @override
+  String get settingsAudioDiagnosticsVideoLevel => 'Video Level';
+
+  @override
+  String get settingsAudioDiagnosticsVideoRange => 'Video Range';
+
+  @override
+  String get settingsAudioDiagnosticsSubtitleCodec => 'Subtitle Codec';
+
+  @override
+  String get settingsAudioDiagnosticsAllowedAudioCodecs =>
+      'Allowed Audio Codecs';
+
+  @override
+  String get settingsAudioDiagnosticsHlsMpegTsAudioCodecs =>
+      'HLS MPEG-TS Audio Codecs';
+
+  @override
+  String get settingsAudioDiagnosticsHlsFmp4AudioCodecs =>
+      'HLS fMP4 Audio Codecs';
+
+  @override
+  String get settingsAudioDiagnosticsAudioSpdifPassthrough =>
+      'audio-spdif passthrough';
+
+  @override
+  String get settingsAudioDiagnosticsActiveAudioRoute => 'Active Audio Route';
+
+  @override
+  String get settingsAudioDiagnosticsRouteHdAudioSupport =>
+      'Route HD Audio Support';
+
+  @override
   String get nightMode => 'Gece Modu';
 
   @override

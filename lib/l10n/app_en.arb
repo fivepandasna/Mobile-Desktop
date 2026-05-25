@@ -3082,6 +3082,175 @@
   "@enableTrueHdAudio": {
     "description": "Description for TrueHD support"
   },
+  "settingsAudioOutputMode": "Audio Output Mode",
+  "@settingsAudioOutputMode": {
+    "description": "Setting for audio output mode"
+  },
+  "settingsAudioOutputModeAvrPassthrough": "AVR Passthrough",
+  "@settingsAudioOutputModeAvrPassthrough": {
+    "description": "Audio output mode option for AVR passthrough"
+  },
+  "settingsAudioFallbackCodec": "Audio Fallback Codec",
+  "@settingsAudioFallbackCodec": {
+    "description": "Setting for fallback audio codec"
+  },
+  "settingsAudioFallbackAacStereo": "AAC Stereo",
+  "@settingsAudioFallbackAacStereo": {
+    "description": "Fallback codec option for AAC stereo"
+  },
+  "settingsAudioFallbackAc35_1": "AC3 5.1",
+  "@settingsAudioFallbackAc35_1": {
+    "description": "Fallback codec option for AC3 5.1"
+  },
+  "settingsAudioFallbackEac35_1": "EAC3 5.1",
+  "@settingsAudioFallbackEac35_1": {
+    "description": "Fallback codec option for EAC3 5.1"
+  },
+  "settingsAudioPassthroughAdvanced": "Passthrough (Advanced)",
+  "@settingsAudioPassthroughAdvanced": {
+    "description": "Section title for advanced passthrough controls"
+  },
+  "settingsAudioCodecPassthrough": "Codec Passthrough",
+  "@settingsAudioCodecPassthrough": {
+    "description": "Title for codec passthrough settings group"
+  },
+  "settingsAudioCodecPassthroughDescription": "Enable only formats your AVR or HDMI sink supports.",
+  "@settingsAudioCodecPassthroughDescription": {
+    "description": "Description for codec passthrough settings group"
+  },
+  "settingsAudioEac3Passthrough": "EAC3 Passthrough",
+  "@settingsAudioEac3Passthrough": {
+    "description": "Setting for EAC3 passthrough"
+  },
+  "settingsAudioEac3JocPassthrough": "EAC3 JOC (Atmos) Passthrough",
+  "@settingsAudioEac3JocPassthrough": {
+    "description": "Setting for EAC3 JOC Atmos passthrough"
+  },
+  "settingsAudioDtsCorePassthrough": "DTS Core Passthrough",
+  "@settingsAudioDtsCorePassthrough": {
+    "description": "Setting for DTS core passthrough"
+  },
+  "settingsAudioDtsHdPassthrough": "DTS-HD MA Passthrough",
+  "@settingsAudioDtsHdPassthrough": {
+    "description": "Setting for DTS-HD MA passthrough"
+  },
+  "settingsAudioTrueHdPassthrough": "TrueHD Passthrough",
+  "@settingsAudioTrueHdPassthrough": {
+    "description": "Setting for TrueHD passthrough"
+  },
+  "settingsAudioTrueHdAtmosPassthrough": "TrueHD Atmos Passthrough",
+  "@settingsAudioTrueHdAtmosPassthrough": {
+    "description": "Setting for TrueHD Atmos passthrough"
+  },
+  "settingsAudioBitstreamEac3ToExternalDecoder": "Bitstream Dolby Digital Plus (EAC3) to external decoder.",
+  "@settingsAudioBitstreamEac3ToExternalDecoder": {
+    "description": "Description for EAC3 passthrough"
+  },
+  "settingsAudioBitstreamEac3JocToExternalDecoder": "Bitstream Dolby Atmos over EAC3 (JOC) to external decoder.",
+  "@settingsAudioBitstreamEac3JocToExternalDecoder": {
+    "description": "Description for EAC3 JOC passthrough"
+  },
+  "settingsAudioBitstreamDtsHdToExternalDecoder": "Bitstream DTS-HD MA (includes DTS core) to external decoder.",
+  "@settingsAudioBitstreamDtsHdToExternalDecoder": {
+    "description": "Description for DTS-HD MA passthrough"
+  },
+  "settingsAudioBitstreamTrueHdAtmosToExternalDecoder": "Bitstream Dolby TrueHD with Atmos metadata to external decoder.",
+  "@settingsAudioBitstreamTrueHdAtmosToExternalDecoder": {
+    "description": "Description for TrueHD Atmos passthrough"
+  },
+  "settingsDetectedAudioCapabilities": "Detected Audio Capabilities",
+  "@settingsDetectedAudioCapabilities": {
+    "description": "Section title for detected runtime audio capabilities"
+  },
+  "settingsDetectedAudioCapabilitiesUnavailable": "No runtime capability snapshot available yet.",
+  "@settingsDetectedAudioCapabilitiesUnavailable": {
+    "description": "Message shown when runtime audio capability snapshot is missing"
+  },
+  "settingsAudioRouteLabel": "Route",
+  "@settingsAudioRouteLabel": {
+    "description": "Label for active audio route row"
+  },
+  "settingsAudioDecodeLabel": "Decode",
+  "@settingsAudioDecodeLabel": {
+    "description": "Label for audio decode capability row"
+  },
+  "settingsAudioPassthroughLabel": "Passthrough",
+  "@settingsAudioPassthroughLabel": {
+    "description": "Label for audio passthrough capability row"
+  },
+  "settingsAudioHdRoute": "HD audio route",
+  "@settingsAudioHdRoute": {
+    "description": "Label indicating the active route supports HD audio"
+  },
+  "settingsAudioRouteHdmi": "HDMI",
+  "@settingsAudioRouteHdmi": {
+    "description": "Audio route type HDMI"
+  },
+  "settingsAudioRouteArc": "ARC",
+  "@settingsAudioRouteArc": {
+    "description": "Audio route type ARC"
+  },
+  "settingsAudioRouteEarc": "eARC",
+  "@settingsAudioRouteEarc": {
+    "description": "Audio route type eARC"
+  },
+  "settingsAudioRouteBluetooth": "Bluetooth",
+  "@settingsAudioRouteBluetooth": {
+    "description": "Audio route type Bluetooth"
+  },
+  "settingsAudioRouteSpeaker": "Speaker",
+  "@settingsAudioRouteSpeaker": {
+    "description": "Audio route type speaker"
+  },
+  "settingsAudioPcmChannels": "{count}ch PCM",
+  "@settingsAudioPcmChannels": {
+    "description": "Audio route subtitle showing max PCM channels",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsAudioDiagnostics": "Diagnostics",
+  "@settingsAudioDiagnostics": {
+    "description": "Section title for playback diagnostics"
+  },
+  "settingsAudioDiagnosticsVideoLevel": "Video Level",
+  "@settingsAudioDiagnosticsVideoLevel": {
+    "description": "Diagnostics label for video level"
+  },
+  "settingsAudioDiagnosticsVideoRange": "Video Range",
+  "@settingsAudioDiagnosticsVideoRange": {
+    "description": "Diagnostics label for video range"
+  },
+  "settingsAudioDiagnosticsSubtitleCodec": "Subtitle Codec",
+  "@settingsAudioDiagnosticsSubtitleCodec": {
+    "description": "Diagnostics label for subtitle codec"
+  },
+  "settingsAudioDiagnosticsAllowedAudioCodecs": "Allowed Audio Codecs",
+  "@settingsAudioDiagnosticsAllowedAudioCodecs": {
+    "description": "Diagnostics label for allowed audio codecs"
+  },
+  "settingsAudioDiagnosticsHlsMpegTsAudioCodecs": "HLS MPEG-TS Audio Codecs",
+  "@settingsAudioDiagnosticsHlsMpegTsAudioCodecs": {
+    "description": "Diagnostics label for HLS MPEG-TS audio codecs"
+  },
+  "settingsAudioDiagnosticsHlsFmp4AudioCodecs": "HLS fMP4 Audio Codecs",
+  "@settingsAudioDiagnosticsHlsFmp4AudioCodecs": {
+    "description": "Diagnostics label for HLS fMP4 audio codecs"
+  },
+  "settingsAudioDiagnosticsAudioSpdifPassthrough": "audio-spdif passthrough",
+  "@settingsAudioDiagnosticsAudioSpdifPassthrough": {
+    "description": "Diagnostics label for audio-spdif passthrough codecs"
+  },
+  "settingsAudioDiagnosticsActiveAudioRoute": "Active Audio Route",
+  "@settingsAudioDiagnosticsActiveAudioRoute": {
+    "description": "Diagnostics label for active audio route"
+  },
+  "settingsAudioDiagnosticsRouteHdAudioSupport": "Route HD Audio Support",
+  "@settingsAudioDiagnosticsRouteHdAudioSupport": {
+    "description": "Diagnostics label for route HD audio support"
+  },
   "nightMode": "Night Mode",
   "@nightMode": {
     "description": "Setting for night mode"
