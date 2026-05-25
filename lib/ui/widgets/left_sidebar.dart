@@ -408,7 +408,27 @@ class _LeftSidebarState extends State<LeftSidebar> {
     return null;
   }
 
-  bool _isActive(String route) => widget.activeRoute == route;
+  String _normalizedPath(String path) {
+    if (path.isEmpty) return path;
+    return (path.endsWith('/') && path.length > 1)
+        ? path.substring(0, path.length - 1)
+        : path;
+  }
+
+  String _currentPath() {
+    if (widget.activeRoute != null && widget.activeRoute!.isNotEmpty) {
+      return _normalizedPath(widget.activeRoute!);
+    }
+    try {
+      return _normalizedPath(GoRouterState.of(context).uri.path);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  bool _isActive(String route) {
+    return _currentPath() == _normalizedPath(route);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1155,7 +1175,9 @@ class _SidebarItemState extends State<_SidebarItem> {
     final desktopSidebar =
         PlatformDetection.isDesktop && !PlatformDetection.isTV;
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
-    final highlighted = _isFocused || _isHovered;
+    final highlighted =
+      (desktopSidebar && _isHovered) ||
+      (PlatformDetection.isTV && _isFocused);
     final focusColor = Color(_prefs.get(UserPreferences.focusColor).colorValue);
     final tvFocused = PlatformDetection.isTV && _isFocused;
     final baseColor = widget.baseColor ?? Colors.white.withValues(alpha: 0.6);
@@ -1280,7 +1302,9 @@ class _SidebarLibraryItemState extends State<_SidebarLibraryItem> {
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
     final focusColor = Color(_prefs.get(UserPreferences.focusColor).colorValue);
     final baseColor = widget.baseColor ?? Colors.white.withValues(alpha: 0.5);
-    final highlighted = _isHovered || _isFocused;
+    final highlighted =
+      (desktopSidebar && _isHovered) ||
+      (PlatformDetection.isTV && _isFocused);
     final tvFocused = PlatformDetection.isTV && _isFocused;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 1),
