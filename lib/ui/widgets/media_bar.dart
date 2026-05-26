@@ -26,6 +26,7 @@ import '../../preference/user_preferences.dart';
 import '../navigation/app_router.dart';
 import '../navigation/destinations.dart';
 import '../../util/language_matching.dart';
+import '../../util/overlay_color_palette.dart';
 import '../../util/platform_detection.dart';
 import '../../l10n/app_localizations.dart';
 import '../../playback/inline_preview_engine.dart';
@@ -125,6 +126,19 @@ class _MediaBarState extends State<MediaBar>
     if (PlatformDetection.useMobileUi) return false;
     return widget.prefs.get(UserPreferences.navbarPosition) ==
         NavbarPosition.left;
+  }
+
+  Color _mediaBarOverlayColor() {
+    return OverlayColorPalette.resolveColor(
+      widget.prefs.get(UserPreferences.mediaBarOverlayColor),
+    );
+  }
+
+  double _mediaBarOverlayOpacity() {
+    final value = widget.prefs
+        .get(UserPreferences.mediaBarOverlayOpacity)
+        .toDouble();
+    return value.clamp(0.0, 100.0) / 100.0;
   }
 
   @override
@@ -1343,8 +1357,8 @@ class _MediaBarState extends State<MediaBar>
   }
 
   Widget _buildSlideshow(BuildContext context, List<MediaBarSlideItem> items) {
-    final overlayColor = AppColorScheme.scrim;
-    const overlayOpacity = 0.7;
+    final overlayColor = _mediaBarOverlayColor();
+    final overlayOpacity = _mediaBarOverlayOpacity();
     final currentItem = items.elementAtOrNull(_currentIndex);
 
     final isMobile = PlatformDetection.useMobileUi;
@@ -1453,7 +1467,9 @@ class _MediaBarState extends State<MediaBar>
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 300),
                           child: Column(
-                            key: ValueKey(currentItem.itemId),
+                            key: ValueKey(
+                              '${currentItem.itemId}_${_isTrailerPlaying ? 'compact' : 'full'}',
+                            ),
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -1490,6 +1506,9 @@ class _MediaBarState extends State<MediaBar>
                                 showBadges: widget.prefs.get(
                                   UserPreferences.showRatingBadges,
                                 ),
+                                compact: _isTrailerPlaying,
+                                overlayColor: overlayColor,
+                                overlayOpacity: overlayOpacity,
                               ),
                             ],
                           ),
@@ -1539,6 +1558,8 @@ class _MediaBarState extends State<MediaBar>
     List<MediaBarSlideItem> items,
   ) {
     final currentItem = items.elementAtOrNull(_currentIndex);
+    final overlayColor = _mediaBarOverlayColor();
+    final overlayOpacity = _mediaBarOverlayOpacity();
     final isMobile = PlatformDetection.useMobileUi;
     final navbarAtTop =
         isMobile &&
@@ -1617,9 +1638,15 @@ class _MediaBarState extends State<MediaBar>
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
                             colors: [
-                              AppColorScheme.scrim.withValues(alpha: 0.78),
-                              AppColorScheme.scrim.withValues(alpha: 0.46),
-                              AppColorScheme.scrim.withValues(alpha: 0.06),
+                              overlayColor.withValues(
+                                alpha: overlayOpacity * 0.78,
+                              ),
+                              overlayColor.withValues(
+                                alpha: overlayOpacity * 0.46,
+                              ),
+                              overlayColor.withValues(
+                                alpha: overlayOpacity * 0.06,
+                              ),
                             ],
                             stops: const [0.0, 0.46, 1.0],
                           ),
@@ -1634,9 +1661,15 @@ class _MediaBarState extends State<MediaBar>
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              AppColorScheme.scrim.withValues(alpha: 0.12),
-                              AppColorScheme.scrim.withValues(alpha: 0.28),
-                              AppColorScheme.scrim.withValues(alpha: 0.78),
+                              overlayColor.withValues(
+                                alpha: overlayOpacity * 0.12,
+                              ),
+                              overlayColor.withValues(
+                                alpha: overlayOpacity * 0.28,
+                              ),
+                              overlayColor.withValues(
+                                alpha: overlayOpacity * 0.78,
+                              ),
                             ],
                             stops: const [0.0, 0.48, 1.0],
                           ),
@@ -1673,11 +1706,33 @@ class _MediaBarState extends State<MediaBar>
                         return Positioned(
                           left: isMobile ? null : 50,
                           top: isMobile ? mobileLogoTop : logoTop,
-                          child: isMobile
-                              ? SizedBox(
-                                  width: screenWidth,
-                                  child: Center(
-                                    child: AnimatedSwitcher(
+                          child: AnimatedOpacity(
+                            opacity: _isTrailerPlaying ? 0 : 1,
+                            duration: const Duration(milliseconds: 250),
+                            child: IgnorePointer(
+                              ignoring: _isTrailerPlaying,
+                              child: isMobile
+                                  ? SizedBox(
+                                      width: screenWidth,
+                                      child: Center(
+                                        child: AnimatedSwitcher(
+                                          duration: const Duration(
+                                            milliseconds: 300,
+                                          ),
+                                          child: SizedBox(
+                                            key: ValueKey(
+                                              'makd_logo_${currentItem.itemId}',
+                                            ),
+                                            width: mobileLogoWidth,
+                                            height: mobileLogoHeight,
+                                            child: _buildLogoWithShadow(
+                                              currentItem.logoUrl!,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : AnimatedSwitcher(
                                       duration: const Duration(
                                         milliseconds: 300,
                                       ),
@@ -1685,28 +1740,15 @@ class _MediaBarState extends State<MediaBar>
                                         key: ValueKey(
                                           'makd_logo_${currentItem.itemId}',
                                         ),
-                                        width: mobileLogoWidth,
-                                        height: mobileLogoHeight,
+                                        width: logoWidth,
+                                        height: logoHeight,
                                         child: _buildLogoWithShadow(
                                           currentItem.logoUrl!,
                                         ),
                                       ),
                                     ),
-                                  ),
-                                )
-                              : AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 300),
-                                  child: SizedBox(
-                                    key: ValueKey(
-                                      'makd_logo_${currentItem.itemId}',
-                                    ),
-                                    width: logoWidth,
-                                    height: logoHeight,
-                                    child: _buildLogoWithShadow(
-                                      currentItem.logoUrl!,
-                                    ),
-                                  ),
-                                ),
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -1715,44 +1757,51 @@ class _MediaBarState extends State<MediaBar>
                       left: isMobile ? 0 : 50,
                       right: isMobile ? 0 : null,
                       bottom: isMobile ? 24 : 20,
-                      child: Padding(
-                        padding: isMobile
-                            ? const EdgeInsets.symmetric(horizontal: 20)
-                            : EdgeInsets.zero,
-                        child: SizedBox(
-                          width: isMobile ? null : contentWidth,
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 320),
-                            child: _MakdContent(
-                              key: ValueKey(
-                                'makd_content_${currentItem.itemId}',
+                      child: AnimatedOpacity(
+                        opacity: _isTrailerPlaying ? 0 : 1,
+                        duration: const Duration(milliseconds: 250),
+                        child: IgnorePointer(
+                          ignoring: _isTrailerPlaying,
+                          child: Padding(
+                            padding: isMobile
+                                ? const EdgeInsets.symmetric(horizontal: 20)
+                                : EdgeInsets.zero,
+                            child: SizedBox(
+                              width: isMobile ? null : contentWidth,
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 320),
+                                child: _MakdContent(
+                                  key: ValueKey(
+                                    'makd_content_${currentItem.itemId}',
+                                  ),
+                                  item: currentItem,
+                                  ratings: widget.viewModel.ratingsFor(
+                                    currentItem.itemId,
+                                  ),
+                                  enableAdditionalRatings: widget.prefs.get(
+                                    UserPreferences.enableAdditionalRatings,
+                                  ),
+                                  enabledRatings: widget.prefs.get(
+                                    UserPreferences.enabledRatings,
+                                  ),
+                                  showLabels: widget.prefs.get(
+                                    UserPreferences.showRatingLabels,
+                                  ),
+                                  showBadges: widget.prefs.get(
+                                    UserPreferences.showRatingBadges,
+                                  ),
+                                  isMobile: isMobile,
+                                  onPlay: () =>
+                                      _navigateToItemAndPlay(context, items),
+                                  onInfo: () => _navigateToItem(context, items),
+                                ),
                               ),
-                              item: currentItem,
-                              ratings: widget.viewModel.ratingsFor(
-                                currentItem.itemId,
-                              ),
-                              enableAdditionalRatings: widget.prefs.get(
-                                UserPreferences.enableAdditionalRatings,
-                              ),
-                              enabledRatings: widget.prefs.get(
-                                UserPreferences.enabledRatings,
-                              ),
-                              showLabels: widget.prefs.get(
-                                UserPreferences.showRatingLabels,
-                              ),
-                              showBadges: widget.prefs.get(
-                                UserPreferences.showRatingBadges,
-                              ),
-                              isMobile: isMobile,
-                              onPlay: () =>
-                                  _navigateToItemAndPlay(context, items),
-                              onInfo: () => _navigateToItem(context, items),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  if (items.length > 1)
+                  if (items.length > 1 && !_isTrailerPlaying)
                     isMobile
                         ? Positioned(
                             bottom: 14,
@@ -1773,7 +1822,9 @@ class _MediaBarState extends State<MediaBar>
                               current: _currentIndex,
                             ),
                           ),
-                  if (items.length > 1 && !PlatformDetection.useMobileUi) ...[
+                  if (items.length > 1 &&
+                      !PlatformDetection.useMobileUi &&
+                      !_isTrailerPlaying) ...[
                     if (!_hideLeftNavArrowForSidebar)
                       Positioned(
                         left: 0,
@@ -2105,6 +2156,9 @@ class _SlideInfo extends StatelessWidget {
   final String enabledRatings;
   final bool showLabels;
   final bool showBadges;
+  final bool compact;
+  final Color overlayColor;
+  final double overlayOpacity;
 
   const _SlideInfo({
     required this.item,
@@ -2113,30 +2167,38 @@ class _SlideInfo extends StatelessWidget {
     required this.enabledRatings,
     this.showLabels = true,
     this.showBadges = true,
+    this.compact = false,
+    required this.overlayColor,
+    required this.overlayOpacity,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isMobile = PlatformDetection.useMobileUi;
+    final cardAlpha = (kIsWeb ? 1.0 : 0.75) * overlayOpacity;
 
     final infoCard = Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        // Higher opacity on web compensates for the missing blur.
-        color: AppColorScheme.scrim.withValues(alpha: kIsWeb ? 0.6 : 0.35),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.fromBorderSide(ThemeRegistry.active.borders.cardBorder),
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: compact ? 6 : 12),
+      decoration: compact
+          ? null
+          : BoxDecoration(
+              color: overlayColor.withValues(alpha: cardAlpha.clamp(0.0, 1.0)),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.fromBorderSide(
+                ThemeRegistry.active.borders.cardBorder,
+              ),
+            ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           _MetadataRow(item: item),
-          if (ratings.isNotEmpty ||
-              item.communityRating != null ||
-              item.criticRating != null) ...[
+          if (!compact &&
+              (ratings.isNotEmpty ||
+                  item.communityRating != null ||
+                  item.criticRating != null)) ...[
             const SizedBox(height: 6),
             RatingsRow(
               ratings: ratings,
@@ -2148,29 +2210,33 @@ class _SlideInfo extends StatelessWidget {
               showBadges: showBadges,
             ),
           ],
-          const SizedBox(height: 8),
-          SizedBox(
-            height:
-                ((isMobile
-                        ? theme.textTheme.bodySmall?.fontSize
-                        : theme.textTheme.bodyMedium?.fontSize) ??
-                    14) *
-                1.4 *
-                (isMobile ? 2 : 3),
-            child: Text(
-              item.overview ?? '',
-              style:
-                  (isMobile
-                          ? theme.textTheme.bodySmall
-                          : theme.textTheme.bodyMedium)
-                      ?.copyWith(
-                        color: AppColorScheme.onSurface.withValues(alpha: 0.9),
-                        shadows: _textShadows,
-                      ),
-              maxLines: isMobile ? 2 : 3,
-              overflow: TextOverflow.ellipsis,
+          if (!compact) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              height:
+                  ((isMobile
+                          ? theme.textTheme.bodySmall?.fontSize
+                          : theme.textTheme.bodyMedium?.fontSize) ??
+                      14) *
+                  1.4 *
+                  (isMobile ? 2 : 3),
+              child: Text(
+                item.overview ?? '',
+                style:
+                    (isMobile
+                            ? theme.textTheme.bodySmall
+                            : theme.textTheme.bodyMedium)
+                        ?.copyWith(
+                          color: AppColorScheme.onSurface.withValues(
+                            alpha: 0.9,
+                          ),
+                          shadows: _textShadows,
+                        ),
+                maxLines: isMobile ? 2 : 3,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -2181,15 +2247,17 @@ class _SlideInfo extends StatelessWidget {
         right: PlatformDetection.isTV ? 40.0 : 8.0,
         bottom: isMobile ? 24 : 36,
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: kIsWeb
-            ? infoCard
-            : BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                child: infoCard,
-              ),
-      ),
+      child: compact
+          ? infoCard
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: kIsWeb
+                  ? infoCard
+                  : BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: infoCard,
+                    ),
+            ),
     );
   }
 }

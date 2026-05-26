@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../data/services/plugin_sync_service.dart';
 import '../../../di/providers.dart';
 import '../../../util/focus/dpad_keys.dart';
+import '../../../util/overlay_color_palette.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/app_distribution.dart';
 import '../../widgets/app_update_dialog.dart';
@@ -118,8 +119,9 @@ class _SettingsSidePanelState extends ConsumerState<SettingsSidePanel> {
         icon: Icons.lock,
         title: l10n.settingsAccountSecurity,
         subtitle: l10n.settingsAccountSecuritySubtitle,
-        focusNode:
-            (!showAdmin && enablePanelAutofocus) ? _firstFocusNode : null,
+        focusNode: (!showAdmin && enablePanelAutofocus)
+            ? _firstFocusNode
+            : null,
         onTap: () =>
             context.pushSettingsScreen(const _AuthenticationCategoryScreen()),
       ),
@@ -456,38 +458,41 @@ class _CustomizationCategoryScreen extends StatelessWidget {
     return withCleanSettingsTypography(
       context,
       Scaffold(
-        appBar: buildSettingsAppBar(context, Text(l10n.settingsPersonalization)),
+        appBar: buildSettingsAppBar(
+          context,
+          Text(l10n.settingsPersonalization),
+        ),
         body: ListView(
           children: [
-          _TvSettingsListTile(
-            autofocus: true,
-            leading: const Icon(Icons.style),
-            title: Text(l10n.settingsGeneralStyle),
-            subtitle: Text(l10n.settingsGeneralStyleSubtitle),
-            onTap: () =>
-                context.pushSettingsScreen(const _GeneralStyleScreen()),
-          ),
-          _TvSettingsListTile(
-            leading: const Icon(Icons.view_sidebar),
-            title: Text(l10n.navigation),
-            subtitle: Text(l10n.navbarStyleToolbarAppearance),
-            onTap: () =>
-                context.pushSettingsScreen(const _NavigationCategoryScreen()),
-          ),
-          _TvSettingsListTile(
-            leading: const Icon(Icons.home),
-            title: const Text('Home Screen'),
-            subtitle: Text(l10n.settingsHomePageSubtitle),
-            onTap: () =>
-                context.pushSettingsScreen(const _HomeScreenCategoryScreen()),
-          ),
-          _TvSettingsListTile(
-            leading: const Icon(Icons.video_library),
-            title: Text(l10n.libraries),
-            subtitle: Text(l10n.settingsLibrariesSubtitle),
-            onTap: () =>
-                context.pushSettingsScreen(const _LibrariesCategoryScreen()),
-          ),
+            _TvSettingsListTile(
+              autofocus: true,
+              leading: const Icon(Icons.style),
+              title: Text(l10n.settingsGeneralStyle),
+              subtitle: Text(l10n.settingsGeneralStyleSubtitle),
+              onTap: () =>
+                  context.pushSettingsScreen(const _GeneralStyleScreen()),
+            ),
+            _TvSettingsListTile(
+              leading: const Icon(Icons.view_sidebar),
+              title: Text(l10n.navigation),
+              subtitle: Text(l10n.navbarStyleToolbarAppearance),
+              onTap: () =>
+                  context.pushSettingsScreen(const _NavigationCategoryScreen()),
+            ),
+            _TvSettingsListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home Screen'),
+              subtitle: Text(l10n.settingsHomePageSubtitle),
+              onTap: () =>
+                  context.pushSettingsScreen(const _HomeScreenCategoryScreen()),
+            ),
+            _TvSettingsListTile(
+              leading: const Icon(Icons.video_library),
+              title: Text(l10n.libraries),
+              subtitle: Text(l10n.settingsLibrariesSubtitle),
+              onTap: () =>
+                  context.pushSettingsScreen(const _LibrariesCategoryScreen()),
+            ),
           ],
         ),
       ),
@@ -787,7 +792,9 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final showFavoritesRows = _prefs.get(UserPreferences.displayFavoritesRows);
-    final showCollectionsRows = _prefs.get(UserPreferences.displayCollectionsRows);
+    final showCollectionsRows = _prefs.get(
+      UserPreferences.displayCollectionsRows,
+    );
     final showGenresRows = _prefs.get(UserPreferences.displayGenresRows);
     final rowsStyle = _prefs.get(UserPreferences.homeRowsStyle);
     return Scaffold(
@@ -835,7 +842,8 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
           SwitchPreferenceTile(
             preference: UserPreferences.displayFavoritesRows,
             title: 'Display Favorites Rows',
-            subtitle: 'Show Favorite Movies, Series, and other favorite rows in Home Sections.',
+            subtitle:
+                'Show Favorite Movies, Series, and other favorite rows in Home Sections.',
             icon: Icons.favorite,
             onChanged: _onFavoritesRowsToggleChanged,
           ),
@@ -843,7 +851,8 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
             EnumPreferenceTile<LibrarySortBy>(
               preference: UserPreferences.favoritesRowSortBy,
               title: 'Favorites Row Sorting',
-              description: 'Sort Favorites rows by date added, release date, alphabetically, and more.',
+              description:
+                  'Sort Favorites rows by date added, release date, alphabetically, and more.',
               icon: Icons.sort,
               labelOf: (v) => v.displayName,
               onChanged: _onFavoritesSortChanged,
@@ -859,7 +868,8 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
             EnumPreferenceTile<LibrarySortBy>(
               preference: UserPreferences.collectionsRowSortBy,
               title: 'Collections Row Sorting',
-              description: 'Sort Collections rows by date added, release date, alphabetically, and more.',
+              description:
+                  'Sort Collections rows by date added, release date, alphabetically, and more.',
               icon: Icons.sort,
               labelOf: (v) => v.displayName,
               onChanged: _onCollectionsSortChanged,
@@ -875,7 +885,8 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
             EnumPreferenceTile<LibrarySortBy>(
               preference: UserPreferences.genresRowSortBy,
               title: 'Genres Row Sorting',
-              description: 'Sort Genres rows by date added, release date, alphabetically, and more.',
+              description:
+                  'Sort Genres rows by date added, release date, alphabetically, and more.',
               icon: Icons.sort,
               labelOf: (v) => v.displayName,
               onChanged: _onGenresSortChanged,
@@ -980,28 +991,29 @@ class _PluginCategoryScreen extends StatelessWidget {
         appBar: buildSettingsAppBar(context, Text(l10n.settingsDynamicContent)),
         body: ListView(
           children: [
-          _TvSettingsListTile(
-            autofocus: true,
-            leading: const Icon(Icons.featured_play_list),
-            title: Text(l10n.mediaBar),
-            subtitle: Text(l10n.featuredContentAppearance),
-            onTap: () =>
-                context.pushSettingsScreen(const MediaBarSettingsScreen()),
-          ),
-          _TvSettingsListTile(
-            leading: const Icon(Icons.preview),
-            title: Text(l10n.localPreviews),
-            subtitle: Text(l10n.localPreviewsDescription),
-            onTap: () =>
-                context.pushSettingsScreen(const LocalPreviewsSettingsScreen()),
-          ),
-          _TvSettingsListTile(
-            leading: const Icon(Icons.auto_awesome),
-            title: Text(l10n.seasonalEffects),
-            subtitle: Text(l10n.seasonalEffectsDescription),
-            onTap: () =>
-                context.pushSettingsScreen(const _SeasonalEffectsScreen()),
-          ),
+            _TvSettingsListTile(
+              autofocus: true,
+              leading: const Icon(Icons.featured_play_list),
+              title: Text(l10n.mediaBar),
+              subtitle: Text(l10n.featuredContentAppearance),
+              onTap: () =>
+                  context.pushSettingsScreen(const MediaBarSettingsScreen()),
+            ),
+            _TvSettingsListTile(
+              leading: const Icon(Icons.preview),
+              title: Text(l10n.localPreviews),
+              subtitle: Text(l10n.localPreviewsDescription),
+              onTap: () => context.pushSettingsScreen(
+                const LocalPreviewsSettingsScreen(),
+              ),
+            ),
+            _TvSettingsListTile(
+              leading: const Icon(Icons.auto_awesome),
+              title: Text(l10n.seasonalEffects),
+              subtitle: Text(l10n.seasonalEffectsDescription),
+              onTap: () =>
+                  context.pushSettingsScreen(const _SeasonalEffectsScreen()),
+            ),
           ],
         ),
       ),
@@ -1069,55 +1081,55 @@ class _IntegrationsScreenState extends State<_IntegrationsScreen> {
           autofocus: true,
           child: ListView(
             children: [
-            _TvSettingsListTile(
-              autofocus: true,
-              leading: const Icon(Icons.extension),
-              title: Text(l10n.pluginLabel),
-              subtitle: Text(l10n.serverSyncAndPluginStatus),
-              onTap: () => context.pushSettingsScreen(const _PluginScreen()),
-            ),
-            _TvSettingsListTile(
-              leading: const Icon(Icons.star),
-              title: Text(l10n.settingsMetadataAndRatings),
-              subtitle: Text(l10n.mdbListTmdbRatingSources),
-              onTap: () =>
-                  context.pushSettingsScreen(const _MetadataRatingsScreen()),
-            ),
-            _TvSettingsListTile(
-              leading: Image.asset(
-                'assets/icons/seerr.png',
-                width: 24,
-                height: 24,
+              _TvSettingsListTile(
+                autofocus: true,
+                leading: const Icon(Icons.extension),
+                title: Text(l10n.pluginLabel),
+                subtitle: Text(l10n.serverSyncAndPluginStatus),
+                onTap: () => context.pushSettingsScreen(const _PluginScreen()),
               ),
-              title: Text(l10n.seerr),
-              subtitle: Text(l10n.mediaRequestIntegration),
-              onTap: () =>
-                  context.pushSettingsScreen(const SeerrConfigScreen()),
-            ),
-            _TvSettingsListTile(
-              leading: Image.asset(
-                'assets/icons/hss.png',
-                width: 24,
-                height: 24,
+              _TvSettingsListTile(
+                leading: const Icon(Icons.star),
+                title: Text(l10n.settingsMetadataAndRatings),
+                subtitle: Text(l10n.mdbListTmdbRatingSources),
+                onTap: () =>
+                    context.pushSettingsScreen(const _MetadataRatingsScreen()),
               ),
-              title: const Text('Home Screen Sections'),
-              subtitle: Text(l10n.homeScreenSectionsIntegrationDescription),
-              onTap: () => context.pushSettingsScreen(
-                const HomeScreenSectionsIntegrationScreen(),
+              _TvSettingsListTile(
+                leading: Image.asset(
+                  'assets/icons/seerr.png',
+                  width: 24,
+                  height: 24,
+                ),
+                title: Text(l10n.seerr),
+                subtitle: Text(l10n.mediaRequestIntegration),
+                onTap: () =>
+                    context.pushSettingsScreen(const SeerrConfigScreen()),
               ),
-            ),
-            _TvSettingsListTile(
-              leading: Image.asset(
-                'assets/icons/kf.png',
-                width: 24,
-                height: 24,
+              _TvSettingsListTile(
+                leading: Image.asset(
+                  'assets/icons/hss.png',
+                  width: 24,
+                  height: 24,
+                ),
+                title: const Text('Home Screen Sections'),
+                subtitle: Text(l10n.homeScreenSectionsIntegrationDescription),
+                onTap: () => context.pushSettingsScreen(
+                  const HomeScreenSectionsIntegrationScreen(),
+                ),
               ),
-              title: const Text('KefinTweaks'),
-              subtitle: Text(l10n.kefinTweaksIntegrationDescription),
-              onTap: () => context.pushSettingsScreen(
-                const KefinTweaksIntegrationScreen(),
+              _TvSettingsListTile(
+                leading: Image.asset(
+                  'assets/icons/kf.png',
+                  width: 24,
+                  height: 24,
+                ),
+                title: const Text('KefinTweaks'),
+                subtitle: Text(l10n.kefinTweaksIntegrationDescription),
+                onTap: () => context.pushSettingsScreen(
+                  const KefinTweaksIntegrationScreen(),
+                ),
               ),
-            ),
             ],
           ),
         ),
@@ -1706,60 +1718,63 @@ class _PlaybackCategoryScreen extends StatelessWidget {
     return withCleanSettingsTypography(
       context,
       Scaffold(
-        appBar: buildSettingsAppBar(context, Text(l10n.settingsPlaybackSyncplay)),
+        appBar: buildSettingsAppBar(
+          context,
+          Text(l10n.settingsPlaybackSyncplay),
+        ),
         body: ListView(
           children: [
-          _TvSettingsListTile(
-            autofocus: true,
-            leading: const Icon(Icons.play_circle),
-            title: Text(l10n.settingsVideoPlaybackPreferences),
-            subtitle: Text(l10n.settingsVideoPlaybackPreferencesSubtitle),
-            onTap: () =>
-                context.pushSettingsScreen(const _VideoPlaybackScreen()),
-          ),
-          _TvSettingsListTile(
-            leading: const Icon(Icons.volume_up),
-            title: Text(l10n.settingsAudioPreferences),
-            subtitle: Text(l10n.settingsAudioPreferencesSubtitle),
-            onTap: () =>
-                context.pushSettingsScreen(const _AudioPreferencesScreen()),
-          ),
-          _TvSettingsListTile(
-            leading: const Icon(Icons.subtitles),
-            title: Text(l10n.subtitles),
-            subtitle: Text(l10n.languageSizeAppearance),
-            onTap: () =>
-                context.pushSettingsScreen(const SubtitleSettingsScreen()),
-          ),
-          _TvSettingsListTile(
-            leading: const Icon(Icons.queue_play_next),
-            title: Text(l10n.settingsAutomationAndQueue),
-            subtitle: Text(l10n.settingsAutomationAndQueueSubtitle),
-            onTap: () =>
-                context.pushSettingsScreen(const _AutomationQueueScreen()),
-          ),
-          if (!PlatformDetection.isTV)
             _TvSettingsListTile(
-              leading: const Icon(Icons.download),
-              title: Text(l10n.settingsOfflineDownloads),
-              subtitle: Text(l10n.settingsOfflineDownloadsSubtitle),
+              autofocus: true,
+              leading: const Icon(Icons.play_circle),
+              title: Text(l10n.settingsVideoPlaybackPreferences),
+              subtitle: Text(l10n.settingsVideoPlaybackPreferencesSubtitle),
               onTap: () =>
-                  context.pushSettingsScreen(const _OfflineDownloadsScreen()),
+                  context.pushSettingsScreen(const _VideoPlaybackScreen()),
             ),
-          _TvSettingsListTile(
-            leading: const Icon(Icons.groups),
-            title: Text(l10n.syncPlay),
-            subtitle: Text(l10n.settingsSyncplaySubtitle),
-            onTap: () =>
-                context.pushSettingsScreen(const _SyncPlaySettingsScreen()),
-          ),
-          _TvSettingsListTile(
-            leading: const Icon(Icons.settings),
-            title: Text(l10n.advancedOptions),
-            subtitle: Text(l10n.settingsAdvancedOptionsSubtitle),
-            onTap: () =>
-                context.pushSettingsScreen(const _AdvancedOptionsScreen()),
-          ),
+            _TvSettingsListTile(
+              leading: const Icon(Icons.volume_up),
+              title: Text(l10n.settingsAudioPreferences),
+              subtitle: Text(l10n.settingsAudioPreferencesSubtitle),
+              onTap: () =>
+                  context.pushSettingsScreen(const _AudioPreferencesScreen()),
+            ),
+            _TvSettingsListTile(
+              leading: const Icon(Icons.subtitles),
+              title: Text(l10n.subtitles),
+              subtitle: Text(l10n.languageSizeAppearance),
+              onTap: () =>
+                  context.pushSettingsScreen(const SubtitleSettingsScreen()),
+            ),
+            _TvSettingsListTile(
+              leading: const Icon(Icons.queue_play_next),
+              title: Text(l10n.settingsAutomationAndQueue),
+              subtitle: Text(l10n.settingsAutomationAndQueueSubtitle),
+              onTap: () =>
+                  context.pushSettingsScreen(const _AutomationQueueScreen()),
+            ),
+            if (!PlatformDetection.isTV)
+              _TvSettingsListTile(
+                leading: const Icon(Icons.download),
+                title: Text(l10n.settingsOfflineDownloads),
+                subtitle: Text(l10n.settingsOfflineDownloadsSubtitle),
+                onTap: () =>
+                    context.pushSettingsScreen(const _OfflineDownloadsScreen()),
+              ),
+            _TvSettingsListTile(
+              leading: const Icon(Icons.groups),
+              title: Text(l10n.syncPlay),
+              subtitle: Text(l10n.settingsSyncplaySubtitle),
+              onTap: () =>
+                  context.pushSettingsScreen(const _SyncPlaySettingsScreen()),
+            ),
+            _TvSettingsListTile(
+              leading: const Icon(Icons.settings),
+              title: Text(l10n.advancedOptions),
+              subtitle: Text(l10n.settingsAdvancedOptionsSubtitle),
+              onTap: () =>
+                  context.pushSettingsScreen(const _AdvancedOptionsScreen()),
+            ),
           ],
         ),
       ),
@@ -1851,15 +1866,15 @@ class _VideoPlaybackScreen extends StatelessWidget {
               title: PlatformDetection.isTV
                   ? l10n.settingsPlaybackEngineAndroidTv
                   : l10n.settingsPlaybackEngineAndroidTv.replaceAll(
-                    'Android TV',
-                    'Android',
-                  ),
+                      'Android TV',
+                      'Android',
+                    ),
               description: PlatformDetection.isTV
                   ? l10n.settingsPlaybackEngineAndroidTvDescription
                   : l10n.settingsPlaybackEngineAndroidTvDescription.replaceAll(
-                    'Android TV',
-                    'Android',
-                  ),
+                      'Android TV',
+                      'Android',
+                    ),
               icon: Icons.video_settings,
               labelOf: (v) => switch (v) {
                 PlaybackEnginePreference.media3 =>
@@ -2043,7 +2058,10 @@ class _ExternalPlayerAppPickerTileState
   void initState() {
     super.initState();
     final store = GetIt.instance<PreferenceStore>();
-    _enabledBinding = PreferenceBinding(store, UserPreferences.useExternalPlayer);
+    _enabledBinding = PreferenceBinding(
+      store,
+      UserPreferences.useExternalPlayer,
+    );
     _componentBinding = PreferenceBinding(
       store,
       UserPreferences.externalPlayerComponentName,
@@ -2115,8 +2133,9 @@ class _ExternalPlayerAppPickerTileState
                 leading: const Icon(Icons.help_outline),
                 title: const Text('Ask each time'),
                 subtitle: const Text('Show app chooser when playback starts.'),
-                trailing:
-                    normalizedCurrent.isEmpty ? const Icon(Icons.check) : null,
+                trailing: normalizedCurrent.isEmpty
+                    ? const Icon(Icons.check)
+                    : null,
                 onTap: () {
                   if (picked) return;
                   picked = true;
@@ -2211,7 +2230,8 @@ class _AudioPreferencesScreen extends StatefulWidget {
   const _AudioPreferencesScreen();
 
   @override
-  State<_AudioPreferencesScreen> createState() => _AudioPreferencesScreenState();
+  State<_AudioPreferencesScreen> createState() =>
+      _AudioPreferencesScreenState();
 }
 
 class _AudioPreferencesScreenState extends State<_AudioPreferencesScreen> {
@@ -2341,8 +2361,8 @@ class _AudioPreferencesScreenState extends State<_AudioPreferencesScreen> {
     }
 
     final status = isSupported
-      ? 'Supported on this device'
-      : 'Not Supported on this device';
+        ? 'Supported on this device'
+        : 'Not Supported on this device';
     return '$baseSubtitle\n${l10n.status}: $status';
   }
 
@@ -2404,10 +2424,8 @@ class _AudioPreferencesScreenState extends State<_AudioPreferencesScreen> {
               AudioFallbackCodec.auto => l10n.auto,
               AudioFallbackCodec.aacStereo =>
                 l10n.settingsAudioFallbackAacStereo,
-              AudioFallbackCodec.ac3_5_1 =>
-                l10n.settingsAudioFallbackAc35_1,
-              AudioFallbackCodec.eac3_5_1 =>
-                l10n.settingsAudioFallbackEac35_1,
+              AudioFallbackCodec.ac3_5_1 => l10n.settingsAudioFallbackAc35_1,
+              AudioFallbackCodec.eac3_5_1 => l10n.settingsAudioFallbackEac35_1,
             },
           ),
           if (_showPassthroughToggles) ...[
@@ -2415,9 +2433,7 @@ class _AudioPreferencesScreenState extends State<_AudioPreferencesScreen> {
             ExpansionTile(
               leading: const Icon(Icons.settings_input_hdmi),
               title: Text(l10n.settingsAudioCodecPassthrough),
-              subtitle: Text(
-                l10n.settingsAudioCodecPassthroughDescription,
-              ),
+              subtitle: Text(l10n.settingsAudioCodecPassthroughDescription),
               children: [
                 SwitchPreferenceTile(
                   preference: UserPreferences.ac3PassthroughEnabled,
@@ -3048,35 +3064,7 @@ class _NavbarColorPickerTile extends StatefulWidget {
 }
 
 class _NavbarColorPickerTileState extends State<_NavbarColorPickerTile> {
-  static const _keys = <String>[
-    'gray',
-    'black',
-    'dark_blue',
-    'purple',
-    'teal',
-    'navy',
-    'charcoal',
-    'brown',
-    'dark_red',
-    'dark_green',
-    'slate',
-    'indigo',
-  ];
-
-  static const _swatches = <String, int>{
-    'gray': 0xFF6B7280,
-    'black': 0xFF111827,
-    'dark_blue': 0xFF1E3A8A,
-    'purple': 0xFF6D28D9,
-    'teal': 0xFF0F766E,
-    'navy': 0xFF1E293B,
-    'charcoal': 0xFF374151,
-    'brown': 0xFF7C4A2D,
-    'dark_red': 0xFF7F1D1D,
-    'dark_green': 0xFF14532D,
-    'slate': 0xFF334155,
-    'indigo': 0xFF4338CA,
-  };
+  static const _keys = OverlayColorPalette.keys;
 
   late final PreferenceBinding<String> _binding;
 
@@ -3095,27 +3083,15 @@ class _NavbarColorPickerTileState extends State<_NavbarColorPickerTile> {
     super.dispose();
   }
 
-  Color _swatchColor(String key) => Color(_swatches[key] ?? 0xFF6B7280);
+  Color _swatchColor(String key) =>
+      Color(OverlayColorPalette.pickerSwatches[key] ?? 0xFF6B7280);
 
   Color _swatchBorder(Color color) => color.computeLuminance() > 0.8
       ? AppColors.black.withValues(alpha: 0.38)
       : AppColorScheme.onSurface.withValues(alpha: 0.24);
 
-  String _labelFor(String key, AppLocalizations l10n) => switch (key) {
-    'gray' => l10n.gray,
-    'black' => l10n.black,
-    'dark_blue' => l10n.darkBlue,
-    'purple' => l10n.purple,
-    'teal' => l10n.teal,
-    'navy' => l10n.navy,
-    'charcoal' => l10n.charcoal,
-    'brown' => l10n.brown,
-    'dark_red' => l10n.darkRed,
-    'dark_green' => l10n.darkGreen,
-    'slate' => l10n.slate,
-    'indigo' => l10n.indigo,
-    _ => _formatCamelCaseLabel(key),
-  };
+  String _labelFor(String key, AppLocalizations l10n) =>
+      OverlayColorPalette.labelFor(key, l10n);
 
   @override
   Widget build(BuildContext context) {

@@ -18,6 +18,7 @@ import '../../preference/preference_constants.dart';
 import '../../preference/seerr_preferences.dart';
 import '../../preference/user_preferences.dart';
 import '../../l10n/app_localizations.dart';
+import '../../util/overlay_color_palette.dart';
 import '../../util/platform_detection.dart';
 import '../navigation/destinations.dart';
 import '../navigation/home_refresh_bus.dart';
@@ -229,22 +230,9 @@ class _LeftSidebarState extends State<LeftSidebar> {
   }
 
   Color _overlayColor() {
-    final colorName = _prefs.get(UserPreferences.navbarColor);
-    return switch (colorName) {
-      'black' => Colors.black,
-      'gray' => Colors.grey,
-      'dark_blue' => const Color(0xFF1A2332),
-      'purple' => const Color(0xFF4A148C),
-      'teal' => const Color(0xFF00695C),
-      'navy' => const Color(0xFF0D1B2A),
-      'charcoal' => const Color(0xFF36454F),
-      'brown' => const Color(0xFF3E2723),
-      'dark_red' => const Color(0xFF8B0000),
-      'dark_green' => const Color(0xFF0B4F0F),
-      'slate' => const Color(0xFF475569),
-      'indigo' => const Color(0xFF1E3A8A),
-      _ => Colors.grey,
-    };
+    return OverlayColorPalette.resolveColor(
+      _prefs.get(UserPreferences.navbarColor),
+    );
   }
 
   double _overlayOpacity() {
@@ -1176,8 +1164,8 @@ class _SidebarItemState extends State<_SidebarItem> {
         PlatformDetection.isDesktop && !PlatformDetection.isTV;
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
     final highlighted =
-      (desktopSidebar && _isHovered) ||
-      (PlatformDetection.isTV && _isFocused);
+        (desktopSidebar && _isHovered) ||
+        (PlatformDetection.isTV && _isFocused);
     final focusColor = Color(_prefs.get(UserPreferences.focusColor).colorValue);
     final tvFocused = PlatformDetection.isTV && _isFocused;
     final baseColor = widget.baseColor ?? Colors.white.withValues(alpha: 0.6);
@@ -1303,8 +1291,8 @@ class _SidebarLibraryItemState extends State<_SidebarLibraryItem> {
     final focusColor = Color(_prefs.get(UserPreferences.focusColor).colorValue);
     final baseColor = widget.baseColor ?? Colors.white.withValues(alpha: 0.5);
     final highlighted =
-      (desktopSidebar && _isHovered) ||
-      (PlatformDetection.isTV && _isFocused);
+        (desktopSidebar && _isHovered) ||
+        (PlatformDetection.isTV && _isFocused);
     final tvFocused = PlatformDetection.isTV && _isFocused;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 1),

@@ -5,6 +5,7 @@ import 'package:server_core/server_core.dart';
 import '../../../data/services/plugin_sync_service.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
+import '../../../util/overlay_color_palette.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/settings/clean_settings_typography.dart';
 import '../../widgets/settings/preference_tiles.dart';
@@ -109,20 +110,7 @@ class _NavigationSettingsScreenState extends State<NavigationSettingsScreen> {
               preference: UserPreferences.navbarColor,
               title: l10n.navbarColor,
               icon: Icons.color_lens,
-              options: {
-                'gray': l10n.gray,
-                'black': l10n.black,
-                'dark_blue': l10n.darkBlue,
-                'purple': l10n.purple,
-                'teal': l10n.teal,
-                'navy': l10n.navy,
-                'charcoal': l10n.charcoal,
-                'brown': l10n.brown,
-                'dark_red': l10n.darkRed,
-                'dark_green': l10n.darkGreen,
-                'slate': l10n.slate,
-                'indigo': l10n.indigo,
-              },
+              options: OverlayColorPalette.localizedOptions(l10n),
               onChanged: _pushSync,
             ),
           ],

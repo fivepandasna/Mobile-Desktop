@@ -15,11 +15,7 @@ import '../../preference/seerr_row_config.dart';
 import '../../preference/user_preferences.dart';
 import '../../util/platform_detection.dart';
 
-enum _PluginAvailabilityStatus {
-  available,
-  unavailable,
-  unknown,
-}
+enum _PluginAvailabilityStatus { available, unavailable, unknown }
 
 class PluginSyncService extends ChangeNotifier {
   static const List<String> supportedProfiles = <String>[
@@ -60,10 +56,7 @@ class PluginSyncService extends ChangeNotifier {
     _dio.interceptors.add(redirectInterceptor(_dio));
   }
 
-  String _serverSyncKey(
-    MediaServerClient client, {
-    String? serverId,
-  }) {
+  String _serverSyncKey(MediaServerClient client, {String? serverId}) {
     if (serverId != null && serverId.trim().isNotEmpty) {
       return serverId.trim();
     }
@@ -229,16 +222,14 @@ class PluginSyncService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> syncOnLogin(
-    MediaServerClient client, {
-    String? serverId,
-  }) async {
+  Future<void> syncOnLogin(MediaServerClient client, {String? serverId}) async {
     try {
       final availability = await _refreshAvailabilityStatus(client);
 
-      final syncInitializedPref = UserPreferences.pluginSyncInitializedForServer(
-        _serverSyncKey(client, serverId: serverId),
-      );
+      final syncInitializedPref =
+          UserPreferences.pluginSyncInitializedForServer(
+            _serverSyncKey(client, serverId: serverId),
+          );
       if (_prefs.get(syncInitializedPref)) {
         return;
       }
@@ -287,9 +278,12 @@ class PluginSyncService extends ChangeNotifier {
         jellyfinToken: token,
       );
 
-      if (!status.authenticated && status.enabled &&
-          username != null && username.isNotEmpty &&
-          password != null && password.isNotEmpty) {
+      if (!status.authenticated &&
+          status.enabled &&
+          username != null &&
+          username.isNotEmpty &&
+          password != null &&
+          password.isNotEmpty) {
         await seerrRepo.loginWithMoonfin(
           username: username,
           password: password,
@@ -320,10 +314,7 @@ class PluginSyncService extends ChangeNotifier {
         '${client.baseUrl}/Moonfin/Settings/Profile/$profile',
         data: {'profile': payloadProfile, 'clientId': 'moonfin-flutter'},
         options: Options(
-          headers: {
-            ...headers,
-            'Content-Type': 'application/json',
-          },
+          headers: {...headers, 'Content-Type': 'application/json'},
         ),
       );
     } catch (_) {}
@@ -462,89 +453,184 @@ class PluginSyncService extends ChangeNotifier {
   }
 
   Future<void> _applyServerSettings(Map<String, dynamic> resolved) async {
-    _applyString(resolved, 'visualTheme', UserPreferences.visualTheme,
-      enumValues: prefs.VisualThemeId.values);
+    _applyString(
+      resolved,
+      'visualTheme',
+      UserPreferences.visualTheme,
+      enumValues: prefs.VisualThemeId.values,
+    );
     _applyString(resolved, 'customThemeId', UserPreferences.customThemeId);
-    _applyString(resolved, 'navbarPosition', UserPreferences.navbarPosition,
-        enumValues: prefs.NavbarPosition.values);
+    _applyString(
+      resolved,
+      'navbarPosition',
+      UserPreferences.navbarPosition,
+      enumValues: prefs.NavbarPosition.values,
+    );
     _applyBool(resolved, 'showClock', UserPreferences.showClock);
     _applyBool(resolved, 'use24HourClock', UserPreferences.use24HourClock);
     _applyBool(
-        resolved, 'showShuffleButton', UserPreferences.showShuffleButton);
+      resolved,
+      'showShuffleButton',
+      UserPreferences.showShuffleButton,
+    );
     _applyBool(resolved, 'showGenresButton', UserPreferences.showGenresButton);
     _applyBool(
-        resolved, 'showFavoritesButton', UserPreferences.showFavoritesButton);
+      resolved,
+      'showFavoritesButton',
+      UserPreferences.showFavoritesButton,
+    );
     _applyBool(
-        resolved, 'showSyncPlayButton', UserPreferences.showSyncPlayButton);
-    _applyBool(resolved, 'showLibrariesInToolbar',
-        UserPreferences.showLibrariesInToolbar);
-    _applyString(resolved, 'shuffleContentType',
-        UserPreferences.shuffleContentType);
-    _applyBool(resolved, 'mergeContinueWatchingNextUp',
-        UserPreferences.mergeContinueWatchingNextUp);
-    _applyBool(resolved, 'enableMultiServerLibraries',
-        UserPreferences.enableMultiServerLibraries);
+      resolved,
+      'showSyncPlayButton',
+      UserPreferences.showSyncPlayButton,
+    );
+    _applyBool(
+      resolved,
+      'showLibrariesInToolbar',
+      UserPreferences.showLibrariesInToolbar,
+    );
+    _applyString(
+      resolved,
+      'shuffleContentType',
+      UserPreferences.shuffleContentType,
+    );
+    _applyBool(
+      resolved,
+      'mergeContinueWatchingNextUp',
+      UserPreferences.mergeContinueWatchingNextUp,
+    );
+    _applyBool(
+      resolved,
+      'enableMultiServerLibraries',
+      UserPreferences.enableMultiServerLibraries,
+    );
     _applyBool(resolved, 'enableFolderView', UserPreferences.enableFolderView);
     _applyString(
-        resolved, 'seasonalSurprise', UserPreferences.seasonalSurprise);
+      resolved,
+      'seasonalSurprise',
+      UserPreferences.seasonalSurprise,
+    );
 
     _applyMediaBarMode(resolved);
-    _applyString(resolved, 'mediaBarSourceType',
-        UserPreferences.mediaBarContentType);
+    _applyString(
+      resolved,
+      'mediaBarSourceType',
+      UserPreferences.mediaBarContentType,
+    );
+    _applyInt(resolved, 'mediaBarItemCount', UserPreferences.mediaBarItemCount);
     _applyInt(
-        resolved, 'mediaBarItemCount', UserPreferences.mediaBarItemCount);
-    _applyInt(resolved, 'mediaBarOpacity', UserPreferences.navbarOpacity);
-    _applyString(resolved, 'mediaBarOverlayColor', UserPreferences.navbarColor);
+      resolved,
+      'mediaBarOpacity',
+      UserPreferences.mediaBarOverlayOpacity,
+    );
+    _applyString(
+      resolved,
+      'mediaBarOverlayColor',
+      UserPreferences.mediaBarOverlayColor,
+    );
     _applyInt(resolved, 'navbarOpacity', UserPreferences.navbarOpacity);
     _applyString(resolved, 'navbarColor', UserPreferences.navbarColor);
-    _applyBool(resolved, 'mediaBarAutoAdvance',
-        UserPreferences.mediaBarAutoAdvance);
-    _applyInt(resolved, 'mediaBarIntervalMs',
-        UserPreferences.mediaBarIntervalMs);
-    _applyBool(resolved, 'mediaBarTrailerPreview',
-        UserPreferences.mediaBarTrailerPreview);
-    _applyBool(resolved, 'episodePreviewEnabled',
-        UserPreferences.episodePreviewEnabled);
-    _applyBool(resolved, 'previewAudioEnabled',
-        UserPreferences.previewAudioEnabled);
+    _applyBool(
+      resolved,
+      'mediaBarAutoAdvance',
+      UserPreferences.mediaBarAutoAdvance,
+    );
+    _applyInt(
+      resolved,
+      'mediaBarIntervalMs',
+      UserPreferences.mediaBarIntervalMs,
+    );
+    _applyBool(
+      resolved,
+      'mediaBarTrailerPreview',
+      UserPreferences.mediaBarTrailerPreview,
+    );
+    _applyBool(
+      resolved,
+      'episodePreviewEnabled',
+      UserPreferences.episodePreviewEnabled,
+    );
+    _applyBool(
+      resolved,
+      'previewAudioEnabled',
+      UserPreferences.previewAudioEnabled,
+    );
 
     _applyStringList(
-        resolved, 'mediaBarLibraryIds', UserPreferences.mediaBarLibraryIds);
-    _applyStringList(resolved, 'mediaBarCollectionIds',
-        UserPreferences.mediaBarCollectionIds);
-    _applyStringList(resolved, 'mediaBarExcludedGenres',
-        UserPreferences.mediaBarExcludedGenres);
+      resolved,
+      'mediaBarLibraryIds',
+      UserPreferences.mediaBarLibraryIds,
+    );
+    _applyStringList(
+      resolved,
+      'mediaBarCollectionIds',
+      UserPreferences.mediaBarCollectionIds,
+    );
+    _applyStringList(
+      resolved,
+      'mediaBarExcludedGenres',
+      UserPreferences.mediaBarExcludedGenres,
+    );
 
     _applyBool(
-        resolved, 'themeMusicEnabled', UserPreferences.themeMusicEnabled);
+      resolved,
+      'themeMusicEnabled',
+      UserPreferences.themeMusicEnabled,
+    );
     _applyInt(resolved, 'themeMusicVolume', UserPreferences.themeMusicVolume);
-    _applyBool(resolved, 'themeMusicOnHomeRows',
-        UserPreferences.themeMusicOnHomeRows);
+    _applyBool(
+      resolved,
+      'themeMusicOnHomeRows',
+      UserPreferences.themeMusicOnHomeRows,
+    );
 
-    _applyBool(resolved, 'homeRowsImageTypeOverride',
-        UserPreferences.homeRowsUniversalOverride);
-    _applyString(resolved, 'homeRowsImageType',
-        UserPreferences.homeRowsUniversalImageType,
-        enumValues: prefs.ImageType.values);
+    _applyBool(
+      resolved,
+      'homeRowsImageTypeOverride',
+      UserPreferences.homeRowsUniversalOverride,
+    );
+    _applyString(
+      resolved,
+      'homeRowsImageType',
+      UserPreferences.homeRowsUniversalImageType,
+      enumValues: prefs.ImageType.values,
+    );
 
     _applyBool(resolved, 'backdropEnabled', UserPreferences.backdropEnabled);
-    _applyString(resolved, 'detailsScreenBlur',
-        UserPreferences.detailsBackgroundBlurAmount,
-        intFromString: true);
-    _applyString(resolved, 'browsingBlur',
-        UserPreferences.browsingBackgroundBlurAmount,
-        intFromString: true);
+    _applyString(
+      resolved,
+      'detailsScreenBlur',
+      UserPreferences.detailsBackgroundBlurAmount,
+      intFromString: true,
+    );
+    _applyString(
+      resolved,
+      'browsingBlur',
+      UserPreferences.browsingBackgroundBlurAmount,
+      intFromString: true,
+    );
 
     _applyBool(
-        resolved, 'mdblistEnabled', UserPreferences.enableAdditionalRatings);
-    _applyString(
-        resolved, 'mdblistApiKey', UserPreferences.mdblistApiKey);
-    _applyBool(resolved, 'mdblistShowRatingNames',
-        UserPreferences.showRatingLabels);
-    _applyBool(resolved, 'mdblistShowRatingBadges',
-      UserPreferences.showRatingBadges);
-    _applyBool(resolved, 'tmdbEpisodeRatingsEnabled',
-        UserPreferences.enableEpisodeRatings);
+      resolved,
+      'mdblistEnabled',
+      UserPreferences.enableAdditionalRatings,
+    );
+    _applyString(resolved, 'mdblistApiKey', UserPreferences.mdblistApiKey);
+    _applyBool(
+      resolved,
+      'mdblistShowRatingNames',
+      UserPreferences.showRatingLabels,
+    );
+    _applyBool(
+      resolved,
+      'mdblistShowRatingBadges',
+      UserPreferences.showRatingBadges,
+    );
+    _applyBool(
+      resolved,
+      'tmdbEpisodeRatingsEnabled',
+      UserPreferences.enableEpisodeRatings,
+    );
     _applyString(resolved, 'tmdbApiKey', UserPreferences.tmdbApiKey);
 
     _applyBool(resolved, 'jellyseerrEnabled', UserPreferences.seerrEnabled);
@@ -560,8 +646,7 @@ class PluginSyncService extends ChangeNotifier {
       final serverOrder = (resolved['homeRowOrder'] as List).cast<String>();
       // Preserve any plugin-discovered dynamic sections so they survive a
       // server-driven preference sync.
-      final pluginEntries = _prefs
-          .homeSectionsConfig
+      final pluginEntries = _prefs.homeSectionsConfig
           .where((c) => c.isPluginDynamic)
           .toList(growable: false);
       if (serverOrder.isEmpty) {
@@ -572,7 +657,9 @@ class PluginSyncService extends ChangeNotifier {
         for (final name in serverOrder) {
           final type = prefs.HomeSectionType.fromSerialized(name);
           if (type == prefs.HomeSectionType.none) continue;
-          sections.add(HomeSectionConfig(type: type, enabled: true, order: order++));
+          sections.add(
+            HomeSectionConfig(type: type, enabled: true, order: order++),
+          );
         }
         if (sections.isEmpty) {
           await _applyFallbackHomeRows(preserve: pluginEntries);
@@ -581,7 +668,9 @@ class PluginSyncService extends ChangeNotifier {
           for (final type in prefs.HomeSectionType.values) {
             if (type == prefs.HomeSectionType.none) continue;
             if (!enabledTypes.contains(type)) {
-              sections.add(HomeSectionConfig(type: type, enabled: false, order: order++));
+              sections.add(
+                HomeSectionConfig(type: type, enabled: false, order: order++),
+              );
             }
           }
           for (final entry in pluginEntries) {
@@ -601,12 +690,16 @@ class PluginSyncService extends ChangeNotifier {
           var order = 0;
           for (final name in serverOrder) {
             final type = prefs.SeerrRowType.fromSerialized(name);
-            configs.add(SeerrRowConfig(type: type, enabled: true, order: order++));
+            configs.add(
+              SeerrRowConfig(type: type, enabled: true, order: order++),
+            );
           }
           final enabledTypes = configs.map((c) => c.type).toSet();
           for (final type in prefs.SeerrRowType.values) {
             if (!enabledTypes.contains(type)) {
-              configs.add(SeerrRowConfig(type: type, enabled: false, order: order++));
+              configs.add(
+                SeerrRowConfig(type: type, enabled: false, order: order++),
+              );
             }
           }
           await _seerrPrefs.setRowsConfig(configs);
@@ -636,14 +729,19 @@ class PluginSyncService extends ChangeNotifier {
     var order = 0;
 
     for (final type in fallbackEnabled) {
-      sections.add(HomeSectionConfig(type: type, enabled: true, order: order++));
+      sections.add(
+        HomeSectionConfig(type: type, enabled: true, order: order++),
+      );
     }
 
     for (final type in prefs.HomeSectionType.values) {
-      if (type == prefs.HomeSectionType.none || fallbackEnabled.contains(type)) {
+      if (type == prefs.HomeSectionType.none ||
+          fallbackEnabled.contains(type)) {
         continue;
       }
-      sections.add(HomeSectionConfig(type: type, enabled: false, order: order++));
+      sections.add(
+        HomeSectionConfig(type: type, enabled: false, order: order++),
+      );
     }
 
     for (final entry in preserve) {
@@ -700,7 +798,8 @@ class PluginSyncService extends ChangeNotifier {
     if (enumValues != null && pref is EnumPreference) {
       if (value is String) {
         final match = enumValues.cast<Enum>().where(
-            (e) => e.name.toLowerCase() == value.toLowerCase());
+          (e) => e.name.toLowerCase() == value.toLowerCase(),
+        );
         if (match.isNotEmpty) {
           _store.set(pref, match.first as T);
         }
@@ -749,11 +848,7 @@ class PluginSyncService extends ChangeNotifier {
   }
 
   List<String> _csvToList(Preference<String> pref) {
-    return _prefs
-        .get(pref)
-        .split(',')
-        .where((s) => s.isNotEmpty)
-        .toList();
+    return _prefs.get(pref).split(',').where((s) => s.isNotEmpty).toList();
   }
 
   Map<String, dynamic> _buildProfileFromLocal() {
@@ -771,13 +866,16 @@ class PluginSyncService extends ChangeNotifier {
       'showGenresButton': _prefs.get(UserPreferences.showGenresButton),
       'showFavoritesButton': _prefs.get(UserPreferences.showFavoritesButton),
       'showSyncPlayButton': _prefs.get(UserPreferences.showSyncPlayButton),
-      'showLibrariesInToolbar':
-          _prefs.get(UserPreferences.showLibrariesInToolbar),
+      'showLibrariesInToolbar': _prefs.get(
+        UserPreferences.showLibrariesInToolbar,
+      ),
       'shuffleContentType': _prefs.get(UserPreferences.shuffleContentType),
-      'mergeContinueWatchingNextUp':
-          _prefs.get(UserPreferences.mergeContinueWatchingNextUp),
-      'enableMultiServerLibraries':
-          _prefs.get(UserPreferences.enableMultiServerLibraries),
+      'mergeContinueWatchingNextUp': _prefs.get(
+        UserPreferences.mergeContinueWatchingNextUp,
+      ),
+      'enableMultiServerLibraries': _prefs.get(
+        UserPreferences.enableMultiServerLibraries,
+      ),
       'enableFolderView': _prefs.get(UserPreferences.enableFolderView),
       'seasonalSurprise': _prefs.get(UserPreferences.seasonalSurprise),
       'mediaBarEnabled': mediaBarEnabled,
@@ -785,42 +883,49 @@ class PluginSyncService extends ChangeNotifier {
       'mediaBarSourceType': _prefs.get(UserPreferences.mediaBarContentType),
       'mediaBarItemCount':
           int.tryParse(_prefs.get(UserPreferences.mediaBarItemCount)) ?? 10,
-      'mediaBarOpacity': _prefs.get(UserPreferences.navbarOpacity),
-      'mediaBarOverlayColor': _prefs.get(UserPreferences.navbarColor),
+      'mediaBarOpacity': _prefs.get(UserPreferences.mediaBarOverlayOpacity),
+      'mediaBarOverlayColor': _prefs.get(UserPreferences.mediaBarOverlayColor),
       'navbarOpacity': _prefs.get(UserPreferences.navbarOpacity),
       'navbarColor': _prefs.get(UserPreferences.navbarColor),
       'mediaBarAutoAdvance': _prefs.get(UserPreferences.mediaBarAutoAdvance),
       'mediaBarIntervalMs': _prefs.get(UserPreferences.mediaBarIntervalMs),
-      'mediaBarTrailerPreview':
-          _prefs.get(UserPreferences.mediaBarTrailerPreview),
-      'episodePreviewEnabled':
-          _prefs.get(UserPreferences.episodePreviewEnabled),
-      'previewAudioEnabled':
-          _prefs.get(UserPreferences.previewAudioEnabled),
+      'mediaBarTrailerPreview': _prefs.get(
+        UserPreferences.mediaBarTrailerPreview,
+      ),
+      'episodePreviewEnabled': _prefs.get(
+        UserPreferences.episodePreviewEnabled,
+      ),
+      'previewAudioEnabled': _prefs.get(UserPreferences.previewAudioEnabled),
       'mediaBarLibraryIds': _csvToList(UserPreferences.mediaBarLibraryIds),
-      'mediaBarCollectionIds':
-          _csvToList(UserPreferences.mediaBarCollectionIds),
-      'mediaBarExcludedGenres':
-          _csvToList(UserPreferences.mediaBarExcludedGenres),
+      'mediaBarCollectionIds': _csvToList(
+        UserPreferences.mediaBarCollectionIds,
+      ),
+      'mediaBarExcludedGenres': _csvToList(
+        UserPreferences.mediaBarExcludedGenres,
+      ),
       'themeMusicEnabled': _prefs.get(UserPreferences.themeMusicEnabled),
       'themeMusicVolume': _prefs.get(UserPreferences.themeMusicVolume),
       'themeMusicOnHomeRows': _prefs.get(UserPreferences.themeMusicOnHomeRows),
-      'homeRowsImageTypeOverride':
-          _prefs.get(UserPreferences.homeRowsUniversalOverride),
-      'homeRowsImageType':
-          _prefs.get(UserPreferences.homeRowsUniversalImageType).name,
+      'homeRowsImageTypeOverride': _prefs.get(
+        UserPreferences.homeRowsUniversalOverride,
+      ),
+      'homeRowsImageType': _prefs
+          .get(UserPreferences.homeRowsUniversalImageType)
+          .name,
       'backdropEnabled': _prefs.get(UserPreferences.backdropEnabled),
-      'detailsScreenBlur':
-          _prefs.get(UserPreferences.detailsBackgroundBlurAmount).toString(),
-      'browsingBlur':
-          _prefs.get(UserPreferences.browsingBackgroundBlurAmount).toString(),
+      'detailsScreenBlur': _prefs
+          .get(UserPreferences.detailsBackgroundBlurAmount)
+          .toString(),
+      'browsingBlur': _prefs
+          .get(UserPreferences.browsingBackgroundBlurAmount)
+          .toString(),
       'mdblistEnabled': _prefs.get(UserPreferences.enableAdditionalRatings),
       'mdblistApiKey': _prefs.get(UserPreferences.mdblistApiKey),
       'mdblistShowRatingNames': _prefs.get(UserPreferences.showRatingLabels),
-      'mdblistShowRatingBadges':
-          _prefs.get(UserPreferences.showRatingBadges),
-      'tmdbEpisodeRatingsEnabled':
-          _prefs.get(UserPreferences.enableEpisodeRatings),
+      'mdblistShowRatingBadges': _prefs.get(UserPreferences.showRatingBadges),
+      'tmdbEpisodeRatingsEnabled': _prefs.get(
+        UserPreferences.enableEpisodeRatings,
+      ),
       'tmdbApiKey': _prefs.get(UserPreferences.tmdbApiKey),
       'jellyseerrEnabled': _prefs.get(UserPreferences.seerrEnabled),
       'mdblistRatingSources': _csvToList(UserPreferences.enabledRatings),

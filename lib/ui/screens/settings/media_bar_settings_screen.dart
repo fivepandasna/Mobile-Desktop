@@ -8,6 +8,7 @@ import 'package:server_core/server_core.dart';
 import '../../../data/services/plugin_sync_service.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/focus/dpad_keys.dart';
+import '../../../util/overlay_color_palette.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/overlay_sheet.dart';
 import '../../widgets/settings/clean_settings_typography.dart';
@@ -25,12 +26,7 @@ class MediaBarSettingsScreen extends StatefulWidget {
 
 class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
   final _store = GetIt.instance<PreferenceStore>();
-  static const _validAutoAdvanceIntervals = <int>{
-    5000,
-    10000,
-    15000,
-    30000,
-  };
+  static const _validAutoAdvanceIntervals = <int>{5000, 10000, 15000, 30000};
   bool _selectorOpen = false;
 
   @override
@@ -48,11 +44,7 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
   }
 
   List<String> _splitCsv(Preference<String> pref) {
-    return _store
-        .get(pref)
-        .split(',')
-        .where((s) => s.isNotEmpty)
-        .toList();
+    return _store.get(pref).split(',').where((s) => s.isNotEmpty).toList();
   }
 
   void _saveCsv(Preference<String> pref, List<String> values) {
@@ -81,9 +73,10 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
       final items = (response['Items'] as List? ?? [])
           .cast<Map<String, dynamic>>()
           .where((item) {
-        final type = item['CollectionType'] as String?;
-        return type == 'movies' || type == 'tvshows' || type == null;
-      }).toList();
+            final type = item['CollectionType'] as String?;
+            return type == 'movies' || type == 'tvshows' || type == null;
+          })
+          .toList();
 
       final availableIds = items.map((i) => i['Id'] as String).toSet();
       final pruned = selected.intersection(availableIds);
@@ -166,12 +159,13 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
       final items = (response['Items'] as List? ?? [])
           .cast<Map<String, dynamic>>();
 
-      final names = items
-          .map((item) => (item['Name'] as String? ?? '').trim())
-          .where((name) => name.isNotEmpty)
-          .toSet()
-          .toList()
-        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      final names =
+          items
+              .map((item) => (item['Name'] as String? ?? '').trim())
+              .where((name) => name.isNotEmpty)
+              .toSet()
+              .toList()
+            ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
       final available = names.toSet();
       final pruned = selected.intersection(available);
@@ -182,9 +176,7 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
       if (!mounted) return;
       final result = await _showMultiSelectDialog(
         title: l10n.excludedGenres,
-        items: {
-          for (final name in names) name: name,
-        },
+        items: {for (final name in names) name: name},
         selected: pruned,
       );
       if (result != null) {
@@ -238,7 +230,9 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
                           children: [
                             TextButton(
                               onPressed: () {
-                                setDialogState(() => working.addAll(items.keys));
+                                setDialogState(
+                                  () => working.addAll(items.keys),
+                                );
                               },
                               child: Text(l10n.selectAll),
                             ),
@@ -258,7 +252,8 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
                                 dense: true,
                                 visualDensity: VisualDensity.compact,
                                 contentPadding: EdgeInsets.zero,
-                                controlAffinity: ListTileControlAffinity.leading,
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
                                 title: Text(e.value),
                                 value: working.contains(e.key),
                                 onChanged: (checked) {
@@ -296,7 +291,11 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
     );
   }
 
-  String _sourceSubtitle(Preference<String> pref, String noneLabel, AppLocalizations l10n) {
+  String _sourceSubtitle(
+    Preference<String> pref,
+    String noneLabel,
+    AppLocalizations l10n,
+  ) {
     final items = _splitCsv(pref);
     if (items.isEmpty) return noneLabel;
     return l10n.itemsSelected(items.length);
@@ -308,13 +307,10 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
 
   Widget _buildContent(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-      return withCleanSettingsTypography(
-        context,
-        Scaffold(
-        appBar: buildSettingsAppBar(
-          context,
-          Text(l10n.mediaBar),
-        ),
+    return withCleanSettingsTypography(
+      context,
+      Scaffold(
+        appBar: buildSettingsAppBar(context, Text(l10n.mediaBar)),
         body: ListView(
           children: [
             StringPickerPreferenceTile(
@@ -329,10 +325,26 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
               },
               onChanged: _pushSync,
             ),
+            StringPickerPreferenceTile(
+              preference: UserPreferences.mediaBarOverlayColor,
+              title: l10n.navbarColor,
+              icon: Icons.color_lens,
+              options: OverlayColorPalette.localizedOptions(l10n),
+              onChanged: _pushSync,
+            ),
+            SliderPreferenceTile(
+              preference: UserPreferences.mediaBarOverlayOpacity,
+              title: l10n.navbarOpacity,
+              icon: Icons.opacity,
+              min: 0,
+              max: 100,
+              divisions: 20,
+              labelOf: (v) => '$v%',
+              onChangeEnd: _pushSync,
+            ),
             _MediaBarContentTypePickerTile(onChanged: _pushSync),
             _MediaBarItemCountPickerTile(onChanged: _pushSync),
 
-            // --- Media Sources Heading ---
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
               child: Text(
@@ -351,7 +363,10 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
               title: Text(l10n.sourceLibraries),
               subtitle: Text(
                 _sourceSubtitle(
-                    UserPreferences.mediaBarLibraryIds, l10n.allLibraries, l10n),
+                  UserPreferences.mediaBarLibraryIds,
+                  l10n.allLibraries,
+                  l10n,
+                ),
               ),
               onTap: _showLibrarySelector,
             ),
@@ -360,7 +375,10 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
               title: Text(l10n.sourceCollections),
               subtitle: Text(
                 _sourceSubtitle(
-                    UserPreferences.mediaBarCollectionIds, l10n.noneSelected, l10n),
+                  UserPreferences.mediaBarCollectionIds,
+                  l10n.noneSelected,
+                  l10n,
+                ),
               ),
               onTap: _showCollectionSelector,
             ),
@@ -369,12 +387,14 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
               title: Text(l10n.excludedGenres),
               subtitle: Text(
                 _sourceSubtitle(
-                    UserPreferences.mediaBarExcludedGenres, l10n.noneExcluded, l10n),
+                  UserPreferences.mediaBarExcludedGenres,
+                  l10n.noneExcluded,
+                  l10n,
+                ),
               ),
               onTap: _showGenreSelector,
             ),
 
-            // --- Behavior Heading ---
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
               child: Text(
@@ -402,10 +422,9 @@ class _MediaBarSettingsScreenState extends State<MediaBarSettingsScreen> {
             ),
           ],
         ),
-        ),
-      );
-}
-
+      ),
+    );
+  }
 }
 
 class _MediaBarContentTypePickerTile extends StatefulWidget {
@@ -420,11 +439,7 @@ class _MediaBarContentTypePickerTile extends StatefulWidget {
 
 class _MediaBarContentTypePickerTileState
     extends State<_MediaBarContentTypePickerTile> {
-  static const _validKeys = <String>{
-    'both',
-    'movies',
-    'tvshows',
-  };
+  static const _validKeys = <String>{'both', 'movies', 'tvshows'};
 
   late final PreferenceBinding<String> _binding;
   bool _pickerOpen = false;

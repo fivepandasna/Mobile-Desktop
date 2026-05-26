@@ -19,6 +19,7 @@ import '../../data/services/plugin_sync_service.dart';
 import '../../preference/preference_constants.dart';
 import '../../preference/seerr_preferences.dart';
 import '../../preference/user_preferences.dart';
+import '../../util/overlay_color_palette.dart';
 import '../../util/platform_detection.dart';
 import '../navigation/destinations.dart';
 import '../navigation/home_refresh_bus.dart';
@@ -132,22 +133,9 @@ class _TopToolbarState extends State<TopToolbar> {
   }
 
   Color _overlayColor() {
-    final colorName = _prefs.get(UserPreferences.navbarColor);
-    return switch (colorName) {
-      'black' => Colors.black,
-      'gray' => Colors.grey,
-      'dark_blue' => const Color(0xFF1A2332),
-      'purple' => const Color(0xFF4A148C),
-      'teal' => const Color(0xFF00695C),
-      'navy' => const Color(0xFF0D1B2A),
-      'charcoal' => const Color(0xFF36454F),
-      'brown' => const Color(0xFF3E2723),
-      'dark_red' => const Color(0xFF8B0000),
-      'dark_green' => const Color(0xFF0B4F0F),
-      'slate' => const Color(0xFF475569),
-      'indigo' => const Color(0xFF1E3A8A),
-      _ => Colors.grey,
-    };
+    return OverlayColorPalette.resolveColor(
+      _prefs.get(UserPreferences.navbarColor),
+    );
   }
 
   double _overlayOpacity() {

@@ -17,7 +17,18 @@ class UserPreferences extends ChangeNotifier {
 
   final PreferenceStore _store;
 
-  UserPreferences(this._store);
+  UserPreferences(this._store) {
+    _migrateOverlayPreferences();
+  }
+
+  void _migrateOverlayPreferences() {
+    if (!_store.containsKey(navbarOpacity.key)) {
+      _store.set(navbarOpacity, _store.get(mediaBarOverlayOpacity));
+    }
+    if (!_store.containsKey(navbarColor.key)) {
+      _store.set(navbarColor, _store.get(mediaBarOverlayColor));
+    }
+  }
 
   T get<T>(Preference<T> pref) => _store.get(pref);
 
@@ -589,11 +600,21 @@ class UserPreferences extends ChangeNotifier {
   );
 
   static final navbarOpacity = Preference(
-    key: 'mediaBarOverlayOpacity',
+    key: 'navbarOpacity',
     defaultValue: 50,
   );
 
   static final navbarColor = Preference(
+    key: 'navbarColor',
+    defaultValue: 'gray',
+  );
+
+  static final mediaBarOverlayOpacity = Preference(
+    key: 'mediaBarOverlayOpacity',
+    defaultValue: 50,
+  );
+
+  static final mediaBarOverlayColor = Preference(
     key: 'mediaBarOverlayColor',
     defaultValue: 'gray',
   );
