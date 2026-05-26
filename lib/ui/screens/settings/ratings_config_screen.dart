@@ -118,23 +118,6 @@ class _RatingsConfigScreenState extends State<RatingsConfigScreen> {
     }
   }
 
-  void _moveItem(int index, int direction) {
-    final newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= _items.length) return;
-    setState(() {
-      final item = _items.removeAt(index);
-      _items.insert(newIndex, item);
-      final node = _focusNodes.removeAt(index);
-      _focusNodes.insert(newIndex, node);
-    });
-    _save();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (newIndex < _focusNodes.length) {
-        _focusNodes[newIndex].requestFocus();
-      }
-    });
-  }
-
   void _save() {
     final csv = _items
         .where((i) => i.enabled)
@@ -174,39 +157,118 @@ class _RatingsConfigScreenState extends State<RatingsConfigScreen> {
             ),
           ],
         ),
-        body: ListView.builder(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).padding.bottom + 16,
-          ),
-          itemCount: _items.length + 1,
-          itemBuilder: (context, index) {
-          if (index == 0) {
-            return ListTile(
-              leading: const Icon(Icons.reorder),
-              title: Text(l10n.ratingSources),
-              subtitle: Text(l10n.ratingSourcesDescription),
-            );
-          }
-          final itemIndex = index - 1;
-          final item = _items[itemIndex];
-          return _ReorderableTile(
-            key: ValueKey(item.key),
-            focusNode: _focusNodes[itemIndex],
-            label: _sourceLabel(item.key, l10n),
-            enabled: item.enabled,
-            isFirst: itemIndex == 0,
-            isLast: itemIndex == _items.length - 1,
-            onToggle: (enabled) {
-              setState(() => item.enabled = enabled);
-              _save();
-            },
-            onMoveUp: () => _moveItem(itemIndex, -1),
-            onMoveDown: () => _moveItem(itemIndex, 1),
-          );
-        },
-      ),
+        body: PlatformDetection.isTV ? _buildTvList(l10n) : _buildReorderableList(l10n),
       ),
     );
+  }
+
+  Widget _buildHeader(AppLocalizations l10n) {
+    return ListTile(
+      leading: const Icon(Icons.reorder),
+      title: Text(l10n.ratingSources),
+      subtitle: Text(l10n.ratingSourcesDescription),
+    );
+  }
+
+  Widget _buildReorderableList(AppLocalizations l10n) {
+    return ListView(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).padding.bottom + 16,
+      ),
+      children: [
+        _buildHeader(l10n),
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _items.length,
+          onReorder: (oldIndex, newIndex) {
+            if (newIndex > oldIndex) newIndex--;
+            _moveItemTo(oldIndex, newIndex);
+          },
+          itemBuilder: (context, index) {
+            final item = _items[index];
+            return _ReorderableTile(
+              key: ValueKey(item.key),
+              focusNode: _focusNodes[index],
+              label: _sourceLabel(item.key, l10n),
+              enabled: item.enabled,
+              isFirst: index == 0,
+              isLast: index == _items.length - 1,
+              trailing: ReorderableDragStartListener(
+                index: index,
+                child: Icon(
+                  Icons.drag_handle,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.7),
+                ),
+              ),
+              onToggle: (enabled) {
+                setState(() => item.enabled = enabled);
+                _save();
+              },
+              onMoveUp: () => _moveItemTo(index, index - 1),
+              onMoveDown: () => _moveItemTo(index, index + 1),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTvList(AppLocalizations l10n) {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _items.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return _buildHeader(l10n);
+        }
+        final itemIndex = index - 1;
+        final item = _items[itemIndex];
+        return _ReorderableTile(
+          key: ValueKey(item.key),
+          focusNode: _focusNodes[itemIndex],
+          label: _sourceLabel(item.key, l10n),
+          enabled: item.enabled,
+          isFirst: itemIndex == 0,
+          isLast: itemIndex == _items.length - 1,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (itemIndex != 0)
+                const Icon(Icons.arrow_left, size: 18),
+              if (itemIndex != _items.length - 1)
+                const Icon(Icons.arrow_right, size: 18),
+            ],
+          ),
+          onToggle: (enabled) {
+            setState(() => item.enabled = enabled);
+            _save();
+          },
+          onMoveUp: () => _moveItemTo(itemIndex, itemIndex - 1),
+          onMoveDown: () => _moveItemTo(itemIndex, itemIndex + 1),
+        );
+      },
+    );
+  }
+
+  void _moveItemTo(int index, int newIndex) {
+    if (newIndex < 0 || newIndex >= _items.length || index == newIndex) return;
+    setState(() {
+      final item = _items.removeAt(index);
+      _items.insert(newIndex, item);
+      final node = _focusNodes.removeAt(index);
+      _focusNodes.insert(newIndex, node);
+    });
+    _save();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (newIndex < _focusNodes.length) {
+        _focusNodes[newIndex].requestFocus();
+      }
+    });
   }
 }
 
@@ -216,6 +278,7 @@ class _ReorderableTile extends StatefulWidget {
   final bool enabled;
   final bool isFirst;
   final bool isLast;
+  final Widget? trailing;
   final ValueChanged<bool> onToggle;
   final VoidCallback onMoveUp;
   final VoidCallback onMoveDown;
@@ -227,6 +290,7 @@ class _ReorderableTile extends StatefulWidget {
     required this.enabled,
     required this.isFirst,
     required this.isLast,
+    this.trailing,
     required this.onToggle,
     required this.onMoveUp,
     required this.onMoveDown,
@@ -270,22 +334,13 @@ class _ReorderableTileState extends State<_ReorderableTile> {
         duration: const Duration(milliseconds: 90),
         color: bg,
         child: ListTile(
+          onTap: () => widget.onToggle(!widget.enabled),
           leading: Icon(
             widget.enabled ? Icons.check_box : Icons.check_box_outline_blank,
             color: widget.enabled ? colorScheme.primary : null,
           ),
           title: Text(widget.label),
-          trailing: PlatformDetection.isTV
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!widget.isFirst)
-                      const Icon(Icons.arrow_left, size: 18),
-                    if (!widget.isLast)
-                      const Icon(Icons.arrow_right, size: 18),
-                  ],
-                )
-              : null,
+          trailing: widget.trailing,
         ),
       ),
     );

@@ -209,9 +209,10 @@ class _SeerrConfigScreenState extends State<SeerrConfigScreen> {
     }
   }
 
-  void _moveSeerrRow(int index, int direction) {
-    final newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= _rows.length) return;
+  void _moveSeerrRowTo(int index, int newIndex) {
+    if (newIndex < 0 || newIndex >= _rows.length || index == newIndex) {
+      return;
+    }
     setState(() {
       final item = _rows.removeAt(index);
       _rows.insert(newIndex, item);
@@ -263,78 +264,155 @@ class _SeerrConfigScreenState extends State<SeerrConfigScreen> {
       ),
       body: withCleanSettingsTypography(
         context,
-        ListView.builder(
-          itemCount: (showSeerrSettings ? _rows.length : 0) + 1,
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return Column(
-                children: [
-                  if (seerrAvailable)
-                    SwitchListTile(
-                      secondary: const Icon(Icons.movie_filter),
-                      title: Text(l10n.enableSeerr),
-                      subtitle: Text(l10n.showSeerrInNavigation),
-                      value: _seerrPrefs.enabled,
-                      onChanged: _setSeerrEnabled,
-                    )
-                  else
-                    ListTile(
-                      leading: const Icon(Icons.movie_filter_outlined),
-                      title: Text(l10n.enableSeerr),
-                      subtitle: Text(l10n.seerrUnavailable),
-                    ),
-                  if (showSeerrSettings)
-                    _SeerrLoginCard(
-                      status: _seerrStatus,
-                      statusLoading: _statusLoading,
-                      onSignIn: _signInToSeerr,
-                      onSignOut: _signOutFromSeerr,
-                    ),
-                  if (showSeerrSettings)
-                    SwitchListTile(
-                      secondary: const Icon(Icons.visibility_off),
-                      title: Text(l10n.nsfwFilter),
-                      subtitle: Text(l10n.hideAdultContent),
-                      value: _seerrPrefs.blockNsfw,
-                      onChanged: _setBlockNsfw,
-                    ),
-                  if (showSeerrSettings)
-                    ListTile(
-                      leading: const Icon(Icons.view_carousel_outlined),
-                      title: Text(l10n.discoverRows),
-                      subtitle: Text(
-                        _syncService.pluginAvailable
-                          ? l10n.discoverRowsDescriptionPlugin
-                          : l10n.discoverRowsDescription,
-                      ),
-                    ),
-                  if (showSeerrSettings) const Divider(height: 1),
-                ],
-              );
-            }
-            final rowIndex = index - 1;
-            final row = _rows[rowIndex];
-            return _SeerrReorderableTile(
-              key: ValueKey(row.type),
-              focusNode: _focusNodes[rowIndex],
-              label: _rowLabel(row.type, l10n),
-              enabled: row.enabled,
-              enabledLabel: l10n.enabled,
-              hiddenLabel: l10n.hidden,
-              isFirst: rowIndex == 0,
-              isLast: rowIndex == _rows.length - 1,
-              onToggle: (enabled) {
-                setState(() {
-                  _rows[rowIndex] = row.copyWith(enabled: enabled);
-                });
-                _saveRows();
-              },
-              onMoveUp: () => _moveSeerrRow(rowIndex, -1),
-              onMoveDown: () => _moveSeerrRow(rowIndex, 1),
-            );
-          },
-        ),
+        PlatformDetection.isTV
+            ? _buildTvRows(l10n, seerrAvailable, showSeerrSettings)
+            : _buildReorderableRows(l10n, seerrAvailable, showSeerrSettings),
       ),
+    );
+  }
+
+  Widget _buildRowsHeader(
+    AppLocalizations l10n,
+    bool seerrAvailable,
+    bool showSeerrSettings,
+  ) {
+    return Column(
+      children: [
+        if (seerrAvailable)
+          SwitchListTile(
+            secondary: const Icon(Icons.movie_filter),
+            title: Text(l10n.enableSeerr),
+            subtitle: Text(l10n.showSeerrInNavigation),
+            value: _seerrPrefs.enabled,
+            onChanged: _setSeerrEnabled,
+          )
+        else
+          ListTile(
+            leading: const Icon(Icons.movie_filter_outlined),
+            title: Text(l10n.enableSeerr),
+            subtitle: Text(l10n.seerrUnavailable),
+          ),
+        if (showSeerrSettings)
+          _SeerrLoginCard(
+            status: _seerrStatus,
+            statusLoading: _statusLoading,
+            onSignIn: _signInToSeerr,
+            onSignOut: _signOutFromSeerr,
+          ),
+        if (showSeerrSettings)
+          SwitchListTile(
+            secondary: const Icon(Icons.visibility_off),
+            title: Text(l10n.nsfwFilter),
+            subtitle: Text(l10n.hideAdultContent),
+            value: _seerrPrefs.blockNsfw,
+            onChanged: _setBlockNsfw,
+          ),
+        if (showSeerrSettings)
+          ListTile(
+            leading: const Icon(Icons.view_carousel_outlined),
+            title: Text(l10n.discoverRows),
+            subtitle: Text(
+              _syncService.pluginAvailable
+                  ? l10n.discoverRowsDescriptionPlugin
+                  : l10n.discoverRowsDescription,
+            ),
+          ),
+        if (showSeerrSettings) const Divider(height: 1),
+      ],
+    );
+  }
+
+  Widget _buildTvRows(
+    AppLocalizations l10n,
+    bool seerrAvailable,
+    bool showSeerrSettings,
+  ) {
+    return ListView.builder(
+      itemCount: (showSeerrSettings ? _rows.length : 0) + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return _buildRowsHeader(l10n, seerrAvailable, showSeerrSettings);
+        }
+        final rowIndex = index - 1;
+        final row = _rows[rowIndex];
+        return _SeerrReorderableTile(
+          key: ValueKey(row.type),
+          focusNode: _focusNodes[rowIndex],
+          label: _rowLabel(row.type, l10n),
+          enabled: row.enabled,
+          enabledLabel: l10n.enabled,
+          hiddenLabel: l10n.hidden,
+          isFirst: rowIndex == 0,
+          isLast: rowIndex == _rows.length - 1,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (rowIndex != 0) const Icon(Icons.arrow_left, size: 18),
+              if (rowIndex != _rows.length - 1)
+                const Icon(Icons.arrow_right, size: 18),
+            ],
+          ),
+          onToggle: (enabled) {
+            setState(() {
+              _rows[rowIndex] = row.copyWith(enabled: enabled);
+            });
+            _saveRows();
+          },
+          onMoveUp: () => _moveSeerrRowTo(rowIndex, rowIndex - 1),
+          onMoveDown: () => _moveSeerrRowTo(rowIndex, rowIndex + 1),
+        );
+      },
+    );
+  }
+
+  Widget _buildReorderableRows(
+    AppLocalizations l10n,
+    bool seerrAvailable,
+    bool showSeerrSettings,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListView(
+      children: [
+        _buildRowsHeader(l10n, seerrAvailable, showSeerrSettings),
+        if (showSeerrSettings)
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _rows.length,
+            onReorder: (oldIndex, newIndex) {
+              if (newIndex > oldIndex) newIndex--;
+              _moveSeerrRowTo(oldIndex, newIndex);
+            },
+            itemBuilder: (context, rowIndex) {
+              final row = _rows[rowIndex];
+              return _SeerrReorderableTile(
+                key: ValueKey(row.type),
+                focusNode: _focusNodes[rowIndex],
+                label: _rowLabel(row.type, l10n),
+                enabled: row.enabled,
+                enabledLabel: l10n.enabled,
+                hiddenLabel: l10n.hidden,
+                isFirst: rowIndex == 0,
+                isLast: rowIndex == _rows.length - 1,
+                trailing: ReorderableDragStartListener(
+                  index: rowIndex,
+                  child: Icon(
+                    Icons.drag_handle,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                onToggle: (enabled) {
+                  setState(() {
+                    _rows[rowIndex] = row.copyWith(enabled: enabled);
+                  });
+                  _saveRows();
+                },
+                onMoveUp: () => _moveSeerrRowTo(rowIndex, rowIndex - 1),
+                onMoveDown: () => _moveSeerrRowTo(rowIndex, rowIndex + 1),
+              );
+            },
+          ),
+      ],
     );
   }
 }
@@ -1141,6 +1219,7 @@ class _SeerrReorderableTile extends StatefulWidget {
   final String hiddenLabel;
   final bool isFirst;
   final bool isLast;
+  final Widget? trailing;
   final ValueChanged<bool> onToggle;
   final VoidCallback onMoveUp;
   final VoidCallback onMoveDown;
@@ -1154,6 +1233,7 @@ class _SeerrReorderableTile extends StatefulWidget {
     required this.hiddenLabel,
     required this.isFirst,
     required this.isLast,
+    this.trailing,
     required this.onToggle,
     required this.onMoveUp,
     required this.onMoveDown,
@@ -1199,6 +1279,7 @@ class _SeerrReorderableTileState extends State<_SeerrReorderableTile> {
         duration: const Duration(milliseconds: 90),
         color: bg,
         child: ListTile(
+          onTap: () => widget.onToggle(!widget.enabled),
           leading: Icon(
             widget.enabled ? Icons.check_box : Icons.check_box_outline_blank,
             color: widget.enabled ? colorScheme.primary : null,
@@ -1207,15 +1288,7 @@ class _SeerrReorderableTileState extends State<_SeerrReorderableTile> {
           subtitle: Text(
             widget.enabled ? widget.enabledLabel : widget.hiddenLabel,
           ),
-          trailing: PlatformDetection.isTV
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!widget.isFirst) const Icon(Icons.arrow_left, size: 18),
-                    if (!widget.isLast) const Icon(Icons.arrow_right, size: 18),
-                  ],
-                )
-              : null,
+          trailing: widget.trailing,
         ),
       ),
     );
