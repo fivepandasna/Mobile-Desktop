@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
@@ -50,6 +53,10 @@ class PluginSyncService extends ChangeNotifier {
   bool get mdblistAvailable => _mdblistAvailable;
   bool _tmdbAvailable = false;
   bool get tmdbAvailable => _tmdbAvailable;
+  CancelToken? _settingsStreamCancelToken;
+  StreamSubscription<String>? _settingsStreamSubscription;
+  bool _settingsStreamReconnectPending = false;
+  int _settingsStreamReconnectAttempt = 0;
 
   PluginSyncService(this._prefs, this._store) : _dio = Dio() {
     configureServerDio(_dio);
@@ -102,7 +109,10 @@ class PluginSyncService extends ChangeNotifier {
     return value is String ? value : null;
   }
 
-  void resetState({bool notify = true}) {
+  void resetState({bool notify = true, bool stopStream = true}) {
+    if (stopStream) {
+      _stopSettingsStream();
+    }
     _pluginAvailable = false;
     _pluginVersion = null;
     _seerrUrl = null;
@@ -129,11 +139,12 @@ class PluginSyncService extends ChangeNotifier {
   Future<_PluginAvailabilityStatus> _refreshAvailabilityStatus(
     MediaServerClient client,
   ) async {
-    resetState(notify: false);
+    resetState(notify: false, stopStream: false);
 
     try {
       final pingResult = await _ping(client);
       if (pingResult == null) {
+        _stopSettingsStream();
         _setLocalSeerrEnabled(false);
         notifyListeners();
         return _PluginAvailabilityStatus.unknown;
@@ -141,6 +152,7 @@ class PluginSyncService extends ChangeNotifier {
 
       final installed = _readBool(pingResult, 'installed');
       if (installed != null && !installed) {
+        _stopSettingsStream();
         _setLocalSeerrEnabled(false);
         notifyListeners();
         return _PluginAvailabilityStatus.unavailable;
@@ -148,6 +160,7 @@ class PluginSyncService extends ChangeNotifier {
 
       final syncEnabled = _readBool(pingResult, 'settingsSyncEnabled');
       if (syncEnabled != null && !syncEnabled) {
+        _stopSettingsStream();
         _setLocalSeerrEnabled(false);
         notifyListeners();
         return _PluginAvailabilityStatus.unavailable;
@@ -231,6 +244,9 @@ class PluginSyncService extends ChangeNotifier {
             _serverSyncKey(client, serverId: serverId),
           );
       if (_prefs.get(syncInitializedPref)) {
+        if (_prefs.get(UserPreferences.pluginSyncEnabled)) {
+          await _startSettingsStream(client);
+        }
         return;
       }
 
@@ -256,8 +272,155 @@ class PluginSyncService extends ChangeNotifier {
 
       await _applyServerSettings(resolved);
       await _prefs.set(syncInitializedPref, true);
+      await _startSettingsStream(client);
     } catch (_) {
       resetState();
+    }
+  }
+
+  void _stopSettingsStream() {
+    _settingsStreamReconnectPending = false;
+    _settingsStreamReconnectAttempt = 0;
+
+    final cancelToken = _settingsStreamCancelToken;
+    _settingsStreamCancelToken = null;
+    cancelToken?.cancel('settings stream stopped');
+
+    final subscription = _settingsStreamSubscription;
+    _settingsStreamSubscription = null;
+    if (subscription != null) {
+      unawaited(subscription.cancel());
+    }
+  }
+
+  void _scheduleSettingsStreamReconnect(MediaServerClient client) {
+    if (_settingsStreamReconnectPending) {
+      return;
+    }
+
+    final exponent = _settingsStreamReconnectAttempt < 6
+        ? _settingsStreamReconnectAttempt
+        : 6;
+    var delayMs = 1000 * (1 << exponent);
+    if (delayMs > 30000) {
+      delayMs = 30000;
+    }
+    if (_settingsStreamReconnectAttempt < 6) {
+      _settingsStreamReconnectAttempt += 1;
+    }
+
+    _settingsStreamReconnectPending = true;
+    unawaited(
+      Future<void>.delayed(Duration(milliseconds: delayMs), () async {
+        _settingsStreamReconnectPending = false;
+
+        final cancelToken = _settingsStreamCancelToken;
+        if (cancelToken == null || cancelToken.isCancelled) {
+          return;
+        }
+
+        if (!_pluginAvailable ||
+            !_prefs.get(UserPreferences.pluginSyncEnabled)) {
+          return;
+        }
+
+        await _startSettingsStream(client);
+      }),
+    );
+  }
+
+  Future<void> _handleSettingsStreamEvent(
+    MediaServerClient client,
+    String payload,
+  ) async {
+    try {
+      final parsed = jsonDecode(payload);
+      if (parsed is! Map<String, dynamic>) {
+        return;
+      }
+
+      if (parsed['type'] != 'settingsUpdated') {
+        return;
+      }
+
+      final resolved = await _fetchResolvedProfile(client, _profileName);
+      if (resolved == null) {
+        return;
+      }
+
+      await _applyServerSettings(resolved);
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> _startSettingsStream(MediaServerClient client) async {
+    if (!_pluginAvailable || !_prefs.get(UserPreferences.pluginSyncEnabled)) {
+      return;
+    }
+
+    final headers = _authHeaders(client);
+    if (headers == null) {
+      return;
+    }
+
+    _stopSettingsStream();
+
+    final cancelToken = CancelToken();
+    _settingsStreamCancelToken = cancelToken;
+
+    try {
+      final response = await _dio.get<ResponseBody>(
+        '${client.baseUrl}/Moonfin/Settings/Stream',
+        options: Options(
+          headers: headers,
+          responseType: ResponseType.stream,
+        ),
+        cancelToken: cancelToken,
+      );
+
+      final body = response.data;
+      if (body == null) {
+        if (!cancelToken.isCancelled) {
+          _scheduleSettingsStreamReconnect(client);
+        }
+        return;
+      }
+
+        _settingsStreamReconnectAttempt = 0;
+
+      _settingsStreamSubscription = body.stream
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(
+            (line) {
+              if (!line.startsWith('data:')) {
+                return;
+              }
+
+              final payload = line.substring(5).trim();
+              if (payload.isEmpty) {
+                return;
+              }
+
+              unawaited(_handleSettingsStreamEvent(client, payload));
+            },
+            onError: (_) {
+              if (!cancelToken.isCancelled) {
+                _scheduleSettingsStreamReconnect(client);
+              }
+            },
+            onDone: () {
+              if (!cancelToken.isCancelled) {
+                _scheduleSettingsStreamReconnect(client);
+              }
+            },
+            cancelOnError: false,
+          );
+    } catch (_) {
+      if (!cancelToken.isCancelled) {
+        _scheduleSettingsStreamReconnect(client);
+      }
     }
   }
 
@@ -466,8 +629,80 @@ class PluginSyncService extends ChangeNotifier {
       UserPreferences.navbarPosition,
       enumValues: prefs.NavbarPosition.values,
     );
-    _applyBool(resolved, 'showClock', UserPreferences.showClock);
-    _applyBool(resolved, 'use24HourClock', UserPreferences.use24HourClock);
+    _applyString(
+      resolved,
+      'focusColor',
+      UserPreferences.focusColor,
+      enumValues: prefs.AppTheme.values,
+    );
+    _applyString(
+      resolved,
+      'watchedIndicator',
+      UserPreferences.watchedIndicatorBehavior,
+      enumValues: prefs.WatchedIndicatorBehavior.values,
+    );
+    _applyBool(
+      resolved,
+      'cardFocusExpansion',
+      UserPreferences.cardFocusExpansion,
+    );
+    _applyString(
+      resolved,
+      'homeRowsStyle',
+      UserPreferences.homeRowsStyle,
+      enumValues: prefs.HomeRowsStyle.values,
+    );
+    _applyString(
+      resolved,
+      'homeImageTypeContinueWatching',
+      UserPreferences.homeRowImageType(prefs.HomeSectionType.resume),
+      enumValues: prefs.ImageType.values,
+    );
+    _applyString(
+      resolved,
+      'posterSize',
+      UserPreferences.posterSize,
+      enumValues: prefs.PosterSize.values,
+    );
+    _applyBool(
+      resolved,
+      'displayFavoritesRows',
+      UserPreferences.displayFavoritesRows,
+    );
+    _applyBool(
+      resolved,
+      'displayCollectionsRows',
+      UserPreferences.displayCollectionsRows,
+    );
+    _applyBool(
+      resolved,
+      'displayGenresRows',
+      UserPreferences.displayGenresRows,
+    );
+    _applyString(
+      resolved,
+      'favoritesRowSortBy',
+      UserPreferences.favoritesRowSortBy,
+      enumValues: prefs.LibrarySortBy.values,
+    );
+    _applyString(
+      resolved,
+      'collectionsRowSortBy',
+      UserPreferences.collectionsRowSortBy,
+      enumValues: prefs.LibrarySortBy.values,
+    );
+    _applyString(
+      resolved,
+      'genresRowSortBy',
+      UserPreferences.genresRowSortBy,
+      enumValues: prefs.LibrarySortBy.values,
+    );
+    _applyString(
+      resolved,
+      'genresRowItemFilter',
+      UserPreferences.genresRowItemFilter,
+      enumValues: prefs.GenresRowItemFilter.values,
+    );
     _applyBool(
       resolved,
       'showShuffleButton',
@@ -544,6 +779,11 @@ class PluginSyncService extends ChangeNotifier {
       resolved,
       'mediaBarTrailerPreview',
       UserPreferences.mediaBarTrailerPreview,
+    );
+    _applyBool(
+      resolved,
+      'mediaBarTrailerAudio',
+      UserPreferences.mediaBarTrailerAudio,
     );
     _applyBool(
       resolved,
@@ -634,6 +874,11 @@ class PluginSyncService extends ChangeNotifier {
     _applyString(resolved, 'tmdbApiKey', UserPreferences.tmdbApiKey);
 
     _applyBool(resolved, 'jellyseerrEnabled', UserPreferences.seerrEnabled);
+    _applyBool(
+      resolved,
+      'jellyseerrBlockNsfw',
+      UserPreferences.jellyseerrBlockNsfw,
+    );
 
     if (resolved['mdblistRatingSources'] is List) {
       final sources = (resolved['mdblistRatingSources'] as List)
@@ -860,8 +1105,25 @@ class PluginSyncService extends ChangeNotifier {
       'visualTheme': _prefs.get(UserPreferences.visualTheme).name,
       'customThemeId': _prefs.get(UserPreferences.customThemeId),
       'navbarPosition': _prefs.get(UserPreferences.navbarPosition).name,
-      'showClock': _prefs.get(UserPreferences.showClock),
-      'use24HourClock': _prefs.get(UserPreferences.use24HourClock),
+      'focusColor': _prefs.get(UserPreferences.focusColor).name,
+      'watchedIndicator': _prefs.get(UserPreferences.watchedIndicatorBehavior).name,
+      'cardFocusExpansion': _prefs.get(UserPreferences.cardFocusExpansion),
+      'homeRowsStyle': _prefs.get(UserPreferences.homeRowsStyle).name,
+      'homeImageTypeContinueWatching': _prefs
+          .get(UserPreferences.homeRowImageType(prefs.HomeSectionType.resume))
+          .name,
+      'posterSize': _prefs.get(UserPreferences.posterSize).name,
+      'displayFavoritesRows': _prefs.get(UserPreferences.displayFavoritesRows),
+      'displayCollectionsRows': _prefs.get(
+        UserPreferences.displayCollectionsRows,
+      ),
+      'displayGenresRows': _prefs.get(UserPreferences.displayGenresRows),
+      'favoritesRowSortBy': _prefs.get(UserPreferences.favoritesRowSortBy).name,
+      'collectionsRowSortBy': _prefs
+          .get(UserPreferences.collectionsRowSortBy)
+          .name,
+      'genresRowSortBy': _prefs.get(UserPreferences.genresRowSortBy).name,
+      'genresRowItemFilter': _prefs.get(UserPreferences.genresRowItemFilter).name,
       'showShuffleButton': _prefs.get(UserPreferences.showShuffleButton),
       'showGenresButton': _prefs.get(UserPreferences.showGenresButton),
       'showFavoritesButton': _prefs.get(UserPreferences.showFavoritesButton),
@@ -892,6 +1154,7 @@ class PluginSyncService extends ChangeNotifier {
       'mediaBarTrailerPreview': _prefs.get(
         UserPreferences.mediaBarTrailerPreview,
       ),
+      'mediaBarTrailerAudio': _prefs.get(UserPreferences.mediaBarTrailerAudio),
       'episodePreviewEnabled': _prefs.get(
         UserPreferences.episodePreviewEnabled,
       ),
@@ -928,6 +1191,7 @@ class PluginSyncService extends ChangeNotifier {
       ),
       'tmdbApiKey': _prefs.get(UserPreferences.tmdbApiKey),
       'jellyseerrEnabled': _prefs.get(UserPreferences.seerrEnabled),
+      'jellyseerrBlockNsfw': _prefs.get(UserPreferences.jellyseerrBlockNsfw),
       'mdblistRatingSources': _csvToList(UserPreferences.enabledRatings),
       'homeRowOrder': _prefs.homeSectionsConfig
           .where((c) => c.enabled)
@@ -939,5 +1203,11 @@ class PluginSyncService extends ChangeNotifier {
             .toList(),
       },
     };
+  }
+
+  @override
+  void dispose() {
+    _stopSettingsStream();
+    super.dispose();
   }
 }

@@ -634,6 +634,11 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: true,
   );
 
+  static final mediaBarTrailerAudio = Preference(
+    key: 'mediaBarTrailerAudio',
+    defaultValue: false,
+  );
+
   static final mediaBarLibraryIds = Preference(
     key: 'mediaBarLibraryIds',
     defaultValue: '',
@@ -951,6 +956,11 @@ class UserPreferences extends ChangeNotifier {
 
   static final seerrEnabled = Preference(
     key: 'seerr_enabled',
+    defaultValue: false,
+  );
+
+  static final jellyseerrBlockNsfw = Preference(
+    key: 'jellyseerrBlockNsfw',
     defaultValue: false,
   );
 
