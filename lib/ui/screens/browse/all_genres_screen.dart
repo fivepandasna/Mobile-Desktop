@@ -7,6 +7,7 @@ import 'package:moonfin_design/moonfin_design.dart';
 import 'package:server_core/server_core.dart' hide ImageType;
 
 import '../../../data/services/background_service.dart';
+import '../../../data/utils/genre_browse_utils.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/platform_detection.dart';
@@ -83,6 +84,7 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
           startIndex: startIndex,
           limit: _genresPageSize,
           fields: 'ItemCounts',
+          includeItemTypes: kBrowsableGenreItemTypes,
         );
 
         total ??= response['TotalRecordCount'] as int?;
@@ -97,16 +99,16 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
 
       _genres = items.map((g) {
         final data = g as Map<String, dynamic>;
+        final itemCount = browsableGenreCount(
+          data,
+          normalizedItemTypes: kBrowsableGenreItemTypes,
+        );
         return GenreCardData(
           id: data['Id'] as String,
           name: data['Name'] as String? ?? '',
-          itemCount:
-              data['ChildCount'] as int? ??
-              (data['MovieCount'] as int? ?? 0) +
-                  (data['SeriesCount'] as int? ?? 0) +
-                  (data['AlbumCount'] as int? ?? 0),
+          itemCount: itemCount,
         );
-      }).toList();
+      }).where((genre) => genre.itemCount > 0).toList();
     } catch (_) {}
 
     _isLoading = false;
@@ -142,7 +144,7 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
     try {
       final response = await _client.itemsApi.getItems(
         genreIds: [genre.id],
-        includeItemTypes: ['Movie', 'Series', 'MusicAlbum', 'MusicVideo'],
+        includeItemTypes: kBrowsableGenreItemTypes,
         excludeItemTypes: ['Episode'],
         sortBy: 'SortName',
         sortOrder: 'Ascending',
@@ -153,6 +155,17 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
       );
 
       final items = (response['Items'] as List?) ?? [];
+      final rawTotalCount = response['TotalRecordCount'];
+      final totalCount =
+          rawTotalCount is num ? rawTotalCount.toInt() : items.length;
+      if (totalCount <= 0 || items.isEmpty) {
+        if (_genres.remove(genre) && !_disposed && mounted) {
+          setState(() {});
+        }
+        return;
+      }
+
+      genre.itemCount = totalCount;
       String? imageUrl;
       for (final raw in items) {
         final item = raw as Map<String, dynamic>;

@@ -2695,6 +2695,8 @@ class _ContentRowsState extends State<_ContentRows>
           _finishSharedPreview(releaseResources: true);
           if (row.rowType == HomeRowType.libraryTiles) {
             _navigateToLibrary(context, item);
+          } else if (row.rowType == HomeRowType.genres) {
+            context.push(Destinations.genre(item.name, genreId: item.id));
           } else {
             context.push(Destinations.itemOrPhoto(
               item.id,
@@ -2783,6 +2785,8 @@ class _ContentRowsState extends State<_ContentRows>
           void navigateToItem() {
             if (row.rowType == HomeRowType.libraryTiles) {
               _navigateToLibrary(context, item);
+            } else if (row.rowType == HomeRowType.genres) {
+              context.push(Destinations.genre(item.name, genreId: item.id));
             } else {
               context.push(Destinations.itemOrPhoto(
                 item.id,

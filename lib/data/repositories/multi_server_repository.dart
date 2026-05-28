@@ -11,6 +11,7 @@ import '../models/aggregated_item.dart';
 import '../models/aggregated_library.dart';
 import '../models/home_row.dart';
 import '../services/media_server_client_factory.dart';
+import '../utils/genre_browse_utils.dart';
 import '../utils/latest_media_row_normalizer.dart';
 import '../utils/playlist_utils.dart';
 import '../../l10n/app_localizations.dart';
@@ -47,6 +48,7 @@ class MultiServerRepository {
   static const _defaultLimit = 15;
   static const _defaultSortBy = 'SortName';
   static const _defaultSortOrder = 'Ascending';
+  static const _genreArtworkConcurrency = 4;
 
   List<ServerUserSession>? _cachedSessions;
   DateTime _cacheExpiry = DateTime(0);
@@ -316,6 +318,7 @@ class MultiServerRepository {
     String sortOrder = _defaultSortOrder,
     List<String>? includeItemTypes,
   }) async {
+    final browseItemTypes = normalizeBrowsableGenreItemTypes(includeItemTypes);
     final sessions = await getLoggedInServers();
     final perServer = (limit * 3).clamp(1, 100);
 
@@ -328,9 +331,13 @@ class MultiServerRepository {
             recursive: true,
             limit: perServer,
             fields: 'ItemCounts',
-            includeItemTypes: includeItemTypes,
+            includeItemTypes: browseItemTypes,
           );
-          return _parseItems(response, session.server.id);
+          return _buildBrowsableGenresForSession(
+            session,
+            response,
+            includeItemTypes: browseItemTypes,
+          );
         }, label: 'genres from ${session.server.name}'),
       ),
     );
@@ -514,6 +521,105 @@ class MultiServerRepository {
     } on TimeoutException {
       _logger.w('MultiServer: Timeout $label');
       rethrow;
+    }
+  }
+
+  Future<List<AggregatedItem>> _buildBrowsableGenresForSession(
+    ServerUserSession session,
+    Map<String, dynamic> response, {
+    required List<String> includeItemTypes,
+  }) async {
+    final rawItems = response['Items'] as List? ?? const [];
+    final genres = rawItems
+        .whereType<Map>()
+        .map((item) => item.cast<String, dynamic>())
+        .where(
+          (genre) =>
+              browsableGenreCount(
+                genre,
+                normalizedItemTypes: includeItemTypes,
+              ) >
+              0,
+        )
+        .toList(growable: false);
+
+    if (genres.isEmpty) {
+      return const [];
+    }
+
+    final enriched = <AggregatedItem>[];
+    for (var i = 0; i < genres.length; i += _genreArtworkConcurrency) {
+      final batch = genres.skip(i).take(_genreArtworkConcurrency);
+      final resolved = await Future.wait(
+        batch.map(
+          (genre) => _enrichSingleGenreForBrowse(
+            session,
+            genre,
+            includeItemTypes: includeItemTypes,
+          ),
+        ),
+      );
+      enriched.addAll(resolved.whereType<AggregatedItem>());
+    }
+
+    return enriched;
+  }
+
+  Future<AggregatedItem?> _enrichSingleGenreForBrowse(
+    ServerUserSession session,
+    Map<String, dynamic> genreData, {
+    required List<String> includeItemTypes,
+  }) async {
+    final genreId = genreData['Id'] as String?;
+    if (genreId == null || genreId.isEmpty) {
+      return null;
+    }
+
+    try {
+      final response = await session.client.itemsApi.getItems(
+        genreIds: [genreId],
+        includeItemTypes: includeItemTypes,
+        excludeItemTypes: const ['Episode'],
+        sortBy: _defaultSortBy,
+        sortOrder: _defaultSortOrder,
+        recursive: true,
+        limit: 1,
+        fields: _fields,
+      );
+
+      final items = (response['Items'] as List?) ?? const [];
+      if (items.isEmpty) {
+        return null;
+      }
+
+      final representative = items.first;
+      if (representative is! Map) {
+        return null;
+      }
+
+      final rawTotalCount = response['TotalRecordCount'];
+      final totalCount = rawTotalCount is num
+          ? rawTotalCount.toInt()
+          : browsableGenreCount(
+            genreData,
+            normalizedItemTypes: includeItemTypes,
+          );
+      if (totalCount <= 0) {
+        return null;
+      }
+
+      final merged = mergeGenreWithRepresentativeItem(
+        genreData: genreData,
+        representativeItem: representative.cast<String, dynamic>(),
+        itemCount: totalCount,
+      );
+      return AggregatedItem(
+        id: merged['Id'] as String,
+        serverId: session.server.id,
+        rawData: merged,
+      );
+    } catch (_) {
+      return null;
     }
   }
 

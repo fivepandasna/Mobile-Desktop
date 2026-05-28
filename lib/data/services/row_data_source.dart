@@ -12,6 +12,7 @@ import '../../l10n/current_app_localizations.dart';
 import '../models/aggregated_item.dart';
 import '../models/home_row.dart';
 import '../utils/latest_media_row_normalizer.dart';
+import '../utils/genre_browse_utils.dart';
 import '../utils/playlist_utils.dart';
 
 class RowDataSource {
@@ -21,6 +22,7 @@ class RowDataSource {
   static const _maxItems = 100;
   static const _defaultSortBy = 'SortName';
   static const _defaultSortOrder = 'Ascending';
+  static const _genreArtworkConcurrency = 4;
 
   static const _fields =
       'Type,UserData,Overview,Genres,CommunityRating,CriticRating,'
@@ -222,6 +224,7 @@ class RowDataSource {
     String sortOrder = _defaultSortOrder,
     List<String>? includeItemTypes,
   }) async {
+    final browseItemTypes = normalizeBrowsableGenreItemTypes(includeItemTypes);
     Map<String, dynamic> response;
     try {
       response = await _client.itemsApi.getGenres(
@@ -230,7 +233,7 @@ class RowDataSource {
         recursive: true,
         limit: _defaultLimit,
         fields: 'ItemCounts',
-        includeItemTypes: includeItemTypes,
+        includeItemTypes: browseItemTypes,
       );
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode ?? 0;
@@ -240,17 +243,120 @@ class RowDataSource {
         sortOrder: sortOrder,
         recursive: true,
         limit: _defaultLimit,
-        includeItemTypes: includeItemTypes,
+        includeItemTypes: browseItemTypes,
       );
     }
+
+    final enrichedResponse = await _enrichGenreResponseForBrowse(
+      response,
+      includeItemTypes: browseItemTypes,
+    );
 
     return _buildRow(
       id: 'genres',
       title: _l10n.genres,
-      response: response,
+      response: enrichedResponse,
       serverId: serverId,
       rowType: HomeRowType.genres,
     );
+  }
+
+  Future<Map<String, dynamic>> _enrichGenreResponseForBrowse(
+    Map<String, dynamic> response, {
+    required List<String> includeItemTypes,
+  }) async {
+    final rawItems = response['Items'] as List? ?? const [];
+    final genres = rawItems
+        .whereType<Map>()
+        .map((item) => item.cast<String, dynamic>())
+        .where(
+          (genre) =>
+              browsableGenreCount(
+                genre,
+                normalizedItemTypes: includeItemTypes,
+              ) >
+              0,
+        )
+        .toList(growable: false);
+
+    if (genres.isEmpty) {
+      return {
+        ...response,
+        'Items': const <Map<String, dynamic>>[],
+        'TotalRecordCount': 0,
+      };
+    }
+
+    final enriched = <Map<String, dynamic>>[];
+    for (var i = 0; i < genres.length; i += _genreArtworkConcurrency) {
+      final batch = genres.skip(i).take(_genreArtworkConcurrency);
+      final resolved = await Future.wait(
+        batch.map(
+          (genre) => _enrichSingleGenreForBrowse(
+            genre,
+            includeItemTypes: includeItemTypes,
+          ),
+        ),
+      );
+      enriched.addAll(resolved.whereType<Map<String, dynamic>>());
+    }
+
+    return {
+      ...response,
+      'Items': enriched,
+      'TotalRecordCount': enriched.length,
+    };
+  }
+
+  Future<Map<String, dynamic>?> _enrichSingleGenreForBrowse(
+    Map<String, dynamic> genreData, {
+    required List<String> includeItemTypes,
+  }) async {
+    final genreId = genreData['Id'] as String?;
+    if (genreId == null || genreId.isEmpty) {
+      return null;
+    }
+
+    try {
+      final response = await _getItemsWithFallback(
+        genreIds: [genreId],
+        includeItemTypes: includeItemTypes,
+        excludeItemTypes: const ['Episode'],
+        sortBy: _defaultSortBy,
+        sortOrder: _defaultSortOrder,
+        recursive: true,
+        limit: 1,
+      );
+
+      final items = (response['Items'] as List?) ?? const [];
+      if (items.isEmpty) {
+        return null;
+      }
+
+      final representative = items.first;
+      if (representative is! Map) {
+        return null;
+      }
+
+      final rawTotalCount = response['TotalRecordCount'];
+      final totalCount = rawTotalCount is num
+          ? rawTotalCount.toInt()
+          : browsableGenreCount(
+            genreData,
+            normalizedItemTypes: includeItemTypes,
+          );
+      if (totalCount <= 0) {
+        return null;
+      }
+
+      return mergeGenreWithRepresentativeItem(
+        genreData: genreData,
+        representativeItem: representative.cast<String, dynamic>(),
+        itemCount: totalCount,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<HomeRow> loadCollectionRow(
