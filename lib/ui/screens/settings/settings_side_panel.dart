@@ -2592,8 +2592,10 @@ class _AudioPreferencesScreenState extends State<_AudioPreferencesScreen> {
             ),
           ],
 
-          const _SectionHeader('Detected Audio Capabilities'),
-          ..._buildDetectedCapabilities(l10n),
+          if (PlatformDetection.isAndroid && PlatformDetection.isTV) ...[
+            const _SectionHeader('Detected Audio Capabilities'),
+            ..._buildDetectedCapabilities(l10n),
+          ],
         ],
       ),
     );
