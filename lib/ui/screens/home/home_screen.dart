@@ -2797,9 +2797,58 @@ class _ContentRowsState extends State<_ContentRows>
             }
           }
 
+          final String cardTitle;
+          final String? cardSubtitle;
+          final Widget? cardSubtitleWidget;
+
+          if (isRowsV2 && item.type == 'Episode') {
+            final s = item.parentIndexNumber;
+            final e = item.indexNumber;
+            final episodeInfo = switch ((s, e)) {
+              (final season?, final episode?) => 'S$season:E$episode',
+              _ => null,
+            };
+            cardTitle = item.seriesName ?? item.name;
+            if (effectiveV2Focused) {
+              cardSubtitle = null;
+              final row2Text = episodeInfo != null ? '$episodeInfo - ${item.name}' : item.name;
+              final row3Text = _v2MetadataLine(item);
+              final baseTextStyle = Theme.of(context).textTheme.bodySmall ?? const TextStyle(fontSize: 12);
+              final subtitleColor = Theme.of(context).colorScheme.onSurface.withAlpha(153);
+              final subtitleStyle = baseTextStyle.copyWith(color: subtitleColor);
+              cardSubtitleWidget = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    row2Text,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: subtitleStyle,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    row3Text,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: subtitleStyle,
+                  ),
+                ],
+              );
+            } else {
+              cardSubtitle = episodeInfo ?? item.name;
+              cardSubtitleWidget = null;
+            }
+          } else {
+            cardTitle = item.name;
+            cardSubtitle = isRowsV2 && effectiveV2Focused ? _v2MetadataLine(item) : item.subtitle;
+            cardSubtitleWidget = null;
+          }
+
           final card = MediaCard(
-            title: item.name,
-            subtitle: isRowsV2 && effectiveV2Focused ? _v2MetadataLine(item) : item.subtitle,
+            title: cardTitle,
+            subtitle: cardSubtitle,
+            subtitleWidget: cardSubtitleWidget,
             imageUrl: imageUrl,
             width: width,
             aspectRatio: ar,
