@@ -3,6 +3,7 @@ package org.moonfin.nativevideo
 import android.app.ActivityManager
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -231,6 +232,12 @@ class Media3VideoView(
         setBackgroundColor(Color.BLACK)
     }
     private val subtitleView = SubtitleView(context)
+    private val subtitleTypeface: Typeface? by lazy {
+        loadSubtitleTypeface(
+            "flutter_assets/assets/fonts/NotoSansCJK-Regular.ttc",
+            "flutter_assets/assets/fonts/NotoSans-Regular.ttf",
+        )
+    }
     private val containerView: FrameLayout = FrameLayout(context).also { container ->
         container.setBackgroundColor(Color.BLACK)
         val videoLayoutParams = FrameLayout.LayoutParams(
@@ -1108,6 +1115,18 @@ class Media3VideoView(
         setMediaItem(currentPosition, playWhenReady = playWhenReady)
     }
 
+    private fun loadSubtitleTypeface(vararg assetPaths: String): Typeface? {
+        for (assetPath in assetPaths) {
+            val typeface = runCatching {
+                Typeface.createFromAsset(context.assets, assetPath)
+            }.getOrNull()
+            if (typeface != null) {
+                return typeface
+            }
+        }
+        return null
+    }
+
     private fun configureSubtitleStyle(args: Map<*, *>?) {
         val textColor = (args?.get("textColor") as? Number)?.toInt() ?: Color.WHITE
         val bgColor = (args?.get("backgroundColor") as? Number)?.toInt() ?: Color.TRANSPARENT
@@ -1128,7 +1147,7 @@ class Media3VideoView(
                 Color.TRANSPARENT,
                 edgeType,
                 strokeColor,
-                null,
+                subtitleTypeface,
             ),
         )
 

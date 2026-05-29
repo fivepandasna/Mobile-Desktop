@@ -22,6 +22,7 @@ import '../../../playback/html_video_backend.dart';
 import '../../../playback/media_kit_player_backend.dart';
 import '../../../playback/playback_lifecycle_handler.dart';
 import '../../../playback/playback_profile_diagnostics.dart';
+import '../../../playback/subtitle_font_fallback.dart';
 import '../../../playback/hdr_stream_capability.dart';
 import '../../../auth/repositories/user_repository.dart';
 import '../../../data/models/aggregated_item.dart';
@@ -781,6 +782,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         unawaited(_syncMedia3ZoomMode());
       }
       if (!mounted) return;
+      _applySubtitleStyle();
       setState(() {});
     });
     if (PlatformDetection.isTV) {
@@ -2721,7 +2723,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         color: textColor,
         fontWeight: fontWeight >= 700 ? FontWeight.bold : FontWeight.normal,
         backgroundColor: bgColor,
-        fontFamilyFallback: const ['Roboto', 'Noto Sans', 'Arial'],
+        fontFamilyFallback: kSubtitleFontFamilyFallback,
         shadows: strokeShadows,
       ),
       textAlign: TextAlign.center,
