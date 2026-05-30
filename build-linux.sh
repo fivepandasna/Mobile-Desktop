@@ -246,8 +246,6 @@ collect_transitive_libs() {
 runtime_skip_pattern() {
   local skip='linux-vdso|ld-linux|libc[.]so|libm[.]so|libpthread|libdl[.]so|librt[.]so'
   skip="$skip"'|libstdc[+][+]|libgcc_s'
-  # Avoid bundling host-sensitive image codec stacks that often mismatch on rolling distros.
-  skip="$skip"'|libavif|libsharpyuv|libwebp|libjxl|libaom|libdav1d|libSvtAv1Enc|libyuv'
   skip="$skip"'|libX[a-z]|libxcb|libxkb|libxshmfence|libICE|libSM'
   skip="$skip"'|libwayland|libffi|libpcre'
   skip="$skip"'|libGL|libEGL|libGLX|libGLdispatch|libOpenGL|libdrm|libgbm'
