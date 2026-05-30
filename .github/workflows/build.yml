@@ -226,7 +226,7 @@ jobs:
   # Linux packages
   linux:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_all || inputs.linux }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 

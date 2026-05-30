@@ -113,6 +113,8 @@ resolve_shared_lib() {
     case "$soname" in
       # Prefer libmpv2 where available; keep libmpv1 as distro compatibility fallback.
       libmpv.so.2) pkg_candidates=("libmpv2" "libmpv1") ;;
+      libmpv.so.1) pkg_candidates=("libmpv1" "libmpv2") ;;
+      libmpv.so) pkg_candidates=("libmpv-dev" "libmpv2" "libmpv1") ;;
       libsecret-1.so.0) pkg_candidates=("libsecret-1-0") ;;
       libsqlite3.so.0) pkg_candidates=("libsqlite3-0") ;;
       libwebkit2gtk-4.1.so.0) pkg_candidates=("libwebkit2gtk-4.1-0") ;;
@@ -165,9 +167,15 @@ resolve_shared_lib() {
 runtime_seed_libs() {
   local seed_libs=""
 
-  local libmpv_path
-  if ! libmpv_path="$(resolve_shared_lib libmpv.so.2)"; then
-    echo "Error: could not resolve libmpv.so.2. Install libmpv2 (preferred) or libmpv1 compatibility package on the build host." >&2
+  local libmpv_path=""
+  local mpv_soname
+  for mpv_soname in libmpv.so.2 libmpv.so.1 libmpv.so; do
+    if libmpv_path="$(resolve_shared_lib "$mpv_soname")"; then
+      break
+    fi
+  done
+  if [ -z "$libmpv_path" ]; then
+    echo "Error: could not resolve libmpv (.so.2 or .so.1). Install libmpv2 (preferred) or libmpv1 on the build host." >&2
     return 1
   fi
   seed_libs="$libmpv_path"
