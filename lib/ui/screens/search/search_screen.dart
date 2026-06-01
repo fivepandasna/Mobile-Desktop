@@ -668,24 +668,38 @@ class _SearchScreenState extends State<SearchScreen> {
     return KeyEventResult.ignored;
   }
 
-  String? _imageUrl(AggregatedItem item) {
+  String? _imageUrl(
+    AggregatedItem item, {
+    int? maxWidth,
+    int? maxHeight,
+  }) {
     final api = _vm.imageApi;
     final type = item.type;
     if (type == 'Episode' || type == 'Program' || type == 'Recording') {
       if (item.backdropImageTags.isNotEmpty) {
         return api.getBackdropImageUrl(
           item.id,
+          maxWidth: maxWidth,
           tag: item.backdropImageTags.first,
         );
       }
       final parentId = item.parentBackdropItemId;
       final parentTags = item.parentBackdropImageTags;
       if (parentId != null && parentTags.isNotEmpty) {
-        return api.getBackdropImageUrl(parentId, tag: parentTags.first);
+        return api.getBackdropImageUrl(
+          parentId,
+          maxWidth: maxWidth,
+          tag: parentTags.first,
+        );
       }
     }
     if (item.primaryImageTag != null) {
-      return api.getPrimaryImageUrl(item.id, tag: item.primaryImageTag);
+      return api.getPrimaryImageUrl(
+        item.id,
+        maxWidth: maxWidth,
+        maxHeight: maxHeight,
+        tag: item.primaryImageTag,
+      );
     }
     return null;
   }
@@ -1004,7 +1018,11 @@ class _SearchScreenState extends State<SearchScreen> {
                 return MediaCard(
                   title: item.name,
                   subtitle: _subtitle(item),
-                  imageUrl: _imageUrl(item),
+                  imageUrl: _imageUrl(
+                    item,
+                    maxWidth: width.toInt(),
+                    maxHeight: height.toInt(),
+                  ),
                   width: width,
                   aspectRatio: ar,
                   isFavorite: item.isFavorite,

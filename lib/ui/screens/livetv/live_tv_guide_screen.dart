@@ -499,6 +499,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen> {
         ? null
         : _vm.imageApi.getPrimaryImageUrl(
             currentChannel!.id,
+            maxHeight: 80,
             tag: currentChannel.imageTag,
           );
 
@@ -733,7 +734,11 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen> {
 
   Widget _buildChannelCell(GuideChannel channel, int index) {
     final imageUrl = channel.imageTag != null
-        ? _vm.imageApi.getPrimaryImageUrl(channel.id, tag: channel.imageTag)
+        ? _vm.imageApi.getPrimaryImageUrl(
+            channel.id,
+            maxHeight: _kRowHeight.toInt(),
+            tag: channel.imageTag,
+          )
         : null;
 
     return _GuideFocusableSurface(

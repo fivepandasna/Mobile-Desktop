@@ -2846,6 +2846,7 @@ class _HeaderSection extends StatelessWidget {
                     child: LogoView(
                       imageUrl: imageApi.getLogoImageUrl(
                         item.id,
+                        maxWidth: 240,
                         tag: item.logoImageTag,
                       ),
                       maxHeight: 56,
@@ -2855,6 +2856,7 @@ class _HeaderSection extends StatelessWidget {
                 : LogoView(
                     imageUrl: imageApi.getLogoImageUrl(
                       item.id,
+                      maxWidth: 350,
                       tag: item.logoImageTag,
                     ),
                     maxHeight: 80,

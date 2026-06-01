@@ -69,43 +69,67 @@ class _FolderBrowseScreenState extends State<FolderBrowseScreen> {
     super.dispose();
   }
 
-  String? _imageUrl(AggregatedItem item) {
+  String? _imageUrl(AggregatedItem item, {int? maxWidth}) {
     final api = _vm.imageApi;
 
     final imageTags = item.rawData['ImageTags'];
     if (imageTags is Map) {
       final thumbTag = imageTags['Thumb'] as String?;
       if (thumbTag != null) {
-        return api.getThumbImageUrl(item.id, tag: thumbTag);
+        return api.getThumbImageUrl(item.id, maxWidth: maxWidth, tag: thumbTag);
       }
 
       final primaryTag = imageTags['Primary'] as String?;
       if (primaryTag != null) {
-        return api.getPrimaryImageUrl(item.id, tag: primaryTag);
+        return api.getPrimaryImageUrl(
+          item.id,
+          maxWidth: maxWidth,
+          tag: primaryTag,
+        );
       }
 
       final backdropTag = imageTags['Backdrop'] as String?;
       if (backdropTag != null) {
-        return api.getBackdropImageUrl(item.id, tag: backdropTag);
+        return api.getBackdropImageUrl(
+          item.id,
+          maxWidth: maxWidth,
+          tag: backdropTag,
+        );
       }
     }
 
     if (item.primaryImageTag != null) {
-      return api.getPrimaryImageUrl(item.id, tag: item.primaryImageTag);
+      return api.getPrimaryImageUrl(
+        item.id,
+        maxWidth: maxWidth,
+        tag: item.primaryImageTag,
+      );
     }
 
     if (item.seriesId != null && item.seriesPrimaryImageTag != null) {
-      return api.getPrimaryImageUrl(item.seriesId!, tag: item.seriesPrimaryImageTag);
+      return api.getPrimaryImageUrl(
+        item.seriesId!,
+        maxWidth: maxWidth,
+        tag: item.seriesPrimaryImageTag,
+      );
     }
 
     if (item.backdropImageTags.isNotEmpty) {
-      return api.getBackdropImageUrl(item.id, tag: item.backdropImageTags.first);
+      return api.getBackdropImageUrl(
+        item.id,
+        maxWidth: maxWidth,
+        tag: item.backdropImageTags.first,
+      );
     }
 
     final parentThumbItemId = item.rawData['ParentThumbItemId'] as String?;
     final parentThumbTag = item.rawData['ParentThumbImageTag'] as String?;
     if (parentThumbItemId != null && parentThumbTag != null) {
-      return api.getThumbImageUrl(parentThumbItemId, tag: parentThumbTag);
+      return api.getThumbImageUrl(
+        parentThumbItemId,
+        maxWidth: maxWidth,
+        tag: parentThumbTag,
+      );
     }
 
     return null;
@@ -270,7 +294,7 @@ class _FolderBrowseScreenState extends State<FolderBrowseScreen> {
                   width: cardWidth,
                   child: _FolderGridCard(
                     item: item,
-                    imageUrl: _imageUrl(item),
+                    imageUrl: _imageUrl(item, maxWidth: cardWidth.toInt()),
                     isFolder: _vm.isNavigableFolder(item),
                     icon: MediaCard.iconForType(item.type),
                     subtitle: _subtitleText(item, _vm.isNavigableFolder(item)),
