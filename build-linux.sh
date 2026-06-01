@@ -267,7 +267,7 @@ runtime_skip_pattern() {
   skip="$skip"'|libwayland|libffi|libpcre'
   skip="$skip"'|libGL|libEGL|libGLX|libGLdispatch|libOpenGL|libdrm|libgbm'
   skip="$skip"'|libglib|libgobject|libgio|libgmodule|libgthread'
-  skip="$skip"'|libpulse|libdbus|libasound|libsndfile|libpipewire|libspa|libjack|libsndio'
+  skip="$skip"'|libpulse|libdbus|libasound|libsndfile|libpipewire|libspa|libjack'
   skip="$skip"'|libfontconfig|libfreetype|libharfbuzz|libcairo|libpango|libpixman'
   skip="$skip"'|libatk|libgdk|libgtk|libepoxy|libgdk_pixbuf|librsvg'
   skip="$skip"'|libmount|libblkid|libselinux|libuuid|libresolv|libnss|libnsl|libcrypt'
