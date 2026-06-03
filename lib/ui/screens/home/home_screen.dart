@@ -531,6 +531,8 @@ class _ContentRows extends StatefulWidget {
 class _ContentRowsState extends State<_ContentRows>
   with WidgetsBindingObserver, WindowListener {
   static const double _kHomeRowLabelInset = 16.0;
+  static const double _focusedRowExtraSpacing = 20.0;
+  static const Duration _focusedRowSpacingDuration = Duration(milliseconds: 200);
   final _scrollController = ScrollController();
   final _mediaBarFocusNode = FocusNode(debugLabel: 'home_media_bar_focus');
   final _playbackManager = GetIt.instance<PlaybackManager>();
@@ -1980,9 +1982,12 @@ class _ContentRowsState extends State<_ContentRows>
       if (_activeFocusedRowIndex != rowIndex && _activePreviewKey != null) {
         _finishSharedPreview();
       }
+      final indexChanged = _activeFocusedRowIndex != rowIndex;
       _activeFocusedRowIndex = rowIndex;
       if (!isMobileUi && _mediaBarVisible) {
         setState(() => _mediaBarVisible = false);
+      } else if (indexChanged && PlatformDetection.isTV) {
+        setState(() {});
       }
     } else if (_activeFocusedRowIndex == rowIndex) {
       if (_isSidebarFocus) {
@@ -2355,9 +2360,15 @@ class _ContentRowsState extends State<_ContentRows>
     if (includeMediaBar) {
       currentTop += mediaBarHeight;
     }
-    for (final rowExtent in rowExtents) {
+    final focusedRowSpacing = PlatformDetection.isTV
+        ? _focusedRowExtraSpacing * 2
+        : 0.0;
+    for (var i = 0; i < rowExtents.length; i++) {
       rowTopOffsets.add(currentTop);
-      currentTop += rowExtent;
+      currentTop += rowExtents[i];
+      if (i == _activeFocusedRowIndex) {
+        currentTop += focusedRowSpacing;
+      }
     }
 
     _rowTopOffsets = rowTopOffsets;
@@ -2504,13 +2515,24 @@ class _ContentRowsState extends State<_ContentRows>
               }
               return Padding(
                 padding: EdgeInsets.only(left: rowLeftInset),
-                child: _buildShiftedRow(
-                  child: rowChild,
-                  rowIndex: rowIndex,
-                  rowTopOffsets: rowTopOffsets,
-                  rowExtents: rowExtents,
-                  showInfoOverlay: showInfoOverlay,
-                  overlayBottom: overlayBottom,
+                child: AnimatedPadding(
+                  duration: _focusedRowSpacingDuration,
+                  curve: Curves.easeOut,
+                  padding: EdgeInsets.symmetric(
+                    vertical:
+                        (PlatformDetection.isTV &&
+                            rowIndex == _activeFocusedRowIndex)
+                        ? _focusedRowExtraSpacing
+                        : 0,
+                  ),
+                  child: _buildShiftedRow(
+                    child: rowChild,
+                    rowIndex: rowIndex,
+                    rowTopOffsets: rowTopOffsets,
+                    rowExtents: rowExtents,
+                    showInfoOverlay: showInfoOverlay,
+                    overlayBottom: overlayBottom,
+                  ),
                 ),
               );
               },
