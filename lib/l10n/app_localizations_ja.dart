@@ -3139,6 +3139,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get networks => 'ネットワーク';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => '行をデフォルトにリセットする';
 
   @override

@@ -82,7 +82,7 @@ class SeerrDiscoverViewModel extends ChangeNotifier {
     'fetish', r'\bbdsm\b', 'dominatrix',
   ];
 
-  static final _nsfwPatterns =
+  static final nsfwPatterns =
       _nsfwKeywords.map((k) => RegExp(k, caseSensitive: false)).toList();
 
   static const popularNetworks = [
@@ -442,7 +442,7 @@ class SeerrDiscoverViewModel extends ChangeNotifier {
   bool _isNsfw(SeerrDiscoverItem item) {
     if (item.adult) return true;
     final text = '${item.displayTitle} ${item.overview ?? ''}';
-    return _nsfwPatterns.any((p) => p.hasMatch(text));
+    return nsfwPatterns.any((p) => p.hasMatch(text));
   }
 
   void _updateRow(int index, SeerrDiscoverRow row) {

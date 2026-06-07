@@ -3208,6 +3208,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get networks => 'mreže';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Vrati retke na zadane vrijednosti';
 
   @override

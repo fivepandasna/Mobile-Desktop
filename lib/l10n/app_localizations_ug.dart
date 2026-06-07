@@ -3210,6 +3210,9 @@ class AppLocalizationsUg extends AppLocalizations {
   String get networks => 'تور';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'قۇرلارنى سۈكۈتتىكى ھالەتكە قايتۇرۇش';
 
   @override

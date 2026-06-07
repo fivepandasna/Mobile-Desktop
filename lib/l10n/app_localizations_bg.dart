@@ -3224,6 +3224,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get networks => 'мрежи';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults =>
       'Възстановяване на редовете по подразбиране';
 

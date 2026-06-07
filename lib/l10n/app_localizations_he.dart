@@ -3168,6 +3168,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get networks => 'רשתות';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'אפס שורות לברירות המחדל';
 
   @override

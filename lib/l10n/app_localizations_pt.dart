@@ -3224,6 +3224,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get networks => 'Emissoras';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Restaurar linhas para os padrões';
 
   @override

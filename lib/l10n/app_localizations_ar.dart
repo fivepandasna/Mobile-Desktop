@@ -3190,6 +3190,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get networks => 'الشبكات';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults =>
       'إعادة تعيين الصفوف إلى الإعدادات الافتراضية';
 

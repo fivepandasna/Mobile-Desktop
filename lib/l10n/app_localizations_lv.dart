@@ -3217,6 +3217,9 @@ class AppLocalizationsLv extends AppLocalizations {
   String get networks => 'Tīkli';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults =>
       'Atiestatīt rindas uz noklusējuma iestatījumiem';
 

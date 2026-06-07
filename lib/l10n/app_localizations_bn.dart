@@ -3199,6 +3199,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get networks => 'নেটওয়ার্ক';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'সারি ডিফল্টে রিসেট করুন';
 
   @override

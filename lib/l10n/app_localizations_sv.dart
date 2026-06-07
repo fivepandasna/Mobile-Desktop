@@ -3211,6 +3211,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get networks => 'Nätverk';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Återställ rader till standardvärden';
 
   @override

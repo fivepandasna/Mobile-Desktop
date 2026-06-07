@@ -3223,6 +3223,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get networks => 'Сети';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Сбросить строки к значениям по умолчанию';
 
   @override

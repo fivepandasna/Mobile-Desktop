@@ -3211,6 +3211,9 @@ class AppLocalizationsBe extends AppLocalizations {
   String get networks => 'Сеткі';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Скінуць радкі да значэнняў па змаўчанні';
 
   @override

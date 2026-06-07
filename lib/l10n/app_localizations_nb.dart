@@ -3203,6 +3203,9 @@ class AppLocalizationsNb extends AppLocalizations {
   String get networks => 'Nettverk';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Tilbakestill rader til standardverdier';
 
   @override

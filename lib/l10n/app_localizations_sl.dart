@@ -3216,6 +3216,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get networks => 'Omrežja';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Ponastavi vrstice na privzete';
 
   @override

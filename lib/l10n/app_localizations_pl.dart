@@ -3217,6 +3217,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get networks => 'Sieci';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Zresetuj wiersze do wartości domyślnych';
 
   @override

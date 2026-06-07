@@ -3115,6 +3115,9 @@ class AppLocalizationsYue extends AppLocalizations {
   String get networks => '網路';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => '將行重設為預設值';
 
   @override

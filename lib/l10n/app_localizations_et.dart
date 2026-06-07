@@ -3209,6 +3209,9 @@ class AppLocalizationsEt extends AppLocalizations {
   String get networks => 'Võrgud';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Lähtestage read vaikeseadetele';
 
   @override

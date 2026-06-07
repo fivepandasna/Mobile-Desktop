@@ -3198,6 +3198,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get networks => 'नेटवर्क';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'पंक्तियों को डिफ़ॉल्ट पर रीसेट करें';
 
   @override

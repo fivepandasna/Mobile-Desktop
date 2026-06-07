@@ -3213,6 +3213,9 @@ class AppLocalizationsCy extends AppLocalizations {
   String get networks => 'Rhwydweithiau';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Ailosod rhesi i ragosodiadau';
 
   @override

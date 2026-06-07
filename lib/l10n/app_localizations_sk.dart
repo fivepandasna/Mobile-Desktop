@@ -3215,6 +3215,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get networks => 'siete';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Obnovte predvolené hodnoty riadkov';
 
   @override

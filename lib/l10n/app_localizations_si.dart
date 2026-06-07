@@ -3204,6 +3204,9 @@ class AppLocalizationsSi extends AppLocalizations {
   String get networks => 'ජාල';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'පේළි පෙරනිමියට නැවත සකසන්න';
 
   @override

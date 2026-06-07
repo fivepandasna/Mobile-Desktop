@@ -3230,6 +3230,9 @@ class AppLocalizationsSq extends AppLocalizations {
   String get networks => 'Rrjetet';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Rivendosni rreshtat në parazgjedhje';
 
   @override

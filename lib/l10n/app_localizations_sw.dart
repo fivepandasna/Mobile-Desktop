@@ -3229,6 +3229,9 @@ class AppLocalizationsSw extends AppLocalizations {
   String get networks => 'Mitandao';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Weka upya safu mlalo ziwe chaguomsingi';
 
   @override

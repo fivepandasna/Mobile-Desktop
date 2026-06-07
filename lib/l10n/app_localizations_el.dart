@@ -3244,6 +3244,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get networks => 'Δίκτυα';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Επαναφέρετε τις σειρές στις προεπιλογές';
 
   @override

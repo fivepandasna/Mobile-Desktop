@@ -3191,6 +3191,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get networks => 'Networks';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Reset rows to defaults';
 
   @override

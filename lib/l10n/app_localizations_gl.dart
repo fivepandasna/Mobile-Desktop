@@ -3246,6 +3246,9 @@ class AppLocalizationsGl extends AppLocalizations {
   String get networks => 'Redes';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults =>
       'Restablecer as filas aos valores predeterminados';
 

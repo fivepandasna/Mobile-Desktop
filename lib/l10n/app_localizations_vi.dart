@@ -3213,6 +3213,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get networks => 'Mạng';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Đặt lại các hàng về mặc định';
 
   @override

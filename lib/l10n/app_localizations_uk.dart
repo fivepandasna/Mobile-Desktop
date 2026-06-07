@@ -3216,6 +3216,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get networks => 'мережі';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Скинути рядки до значень за замовчуванням';
 
   @override

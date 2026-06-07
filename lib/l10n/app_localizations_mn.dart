@@ -3213,6 +3213,9 @@ class AppLocalizationsMn extends AppLocalizations {
   String get networks => 'Сүлжээ';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults =>
       'Мөрүүдийг өгөгдмөл болгож дахин тохируулна уу';
 

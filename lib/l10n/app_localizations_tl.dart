@@ -3239,6 +3239,9 @@ class AppLocalizationsTl extends AppLocalizations {
   String get networks => 'Mga network';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'I-reset ang mga hilera sa mga default';
 
   @override

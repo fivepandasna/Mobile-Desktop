@@ -3209,6 +3209,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get networks => 'Ağlar';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Satırları varsayılanlara sıfırla';
 
   @override

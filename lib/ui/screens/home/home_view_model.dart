@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:get_it/get_it.dart';
 import 'package:server_core/server_core.dart';
 
 import '../../../data/models/aggregated_item.dart';
@@ -15,9 +16,9 @@ import '../../../l10n/current_app_localizations.dart';
 import '../../../preference/home_section_config.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
-import 'package:get_it/get_it.dart';
 import '../../../data/repositories/seerr_repository.dart';
 import '../../../data/services/seerr/seerr_api_models.dart';
+import '../../../data/utils/bounded_concurrency.dart';
 import '../../../preference/seerr_preferences.dart';
 import '../../../data/viewmodels/seerr_discover_view_model.dart';
 
@@ -1136,6 +1137,8 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  static const _seerrEnrichConcurrency = 5;
+
   Future<List<HomeRow>> _loadSeerrRow(SeerrRowType type, String title, String rowId) async {
     try {
       final repo = await GetIt.instance.getAsync<SeerrRepository>();
@@ -1152,109 +1155,61 @@ class HomeViewModel extends ChangeNotifier {
 
       if (type == SeerrRowType.movieGenres) {
         final genres = await repo.getGenreSliderMovies();
-        final aggregatedItems = genres.map((genre) {
-          final backdrop = genre.backdrops.isNotEmpty ? genre.backdrops.first : '';
-          return AggregatedItem(
-            id: genre.id.toString(),
-            serverId: 'seerr',
-            rawData: {
-              'Name': genre.name,
-              'Type': 'Genre',
-              'Overview': '',
-              'PosterPath': backdrop,
-              'BackdropPath': backdrop,
-              'MediaType': 'movie',
-              'FilterType': 'genre',
-              'FilterName': genre.name,
-            },
-          );
-        }).toList();
         return [
-          HomeRow(
-            id: rowId,
-            title: title,
-            rowType: HomeRowType.pluginDynamic,
-            items: aggregatedItems,
-          )
+          _seerrRow(rowId, title, [
+            for (final g in genres)
+              _seerrFilterItem(
+                id: g.id.toString(),
+                name: g.name,
+                imagePath: g.backdrops.isNotEmpty ? g.backdrops.first : '',
+                type: 'Genre',
+                mediaType: 'movie',
+                filterType: 'genre',
+              ),
+          ]),
         ];
       } else if (type == SeerrRowType.seriesGenres) {
         final genres = await repo.getGenreSliderTv();
-        final aggregatedItems = genres.map((genre) {
-          final backdrop = genre.backdrops.isNotEmpty ? genre.backdrops.first : '';
-          return AggregatedItem(
-            id: genre.id.toString(),
-            serverId: 'seerr',
-            rawData: {
-              'Name': genre.name,
-              'Type': 'Genre',
-              'Overview': '',
-              'PosterPath': backdrop,
-              'BackdropPath': backdrop,
-              'MediaType': 'tv',
-              'FilterType': 'genre',
-              'FilterName': genre.name,
-            },
-          );
-        }).toList();
         return [
-          HomeRow(
-            id: rowId,
-            title: title,
-            rowType: HomeRowType.pluginDynamic,
-            items: aggregatedItems,
-          )
+          _seerrRow(rowId, title, [
+            for (final g in genres)
+              _seerrFilterItem(
+                id: g.id.toString(),
+                name: g.name,
+                imagePath: g.backdrops.isNotEmpty ? g.backdrops.first : '',
+                type: 'Genre',
+                mediaType: 'tv',
+                filterType: 'genre',
+              ),
+          ]),
         ];
       } else if (type == SeerrRowType.networks) {
-        final networks = SeerrDiscoverViewModel.popularNetworks;
-        final aggregatedItems = networks.map((network) {
-          return AggregatedItem(
-            id: network.id.toString(),
-            serverId: 'seerr',
-            rawData: {
-              'Name': network.name,
-              'Type': 'Network',
-              'Overview': '',
-              'PosterPath': network.logoPath ?? '',
-              'BackdropPath': network.logoPath ?? '',
-              'MediaType': 'tv',
-              'FilterType': 'network',
-              'FilterName': network.name,
-            },
-          );
-        }).toList();
         return [
-          HomeRow(
-            id: rowId,
-            title: title,
-            rowType: HomeRowType.pluginDynamic,
-            items: aggregatedItems,
-          )
+          _seerrRow(rowId, title, [
+            for (final n in SeerrDiscoverViewModel.popularNetworks)
+              _seerrFilterItem(
+                id: n.id.toString(),
+                name: n.name,
+                imagePath: n.logoPath ?? '',
+                type: 'Network',
+                mediaType: 'tv',
+                filterType: 'network',
+              ),
+          ]),
         ];
       } else if (type == SeerrRowType.studios) {
-        final studios = SeerrDiscoverViewModel.popularStudios;
-        final aggregatedItems = studios.map((studio) {
-          return AggregatedItem(
-            id: studio.id.toString(),
-            serverId: 'seerr',
-            rawData: {
-              'Name': studio.name,
-              'Type': 'Studio',
-              'Overview': '',
-              'PosterPath': studio.logoPath ?? '',
-              'BackdropPath': studio.logoPath ?? '',
-              'MediaType': 'movie',
-              'FilterType': 'studio',
-              'FilterName': studio.name,
-            },
-          );
-        }).toList();
         return [
-          HomeRow(
-            id: rowId,
-            title: title,
-            rowType: HomeRowType.pluginDynamic,
-            items: aggregatedItems,
-          )
+          _seerrRow(rowId, title, [
+            for (final s in SeerrDiscoverViewModel.popularStudios)
+              _seerrFilterItem(
+                id: s.id.toString(),
+                name: s.name,
+                imagePath: s.logoPath ?? '',
+                type: 'Studio',
+                mediaType: 'movie',
+                filterType: 'studio',
+              ),
+          ]),
         ];
       } else if (type == SeerrRowType.recentRequests) {
         final user = await repo.getCurrentUser();
@@ -1284,7 +1239,11 @@ class HomeViewModel extends ChangeNotifier {
               );
             })
             .toList();
-        rawItems = await Future.wait(mapped.map((item) => _enrichSeerrItem(repo, item)));
+        rawItems = (await mapBounded(
+          mapped,
+          _seerrEnrichConcurrency,
+          (item) => _enrichSeerrItem(repo, item),
+        )).whereType<SeerrDiscoverItem>().toList();
       } else if (type == SeerrRowType.recentlyAdded) {
         final media = await repo.getRecentlyAdded(limit: limit);
         final mapped = media.map((m) => SeerrDiscoverItem(
@@ -1303,21 +1262,17 @@ class HomeViewModel extends ChangeNotifier {
             status: m.status,
           ),
         )).toList();
-        rawItems = await Future.wait(mapped.map((item) => _enrichSeerrItem(repo, item)));
+        rawItems = (await mapBounded(
+          mapped,
+          _seerrEnrichConcurrency,
+          (item) => _enrichSeerrItem(repo, item),
+        )).whereType<SeerrDiscoverItem>().toList();
       } else {
         final page = await _loadSeerrPage(repo, type, limit);
         if (page != null) {
           rawItems = page.results;
         }
       }
-
-      final nsfwKeywords = [
-        r'\bsex\b', 'sexual', r'\bporn\b', 'erotic', r'\bnude\b', 'nudity',
-        r'\bxxx\b', 'adult film', 'prostitute', 'stripper', r'\bescort\b',
-        'seduction', r'\baffair\b', 'threesome', r'\borgy\b', 'kinky',
-        'fetish', r'\bbdsm\b', 'dominatrix',
-      ];
-      final nsfwPatterns = nsfwKeywords.map((k) => RegExp(k, caseSensitive: false)).toList();
 
       final filtered = rawItems.where((item) {
         if (type != SeerrRowType.recentlyAdded && type != SeerrRowType.recentRequests) {
@@ -1326,7 +1281,9 @@ class HomeViewModel extends ChangeNotifier {
         if (blockNsfw) {
           if (item.adult) return false;
           final text = '${item.displayTitle} ${item.overview ?? ''}';
-          if (nsfwPatterns.any((p) => p.hasMatch(text))) return false;
+          if (SeerrDiscoverViewModel.nsfwPatterns.any((p) => p.hasMatch(text))) {
+            return false;
+          }
         }
         return true;
       }).toList();
@@ -1346,18 +1303,44 @@ class HomeViewModel extends ChangeNotifier {
         );
       }).toList();
 
-      return [
-        HomeRow(
-          id: rowId,
-          title: title,
-          rowType: HomeRowType.pluginDynamic,
-          items: aggregatedItems,
-        )
-      ];
+      return [_seerrRow(rowId, title, aggregatedItems)];
     } catch (e) {
       debugPrint('[SeerrHomeRow] Failed to load Seerr row $type: $e');
       return [];
     }
+  }
+
+  HomeRow _seerrRow(String rowId, String title, List<AggregatedItem> items) {
+    return HomeRow(
+      id: rowId,
+      title: title,
+      rowType: HomeRowType.pluginDynamic,
+      items: items,
+    );
+  }
+
+  AggregatedItem _seerrFilterItem({
+    required String id,
+    required String name,
+    required String imagePath,
+    required String type,
+    required String mediaType,
+    required String filterType,
+  }) {
+    return AggregatedItem(
+      id: id,
+      serverId: 'seerr',
+      rawData: {
+        'Name': name,
+        'Type': type,
+        'Overview': '',
+        'PosterPath': imagePath,
+        'BackdropPath': imagePath,
+        'MediaType': mediaType,
+        'FilterType': filterType,
+        'FilterName': name,
+      },
+    );
   }
 
   Future<SeerrDiscoverPage?> _loadSeerrPage(SeerrRepository repo, SeerrRowType type, int limit) async {

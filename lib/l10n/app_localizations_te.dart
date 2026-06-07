@@ -3221,6 +3221,9 @@ class AppLocalizationsTe extends AppLocalizations {
   String get networks => 'నెట్‌వర్క్‌లు';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'అడ్డు వరుసలను డిఫాల్ట్‌లకు రీసెట్ చేయండి';
 
   @override

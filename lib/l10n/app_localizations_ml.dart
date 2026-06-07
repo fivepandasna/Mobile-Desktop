@@ -3229,6 +3229,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get networks => 'നെറ്റ്വർക്കുകൾ';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'വരികൾ ഡിഫോൾട്ടിലേക്ക് പുനഃസജ്ജമാക്കുക';
 
   @override

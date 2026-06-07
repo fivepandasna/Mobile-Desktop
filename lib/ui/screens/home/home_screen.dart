@@ -2133,10 +2133,7 @@ class _ContentRowsState extends State<_ContentRows>
       return _libraryRowExtent(rowHeight, metadataScale: metadataScale);
     }
 
-    final isSeerrRowOverride = row.id == 'seerr_movie_genres' ||
-        row.id == 'seerr_series_genres' ||
-        row.id == 'seerr_studios' ||
-        row.id == 'seerr_networks';
+    final isSeerrRowOverride = _isSeerrFilterRow(row);
     final isRowsV2 = prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 && !isSeerrRowOverride;
     final rowImageType = isSeerrRowOverride
         ? ImageType.thumb
@@ -2795,10 +2792,7 @@ class _ContentRowsState extends State<_ContentRows>
     required AppLocalizations l10n,
   }) {
     final suppressFocusGlow = ThemeRegistry.active.borders.focusGlow.isNotEmpty;
-    final isSeerrRowOverride = row.id == 'seerr_movie_genres' ||
-        row.id == 'seerr_series_genres' ||
-        row.id == 'seerr_studios' ||
-        row.id == 'seerr_networks';
+    final isSeerrRowOverride = _isSeerrFilterRow(row);
     final isRowsV2 = prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 && !isSeerrRowOverride;
     final rowImageType = isSeerrRowOverride
         ? ImageType.thumb
@@ -2857,7 +2851,7 @@ class _ContentRowsState extends State<_ContentRows>
     return _buildTitledRow(
       key: _rowContainerKey(rowIndex),
       title: _localizedRowTitle(row, l10n),
-      subtitle: isSeerrRow ? 'Seerr Discovery Rows' : null,
+      subtitle: isSeerrRow ? l10n.seerrDiscoveryRows : null,
       rowIndex: rowIndex,
       hasItems: row.items.isNotEmpty,
       height: maxCardHeight + (10 * metadataScale) + (isSeerrRow ? 18.0 : 0.0),
@@ -2914,28 +2908,7 @@ class _ContentRowsState extends State<_ContentRows>
           } else if (row.rowType == HomeRowType.genres && row.id == 'genres') {
             context.push(Destinations.genre(item.name, genreId: item.id));
           } else if (item.serverId == 'seerr') {
-            final filterType = item.rawData['FilterType'] as String?;
-            if (filterType != null) {
-              final mediaType = item.rawData['MediaType'] as String? ?? 'movie';
-              final filterId = item.id;
-              final filterName = item.rawData['FilterName'] as String? ?? item.name;
-              final uri = Uri(
-                path: Destinations.seerrBrowse,
-                queryParameters: {
-                  'filterId': filterId,
-                  'filterName': filterName,
-                  'mediaType': mediaType,
-                  'filterType': filterType,
-                },
-              );
-              context.push(uri.toString());
-            } else {
-              final mediaType = item.type == 'Series' || item.type == 'tv' ? 'tv' : 'movie';
-              context.push(
-                Destinations.seerrMedia(item.id),
-                extra: {'mediaType': mediaType},
-              );
-            }
+            _navigateToSeerrItem(context, item);
           } else {
             context.push(Destinations.itemOrPhoto(
               item.id,
@@ -3028,28 +3001,7 @@ class _ContentRowsState extends State<_ContentRows>
             } else if (row.rowType == HomeRowType.genres && row.id == 'genres') {
               context.push(Destinations.genre(item.name, genreId: item.id));
             } else if (item.serverId == 'seerr') {
-              final filterType = item.rawData['FilterType'] as String?;
-              if (filterType != null) {
-                final mediaType = item.rawData['MediaType'] as String? ?? 'movie';
-                final filterId = item.id;
-                final filterName = item.rawData['FilterName'] as String? ?? item.name;
-                final uri = Uri(
-                  path: Destinations.seerrBrowse,
-                  queryParameters: {
-                    'filterId': filterId,
-                    'filterName': filterName,
-                    'mediaType': mediaType,
-                    'filterType': filterType,
-                  },
-                );
-                context.push(uri.toString());
-              } else {
-                final mediaType = item.type == 'Series' || item.type == 'tv' ? 'tv' : 'movie';
-                context.push(
-                  Destinations.seerrMedia(item.id),
-                  extra: {'mediaType': mediaType},
-                );
-              }
+              _navigateToSeerrItem(context, item);
             } else {
               context.push(Destinations.itemOrPhoto(
                 item.id,
@@ -3433,6 +3385,42 @@ class _ContentRowsState extends State<_ContentRows>
     };
   }
 
+  static bool _isSeerrFilterRow(HomeRow row) =>
+      row.id == 'seerr_movie_genres' ||
+      row.id == 'seerr_series_genres' ||
+      row.id == 'seerr_studios' ||
+      row.id == 'seerr_networks';
+
+  static String? _seerrTmdbImageUrl(String? path, int width) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http')) return path;
+    return 'https://image.tmdb.org/t/p/w$width$path';
+  }
+
+  static void _navigateToSeerrItem(BuildContext context, AggregatedItem item) {
+    final filterType = item.rawData['FilterType'] as String?;
+    if (filterType != null) {
+      final mediaType = item.rawData['MediaType'] as String? ?? 'movie';
+      final filterName = item.rawData['FilterName'] as String? ?? item.name;
+      final uri = Uri(
+        path: Destinations.seerrBrowse,
+        queryParameters: {
+          'filterId': item.id,
+          'filterName': filterName,
+          'mediaType': mediaType,
+          'filterType': filterType,
+        },
+      );
+      context.push(uri.toString());
+    } else {
+      final mediaType = item.type == 'Series' || item.type == 'tv' ? 'tv' : 'movie';
+      context.push(
+        Destinations.seerrMedia(item.id),
+        extra: {'mediaType': mediaType},
+      );
+    }
+  }
+
   static void _navigateToLibrary(BuildContext context, AggregatedItem item) {
     final collectionType = (item.rawData['CollectionType'] as String? ?? '').toLowerCase();
     switch (collectionType) {
@@ -3528,17 +3516,8 @@ class _ContentRowsState extends State<_ContentRows>
     double requestScale,
   ) {
     if (item.serverId == 'seerr') {
-      final backdrop = item.rawData['BackdropPath'] as String?;
-      if (backdrop != null && backdrop.isNotEmpty) {
-        if (backdrop.startsWith('http')) return backdrop;
-        return 'https://image.tmdb.org/t/p/w1280$backdrop';
-      }
-      final poster = item.rawData['PosterPath'] as String?;
-      if (poster != null && poster.isNotEmpty) {
-        if (poster.startsWith('http')) return poster;
-        return 'https://image.tmdb.org/t/p/w300$poster';
-      }
-      return null;
+      return _seerrTmdbImageUrl(item.rawData['BackdropPath'] as String?, 1280) ??
+          _seerrTmdbImageUrl(item.rawData['PosterPath'] as String?, 300);
     }
     final maxW = (height * 16 / 9 * requestScale).toInt();
     final maxH = (height * requestScale).toInt();
@@ -3608,10 +3587,7 @@ class _ContentRowsState extends State<_ContentRows>
   }
 
   static ImageType _homeRowImageTypeForRow(HomeRow row, UserPreferences prefs) {
-    if (row.id == 'seerr_movie_genres' ||
-        row.id == 'seerr_series_genres' ||
-        row.id == 'seerr_studios' ||
-        row.id == 'seerr_networks') {
+    if (_isSeerrFilterRow(row)) {
       return ImageType.thumb;
     }
     if (row.rowType == HomeRowType.latestMedia && _isLatestMusicRow(row)) {
@@ -3666,10 +3642,7 @@ class _ContentRowsState extends State<_ContentRows>
     HomeRow row,
     ImageType imageType,
   ) {
-    if (row.id == 'seerr_movie_genres' ||
-        row.id == 'seerr_series_genres' ||
-        row.id == 'seerr_studios' ||
-        row.id == 'seerr_networks') {
+    if (_isSeerrFilterRow(row)) {
       return 16 / 9;
     }
     double thumbAspectRatio() {
@@ -3695,30 +3668,12 @@ class _ContentRowsState extends State<_ContentRows>
     {bool isMyMediaRow = false}
   ) {
     if (item.serverId == 'seerr') {
+      final backdrop = _seerrTmdbImageUrl(item.rawData['BackdropPath'] as String?, 1280);
+      final poster = _seerrTmdbImageUrl(item.rawData['PosterPath'] as String?, 300);
       if (imageType == ImageType.thumb || imageType == ImageType.banner) {
-        final backdrop = item.rawData['BackdropPath'] as String?;
-        if (backdrop != null && backdrop.isNotEmpty) {
-          if (backdrop.startsWith('http')) return backdrop;
-          return 'https://image.tmdb.org/t/p/w1280$backdrop';
-        }
-        final poster = item.rawData['PosterPath'] as String?;
-        if (poster != null && poster.isNotEmpty) {
-          if (poster.startsWith('http')) return poster;
-          return 'https://image.tmdb.org/t/p/w300$poster';
-        }
-      } else {
-        final poster = item.rawData['PosterPath'] as String?;
-        if (poster != null && poster.isNotEmpty) {
-          if (poster.startsWith('http')) return poster;
-          return 'https://image.tmdb.org/t/p/w300$poster';
-        }
-        final backdrop = item.rawData['BackdropPath'] as String?;
-        if (backdrop != null && backdrop.isNotEmpty) {
-          if (backdrop.startsWith('http')) return backdrop;
-          return 'https://image.tmdb.org/t/p/w1280$backdrop';
-        }
+        return backdrop ?? poster;
       }
-      return null;
+      return poster ?? backdrop;
     }
     final itemThumbTag = _tagForType(item, 'Thumb');
     final itemBannerTag = _tagForType(item, 'Banner');

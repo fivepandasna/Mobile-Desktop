@@ -3223,6 +3223,9 @@ class AppLocalizationsKn extends AppLocalizations {
   String get networks => 'ಜಾಲಗಳು';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'ಸಾಲುಗಳನ್ನು ಡೀಫಾಲ್ಟ್‌ಗೆ ಮರುಹೊಂದಿಸಿ';
 
   @override

@@ -3189,6 +3189,9 @@ class AppLocalizationsFa extends AppLocalizations {
   String get networks => 'شبکه ها';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'سطرها را به حالت پیش فرض بازنشانی کنید';
 
   @override

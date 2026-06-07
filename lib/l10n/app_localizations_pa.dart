@@ -3200,6 +3200,9 @@ class AppLocalizationsPa extends AppLocalizations {
   String get networks => 'ਨੈੱਟਵਰਕ';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'ਕਤਾਰਾਂ ਨੂੰ ਪੂਰਵ-ਨਿਰਧਾਰਤ \'ਤੇ ਰੀਸੈਟ ਕਰੋ';
 
   @override

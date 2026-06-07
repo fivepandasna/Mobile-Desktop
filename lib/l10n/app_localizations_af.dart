@@ -3212,6 +3212,9 @@ class AppLocalizationsAf extends AppLocalizations {
   String get networks => 'Netwerke';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Stel rye terug na verstek';
 
   @override

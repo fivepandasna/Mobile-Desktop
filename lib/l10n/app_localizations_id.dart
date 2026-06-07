@@ -3212,6 +3212,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get networks => 'Jaringan';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Reset baris ke default';
 
   @override

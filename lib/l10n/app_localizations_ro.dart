@@ -3226,6 +3226,9 @@ class AppLocalizationsRo extends AppLocalizations {
   String get networks => 'Rețele';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Resetați rândurile la valorile implicite';
 
   @override

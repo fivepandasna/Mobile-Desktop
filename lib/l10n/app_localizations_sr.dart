@@ -3211,6 +3211,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get networks => 'Мреже';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults =>
       'Ресетујте редове на подразумеване вредности';
 

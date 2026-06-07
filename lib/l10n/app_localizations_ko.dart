@@ -3132,6 +3132,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get networks => '네트워크';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => '행을 기본값으로 재설정';
 
   @override

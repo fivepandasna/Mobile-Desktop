@@ -3201,6 +3201,9 @@ class AppLocalizationsEo extends AppLocalizations {
   String get networks => 'Retoj';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Restarigu vicojn al defaŭltoj';
 
   @override

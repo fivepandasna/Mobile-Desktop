@@ -3204,6 +3204,9 @@ class AppLocalizationsDa extends AppLocalizations {
   String get networks => 'Netværk';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Nulstil rækker til standardindstillinger';
 
   @override

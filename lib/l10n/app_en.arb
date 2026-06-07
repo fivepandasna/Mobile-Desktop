@@ -4427,6 +4427,10 @@
   "@networks": {
     "description": "Seerr row: networks"
   },
+  "seerrDiscoveryRows": "Seerr Discovery Rows",
+  "@seerrDiscoveryRows": {
+    "description": "Subtitle shown under Seerr discovery home rows"
+  },
   "resetRowsToDefaults": "Reset rows to defaults",
   "@resetRowsToDefaults": {
     "description": "Tooltip for reset rows to defaults"

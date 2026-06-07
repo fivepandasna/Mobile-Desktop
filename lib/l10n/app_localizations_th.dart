@@ -3181,6 +3181,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get networks => 'เครือข่าย';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'รีเซ็ตแถวเป็นค่าเริ่มต้น';
 
   @override

@@ -3246,6 +3246,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get networks => 'Xarxes';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults =>
       'Restableix les files als valors predeterminats';
 

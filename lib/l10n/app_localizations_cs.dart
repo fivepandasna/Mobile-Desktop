@@ -3203,6 +3203,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get networks => 'sítě';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Resetovat řádky na výchozí hodnoty';
 
   @override

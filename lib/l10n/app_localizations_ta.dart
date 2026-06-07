@@ -3230,6 +3230,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get networks => 'நெட்வொர்க்குகள்';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'வரிசைகளை இயல்புநிலைக்கு மீட்டமைக்கவும்';
 
   @override

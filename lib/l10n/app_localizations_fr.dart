@@ -3241,6 +3241,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get networks => 'Chaînes';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Réinitialiser les lignes par défaut';
 
   @override

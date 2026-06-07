@@ -3225,6 +3225,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get networks => 'Hálózatok';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults =>
       'A sorok visszaállítása az alapértelmezett értékekre';
 

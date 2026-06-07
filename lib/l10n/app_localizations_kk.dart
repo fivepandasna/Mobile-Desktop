@@ -3222,6 +3222,9 @@ class AppLocalizationsKk extends AppLocalizations {
   String get networks => 'Желілер';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Жолдарды әдепкі мәндерге қайтарыңыз';
 
   @override

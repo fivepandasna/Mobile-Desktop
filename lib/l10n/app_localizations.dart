@@ -5873,6 +5873,12 @@ abstract class AppLocalizations {
   /// **'Networks'**
   String get networks;
 
+  /// Subtitle shown under Seerr discovery home rows
+  ///
+  /// In en, this message translates to:
+  /// **'Seerr Discovery Rows'**
+  String get seerrDiscoveryRows;
+
   /// Tooltip for reset rows to defaults
   ///
   /// In en, this message translates to:

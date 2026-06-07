@@ -3208,6 +3208,9 @@ class AppLocalizationsLt extends AppLocalizations {
   String get networks => 'Tinklai';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults =>
       'Iš naujo nustatyti eilutes į numatytuosius nustatymus';
 

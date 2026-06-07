@@ -3110,6 +3110,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get networks => '网络';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => '将行重置为默认值';
 
   @override

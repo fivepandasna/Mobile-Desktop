@@ -3219,6 +3219,9 @@ class AppLocalizationsFi extends AppLocalizations {
   String get networks => 'Verkot';
 
   @override
+  String get seerrDiscoveryRows => 'Seerr Discovery Rows';
+
+  @override
   String get resetRowsToDefaults => 'Palauta rivit oletusarvoihin';
 
   @override
