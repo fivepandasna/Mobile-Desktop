@@ -592,6 +592,7 @@ class _ContentRowsState extends State<_ContentRows>
   String? _activePreviewKey;
   String? _mobilePressedV2Key;
   String? _mouseHoveredV2Key;
+  final Set<String> _v2FocusPrefetchedUrls = <String>{};
   final Map<String, Map<String, double>> _v2AdditionalRatingsByKey = {};
   final Map<String, Future<void>> _v2RatingsRequests = {};
   final Map<String, String?> _v2TmdbIdByKey = {};
@@ -1376,6 +1377,78 @@ class _ContentRowsState extends State<_ContentRows>
       return false;
     }
     return widget.prefs.get(UserPreferences.homeRowInfoOverlay);
+  }
+
+  void _prefetchV2FocusedImage(
+    AggregatedItem item, {
+    required double v2ImageHeight,
+    required double v2FocusedWidth,
+    required bool useSeriesThumbs,
+  }) {
+    if (!mounted || PlatformDetection.useMobileUi) return;
+
+    if (_v2FocusPrefetchedUrls.length > 800) {
+      _v2FocusPrefetchedUrls.clear();
+    }
+
+    final requestScale =
+        MediaQuery.devicePixelRatioOf(context).clamp(1.0, 2.0);
+    final imageApi = widget.viewModel.imageApiForServer(item.serverId);
+    final url = _resolveV2FocusedImageUrl(
+      item,
+      imageApi,
+      v2ImageHeight,
+      useSeriesThumbs,
+      requestScale,
+    );
+    if (url == null || url.isEmpty) return;
+    if (!_v2FocusPrefetchedUrls.add(url)) return;
+    unawaited(
+      BoundedNetworkImage.precache(
+        context,
+        url,
+        layoutWidth: v2FocusedWidth,
+        scale: 0.9,
+        maxWidth: 960,
+      ).catchError((_) {
+        _v2FocusPrefetchedUrls.remove(url);
+      }),
+    );
+  }
+
+  void _prefetchV2FocusNeighbors({
+    required HomeRow row,
+    required int focusedIndex,
+    required double v2ImageHeight,
+    required double v2FocusedWidth,
+    required bool useSeriesThumbs,
+  }) {
+    final items = row.items;
+    for (final offset in const [1, -1]) {
+      final i = focusedIndex + offset;
+      if (i < 0 || i >= items.length) continue;
+      _prefetchV2FocusedImage(
+        items[i],
+        v2ImageHeight: v2ImageHeight,
+        v2FocusedWidth: v2FocusedWidth,
+        useSeriesThumbs: useSeriesThumbs,
+      );
+    }
+  }
+
+  void _prefetchV2RowLeadImage({
+    required HomeRow row,
+    required double v2ImageHeight,
+    required double v2FocusedWidth,
+    required bool useSeriesThumbs,
+  }) {
+    if (row.items.isEmpty) return;
+    _prefetchV2FocusedImage(
+      row.items.first,
+      v2ImageHeight: v2ImageHeight,
+      v2FocusedWidth: v2FocusedWidth,
+      useSeriesThumbs: useSeriesThumbs,
+    );
   }
 
   void _primeV2FocusedRatings(AggregatedItem item) {
@@ -2858,6 +2931,12 @@ class _ContentRowsState extends State<_ContentRows>
     if (isRowsV2) {
       maxCardHeight = v2ImageHeight + (v2MetadataHeightBudget * metadataScale);
       firstCardWidth = v2PortraitWidth;
+      _prefetchV2RowLeadImage(
+        row: row,
+        v2ImageHeight: v2ImageHeight,
+        v2FocusedWidth: v2FocusedWidth,
+        useSeriesThumbs: useSeriesThumbs,
+      );
     } else {
       for (final item in row.items) {
         final ar = _aspectRatioForRowItem(item, row, rowImageType);
@@ -2912,6 +2991,13 @@ class _ContentRowsState extends State<_ContentRows>
           widget.onItemSelected(item);
           if (isRowsV2) {
             _primeV2FocusedRatings(item);
+            _prefetchV2FocusNeighbors(
+              row: row,
+              focusedIndex: index,
+              v2ImageHeight: v2ImageHeight,
+              v2FocusedWidth: v2FocusedWidth,
+              useSeriesThumbs: useSeriesThumbs,
+            );
           }
           unawaited(_revealAndScrollToPinnedInfo(ignoreScrollCooldown: forceReveal));
           if (_suppressNextRowPreviewFromMediaBar) {
