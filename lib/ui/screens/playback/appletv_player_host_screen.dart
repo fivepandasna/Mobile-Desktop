@@ -8,8 +8,11 @@ import 'package:playback_core/playback_core.dart';
 import 'package:server_core/server_core.dart';
 
 import '../../../data/models/aggregated_item.dart';
+import '../../../data/models/trickplay_info.dart';
 import '../../../data/services/media_server_client_factory.dart';
 import '../../../playback/appletv_mpv_backend.dart';
+import '../../../playback/playback_profile_diagnostics.dart';
+import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
 
 class AppleTvPlayerHostScreen extends StatefulWidget {
@@ -152,40 +155,416 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
     }
   }
 
-  List<String> _streamInfoLines(PlaybackManager manager) {
+  Map<String, dynamic>? _rawDataForQueueItem(dynamic item) {
+    if (item is AggregatedItem) return item.rawData;
+    if (item is Map) return item.cast<String, dynamic>();
+    if (item is String) return _manager?.currentOfflineMetadata;
+    return null;
+  }
+
+  String? _itemIdForQueueItem(dynamic item) {
+    if (item is AggregatedItem) return item.id;
+    if (item is Map) return (item['Id'] ?? item['id'])?.toString();
+    return null;
+  }
+
+  MediaServerClient? _clientForQueueItem(dynamic item) {
+    try {
+      String? serverId;
+      if (item is AggregatedItem) {
+        serverId = item.serverId;
+      } else if (item is Map) {
+        serverId =
+            (item['ServerId'] as String?) ?? (item['serverId'] as String?);
+      }
+      MediaServerClient? client;
+      if (serverId != null && serverId.isNotEmpty) {
+        client = GetIt.instance<MediaServerClientFactory>().getClientIfExists(
+          serverId,
+        );
+      }
+      return client ?? GetIt.instance<MediaServerClient>();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _artworkUrlForItem(dynamic item) {
+    final raw = _rawDataForQueueItem(item);
+    final itemId = _itemIdForQueueItem(item);
+    final imageApi = _clientForQueueItem(item)?.imageApi;
+    if (raw == null || itemId == null || itemId.isEmpty || imageApi == null) {
+      return '';
+    }
+    final imageTags = raw['ImageTags'] as Map?;
+    final primaryTag = (imageTags?['Primary'] as String?)?.trim();
+    final thumbTag = (imageTags?['Thumb'] as String?)?.trim();
+    final backdropTags = raw['BackdropImageTags'] as List?;
+    final backdropTag = backdropTags?.isNotEmpty == true
+        ? backdropTags!.first.toString().trim()
+        : null;
+    if (primaryTag != null && primaryTag.isNotEmpty) {
+      return imageApi.getPrimaryImageUrl(itemId, maxHeight: 420, tag: primaryTag);
+    }
+    if (thumbTag != null && thumbTag.isNotEmpty) {
+      return imageApi.getThumbImageUrl(itemId, maxWidth: 960, tag: thumbTag);
+    }
+    if (backdropTag != null && backdropTag.isNotEmpty) {
+      return imageApi.getBackdropImageUrl(itemId, maxWidth: 1280, tag: backdropTag);
+    }
+    return '';
+  }
+
+  String _formatBitrate(int? bitrate) {
+    if (bitrate == null) return 'Unknown';
+    if (bitrate >= 1000000) {
+      return '${(bitrate / 1000000).toStringAsFixed(1)} Mbps';
+    }
+    if (bitrate >= 1000) {
+      return '${(bitrate / 1000).toStringAsFixed(0)} Kbps';
+    }
+    return '$bitrate bps';
+  }
+
+  String _formatChannels(int? channels) {
+    return switch (channels) {
+      null => 'Unknown',
+      1 => 'Mono (1)',
+      2 => 'Stereo (2)',
+      6 => '5.1 (6)',
+      8 => '7.1 (8)',
+      _ => '$channels channels',
+    };
+  }
+
+  List<Map<String, dynamic>> _streamInfoSections(PlaybackManager manager) {
     final res = manager.currentResolution;
-    if (res == null) return const [];
-    final lines = <String>[];
-    lines.add('Play method: ${_prettyPlayMethod(res.playMethod.name)}');
-    final container = res.container;
-    if (container != null && container.isNotEmpty) {
-      lines.add('Container: ${container.toUpperCase()}');
+    final item = manager.queueService.currentItem;
+
+    Map<String, dynamic>? mediaSource;
+    Map<String, dynamic>? videoStream;
+    Map<String, dynamic>? audioStream;
+    Map<String, dynamic>? subtitleStream;
+
+    Map<String, dynamic>? pickStream(
+      List<Map<String, dynamic>> streams,
+      String type,
+      int? preferredIndex,
+    ) {
+      if (preferredIndex != null && preferredIndex >= 0) {
+        final preferred = streams
+            .where((s) => s['Type'] == type)
+            .firstWhere(
+              (s) => s['Index'] == preferredIndex,
+              orElse: () => const <String, dynamic>{},
+            );
+        if (preferred.isNotEmpty) return preferred;
+      }
+      final defaults = streams
+          .where((s) => s['Type'] == type && s['IsDefault'] == true)
+          .toList();
+      if (defaults.isNotEmpty) return defaults.first;
+      final any = streams.where((s) => s['Type'] == type).toList();
+      return any.isNotEmpty ? any.first : null;
     }
-    final video = res.mediaStreams.firstWhere(
-      (s) => s['Type'] == 'Video',
-      orElse: () => const <String, dynamic>{},
+
+    final raw = _rawDataForQueueItem(item);
+    final allStreams =
+        res?.mediaStreams ??
+        (raw?['MediaStreams'] as List?)?.cast<Map<String, dynamic>>() ??
+        const <Map<String, dynamic>>[];
+    videoStream = allStreams.where((s) => s['Type'] == 'Video').firstOrNull;
+    audioStream = pickStream(allStreams, 'Audio', manager.audioStreamIndex);
+    subtitleStream = manager.subtitleStreamIndex == -1
+        ? null
+        : pickStream(allStreams, 'Subtitle', manager.subtitleStreamIndex);
+
+    final sources = (raw?['MediaSources'] as List?)
+        ?.cast<Map<String, dynamic>>();
+    final sourceId = res?.mediaSourceId;
+    if (sources != null && sources.isNotEmpty) {
+      mediaSource = sourceId != null
+          ? sources.firstWhere(
+              (s) => s['Id'] == sourceId,
+              orElse: () => sources.first,
+            )
+          : sources.first;
+    }
+
+    String fileName() {
+      final path = (mediaSource?['Path'] as String?)?.trim();
+      if (path != null && path.isNotEmpty) {
+        final segments = path.split(RegExp(r'[\\/]'));
+        if (segments.isNotEmpty && segments.last.trim().isNotEmpty) {
+          return segments.last.trim();
+        }
+      }
+      final name = (mediaSource?['Name'] as String?)?.trim();
+      return (name != null && name.isNotEmpty) ? name : 'Unknown';
+    }
+
+    Map<String, dynamic> rowEntry(String label, String value) {
+      return {'label': label, 'value': value};
+    }
+
+    final sections = <Map<String, dynamic>>[];
+    void addSection(String title, List<Map<String, dynamic>> rows) {
+      if (rows.isEmpty) return;
+      sections.add({'title': title, 'rows': rows});
+    }
+
+    final overrideMbps = manager.maxBitrateOverrideMbps;
+    final container =
+        (mediaSource?['Container'] as String?)?.toUpperCase() ??
+        res?.container?.toUpperCase() ??
+        'Unknown';
+
+    addSection('Playback', [
+      rowEntry('File Name', fileName()),
+      rowEntry(
+        'Play Method',
+        res != null ? _prettyPlayMethod(res.playMethod.name) : 'Unknown',
+      ),
+      if (res != null && res.transcodingReasons.isNotEmpty)
+        rowEntry('Transcode Reasons', res.transcodingReasons.join(', ')),
+      rowEntry('Player', 'MPVKit (libmpv)'),
+      rowEntry('Container', container),
+      rowEntry(
+        'Bitrate',
+        overrideMbps != null
+            ? '$overrideMbps Mbps (override)'
+            : _formatBitrate(mediaSource?['Bitrate'] as int?),
+      ),
+    ]);
+
+    if (videoStream != null) {
+      final video = videoStream;
+      final fps = video['RealFrameRate'] as num?;
+      final width = video['Width'];
+      final height = video['Height'];
+      final range =
+          (video['VideoRangeType'] as String?) ??
+          (video['VideoRange'] as String?) ??
+          'SDR';
+      final codec = ((video['Codec'] as String?) ?? 'Unknown').toUpperCase();
+      final profile = (video['Profile'] as String?) ?? '';
+      addSection('Video', [
+        rowEntry(
+          'Resolution',
+          '${width ?? '?'}×${height ?? '?'}${fps != null ? ' @ ${fps.round()}fps' : ''}',
+        ),
+        rowEntry('HDR', range),
+        rowEntry('Codec', profile.isEmpty ? codec : '$codec ($profile)'),
+        if (video['BitRate'] != null)
+          rowEntry('Video Bitrate', _formatBitrate(video['BitRate'] as int?)),
+      ]);
+    }
+
+    if (audioStream != null) {
+      final audio = audioStream;
+      final codec = ((audio['Codec'] as String?) ?? 'Unknown').toUpperCase();
+      final profile = (audio['Profile'] as String?) ?? '';
+      addSection('Audio', [
+        rowEntry(
+          'Track',
+          audio['DisplayTitle'] as String? ??
+              audio['Language'] as String? ??
+              'Unknown',
+        ),
+        rowEntry('Codec', profile.isEmpty ? codec : '$codec ($profile)'),
+        rowEntry('Channels', _formatChannels(audio['Channels'] as int?)),
+        if (audio['BitRate'] != null)
+          rowEntry('Audio Bitrate', _formatBitrate(audio['BitRate'] as int?)),
+        if (audio['SampleRate'] != null)
+          rowEntry(
+            'Sample Rate',
+            '${((audio['SampleRate'] as num) / 1000).toStringAsFixed(1)} kHz',
+          ),
+      ]);
+    }
+
+    if (subtitleStream != null) {
+      final subtitle = subtitleStream;
+      addSection('Subtitles', [
+        rowEntry(
+          'Track',
+          subtitle['DisplayTitle'] as String? ??
+              subtitle['Language'] as String? ??
+              'Unknown',
+        ),
+        rowEntry(
+          'Format',
+          ((subtitle['Codec'] as String?) ?? 'Unknown').toUpperCase(),
+        ),
+        rowEntry(
+          'Type',
+          subtitle['IsExternal'] == true ? 'External' : 'Embedded',
+        ),
+      ]);
+    }
+
+    final diagnostics = PlaybackProfileDiagnostics.instance.lastDecision;
+    if (diagnostics != null) {
+      final diagSourceId = diagnostics['mediaSourceId']?.toString();
+      final currentSourceId =
+          res?.mediaSourceId ?? mediaSource?['Id']?.toString();
+      final matches =
+          diagSourceId == null ||
+          currentSourceId == null ||
+          diagSourceId == currentSourceId;
+      if (matches) {
+        String value(String key) {
+          final v = diagnostics[key];
+          if (v is List) {
+            final values = v
+                .map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+            return values.isEmpty ? 'Unknown' : values.join(', ');
+          }
+          final text = v?.toString().trim() ?? '';
+          return text.isEmpty ? 'Unknown' : text;
+        }
+
+        addSection('Diagnostics', [
+          rowEntry('Backend', value('backend')),
+          rowEntry('Play Method', value('playMethod')),
+          rowEntry('Transcode Reasons', value('transcodingReasons')),
+          rowEntry('Container', value('container')),
+          rowEntry('Video Codec', value('videoCodec')),
+          rowEntry('Video Profile', value('videoProfile')),
+          rowEntry('Video Level', value('videoLevel')),
+          rowEntry('Video Range', value('videoRange')),
+          rowEntry('Audio Codec', value('audioCodec')),
+          rowEntry('Audio Profile', value('audioProfile')),
+          rowEntry('Audio Channels', value('audioChannels')),
+          rowEntry('Subtitle Codec', value('subtitleCodec')),
+          rowEntry('Allowed Audio Codecs', value('allowedAudioCodecs')),
+          rowEntry('Audio Route', value('activeRouteType')),
+        ]);
+      }
+    }
+
+    return sections;
+  }
+
+  Map<String, dynamic>? _trickplayPayload(dynamic item, PlaybackManager manager) {
+    try {
+      if (!GetIt.instance<UserPreferences>().get(
+        UserPreferences.trickPlayEnabled,
+      )) {
+        return null;
+      }
+    } catch (_) {
+      return null;
+    }
+    final raw = _rawDataForQueueItem(item);
+    final itemId = _itemIdForQueueItem(item);
+    final client = _clientForQueueItem(item);
+    if (raw == null || itemId == null || itemId.isEmpty || client == null) {
+      return null;
+    }
+    final mediaSourceId = manager.currentResolution?.mediaSourceId;
+    final info = TrickplayInfo.fromItemData(raw, mediaSourceId: mediaSourceId);
+    if (info == null || !info.isValid) return null;
+
+    final runtimeTicks = raw['RunTimeTicks'] as int?;
+    final durationMs = runtimeTicks != null ? runtimeTicks ~/ 10000 : 0;
+    final msPerImage = info.interval * info.tilesPerImage;
+    var imageCount = durationMs > 0 ? (durationMs / msPerImage).ceil() + 1 : 16;
+    imageCount = imageCount.clamp(1, 128);
+
+    final urls = List<String>.generate(
+      imageCount,
+      (i) => client.imageApi.getTrickplayTileImageUrl(
+        itemId,
+        width: info.width,
+        index: i,
+        mediaSourceId: mediaSourceId,
+      ),
     );
-    if (video.isNotEmpty) {
-      final title = (video['DisplayTitle'] as String?) ?? '';
-      if (title.isNotEmpty) lines.add('Video: $title');
-      final range = (video['VideoRangeType'] as String?) ?? '';
-      if (range.isNotEmpty) lines.add('Video range: $range');
+    final token = client.accessToken;
+    return {
+      'urls': urls,
+      'headers': {
+        if (token != null && token.isNotEmpty)
+          'Authorization': 'MediaBrowser Token="$token"',
+      },
+      'width': info.width,
+      'height': info.height,
+      'cols': info.tileWidth,
+      'rows': info.tileHeight,
+      'intervalMs': info.interval,
+    };
+  }
+
+  List<Map<String, dynamic>> _castPeople(dynamic item) {
+    final raw = _rawDataForQueueItem(item);
+    final imageApi = _clientForQueueItem(item)?.imageApi;
+    final people = (raw?['People'] as List?)?.cast<Map<String, dynamic>>();
+    if (people == null || people.isEmpty || imageApi == null) {
+      return const [];
     }
-    final audioIndex = manager.audioStreamIndex;
-    final audio = res.mediaStreams.firstWhere(
-      (s) =>
-          s['Type'] == 'Audio' &&
-          (audioIndex == null || s['Index'] == audioIndex),
-      orElse: () => const <String, dynamic>{},
-    );
-    if (audio.isNotEmpty) {
-      final title = (audio['DisplayTitle'] as String?) ?? '';
-      if (title.isNotEmpty) lines.add('Audio: $title');
+    return people
+        .map((person) {
+          final name = (person['Name'] as String?)?.trim() ?? '';
+          if (name.isEmpty) return null;
+          final personId = (person['Id'] as String?)?.trim() ?? '';
+          final imageTag = (person['PrimaryImageTag'] as String?)?.trim();
+          final role = (person['Role'] as String?)?.trim();
+          final type = (person['Type'] as String?)?.trim();
+          final subtitle = (role != null && role.isNotEmpty)
+              ? role
+              : ((type != null && type.isNotEmpty) ? type : '');
+          String imageUrl = '';
+          if (personId.isNotEmpty && imageTag != null && imageTag.isNotEmpty) {
+            imageUrl = imageApi.getPrimaryImageUrl(
+              personId,
+              maxHeight: 300,
+              tag: imageTag,
+            );
+          }
+          return <String, dynamic>{
+            'name': name,
+            'subtitle': subtitle,
+            'imageUrl': imageUrl,
+          };
+        })
+        .whereType<Map<String, dynamic>>()
+        .toList(growable: false);
+  }
+
+  Map<String, dynamic>? _nextUpPayload(PlaybackManager manager) {
+    final next = manager.queueService.peekNext;
+    if (next == null) return null;
+    String title = '';
+    if (next is AggregatedItem) {
+      final episodeInfo = next.indexNumber != null
+          ? 'S${next.parentIndexNumber ?? '?'}:E${next.indexNumber}'
+          : null;
+      title = [?episodeInfo, next.name].where((s) => s.isNotEmpty).join(' - ');
+    } else if (next is Map) {
+      title = (next['Name'] as String?) ?? '';
     }
-    if (res.transcodingReasons.isNotEmpty) {
-      lines.add('Transcode reasons: ${res.transcodingReasons.join(', ')}');
-    }
-    return lines;
+    if (title.isEmpty) return null;
+    return {'title': title, 'imageUrl': _artworkUrlForItem(next)};
+  }
+
+  Map<String, dynamic>? _pauseMetaPayload(dynamic item) {
+    bool enabled = false;
+    try {
+      enabled = GetIt.instance<UserPreferences>().get(
+        UserPreferences.showDescriptionOnPause,
+      );
+    } catch (_) {}
+    if (!enabled) return null;
+    final raw = _rawDataForQueueItem(item);
+    final overview =
+        (raw?['Overview'] as String?)?.trim() ??
+        ((raw?['Taglines'] as List?)?.firstOrNull as String?)?.trim() ??
+        '';
+    if (overview.isEmpty) return null;
+    return {'overview': overview, 'imageUrl': _artworkUrlForItem(item)};
   }
 
   List<Map<String, dynamic>> _trackOptions(
@@ -267,11 +646,18 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
       final episodeInfo = item.indexNumber != null
           ? 'S${item.parentIndexNumber ?? '?'}:E${item.indexNumber}'
           : null;
-      topSubtitle = item.seriesName ?? '';
-      topTitle = [
+      final episodeLine = [
         ?episodeInfo,
         item.name,
       ].where((s) => s.isNotEmpty).join(' - ');
+      final series = item.seriesName ?? '';
+      if (series.isNotEmpty) {
+        topTitle = series;
+        topSubtitle = episodeLine;
+      } else {
+        topTitle = item.name;
+        topSubtitle = '';
+      }
     } else if (item is Map) {
       final title = (item['Name'] as String?) ?? '';
       final series = (item['SeriesName'] as String?) ?? '';
@@ -279,8 +665,17 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
       final episodeInfo = idx != null
           ? 'S${item['ParentIndexNumber'] ?? '?'}:E$idx'
           : null;
-      topSubtitle = series;
-      topTitle = [?episodeInfo, title].where((s) => s.isNotEmpty).join(' - ');
+      final episodeLine = [
+        ?episodeInfo,
+        title,
+      ].where((s) => s.isNotEmpty).join(' - ');
+      if (series.isNotEmpty) {
+        topTitle = series;
+        topSubtitle = episodeLine;
+      } else {
+        topTitle = title;
+        topSubtitle = '';
+      }
     } else if (item is String) {
       final meta = manager.currentOfflineMetadata;
       final title = (meta?['Name'] as String?) ?? item.split('/').last;
@@ -288,8 +683,17 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
       final idx = meta?['IndexNumber'] as int?;
       final parentIdx = meta?['ParentIndexNumber'] as int?;
       final episodeInfo = idx != null ? 'S${parentIdx ?? '?'}:E$idx' : null;
-      topSubtitle = series;
-      topTitle = [?episodeInfo, title].where((s) => s.isNotEmpty).join(' - ');
+      final episodeLine = [
+        ?episodeInfo,
+        title,
+      ].where((s) => s.isNotEmpty).join(' - ');
+      if (series.isNotEmpty) {
+        topTitle = series;
+        topSubtitle = episodeLine;
+      } else {
+        topTitle = title;
+        topSubtitle = '';
+      }
     }
 
     final allStreams =
@@ -332,8 +736,26 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         audio: false,
       ),
       logoUrl: _logoUrlForItem(item),
-      streamInfoLines: _streamInfoLines(manager),
+      streamInfoSections: _streamInfoSections(manager),
+      trickplay: _trickplayPayload(item, manager),
+      castPeople: _castPeople(item),
+      nextUp: _nextUpPayload(manager),
+      nextUpThresholdMs: _nextUpThresholdMs(),
+      pauseMeta: _pauseMetaPayload(item),
+      selectedBitrateMbps: manager.maxBitrateOverrideMbps ?? -1,
     );
+  }
+
+  int _nextUpThresholdMs() {
+    try {
+      final behavior = GetIt.instance<UserPreferences>().get(
+        UserPreferences.nextUpBehavior,
+      );
+      if (behavior == NextUpBehavior.disabled) return 0;
+      return 30000;
+    } catch (_) {
+      return 30000;
+    }
   }
 
   int _prefInt(Preference<int> pref, {required int defaultValue}) {
@@ -370,6 +792,9 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         if (speed != null && speed > 0) {
           unawaited(_backend?.setPlaybackSpeed(speed) ?? Future<void>.value());
         }
+      case 'setBitrate':
+        final mbps = (action['mbps'] as num?)?.toInt();
+        unawaited(manager.changeBitrate(mbps == null || mbps < 0 ? null : mbps));
     }
     Future<void>.delayed(const Duration(milliseconds: 300), _pushMetadata);
   }

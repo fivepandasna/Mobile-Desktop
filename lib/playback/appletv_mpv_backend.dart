@@ -126,6 +126,7 @@ class AppleTvMpvBackend implements PlayerBackend {
       case 'selectAudio':
       case 'selectSubtitle':
       case 'setSpeed':
+      case 'setBitrate':
         _uiActionStream.add(map.cast<String, dynamic>());
       case 'tracksChanged':
         _tracksKnown = true;
@@ -366,7 +367,13 @@ class AppleTvMpvBackend implements PlayerBackend {
     required List<Map<String, dynamic>> audioTracks,
     required List<Map<String, dynamic>> subtitleTracks,
     String logoUrl = '',
-    List<String> streamInfoLines = const [],
+    List<Map<String, dynamic>> streamInfoSections = const [],
+    Map<String, dynamic>? trickplay,
+    List<Map<String, dynamic>> castPeople = const [],
+    Map<String, dynamic>? nextUp,
+    int nextUpThresholdMs = 0,
+    Map<String, dynamic>? pauseMeta,
+    int selectedBitrateMbps = -1,
   }) async {
     await _invoke<void>('setUiMetadata', {
       'topTitle': topTitle,
@@ -379,7 +386,13 @@ class AppleTvMpvBackend implements PlayerBackend {
       'audioTracks': audioTracks,
       'subtitleTracks': subtitleTracks,
       'logoUrl': logoUrl,
-      'streamInfoLines': streamInfoLines,
+      'streamInfoSections': streamInfoSections,
+      'trickplay': ?trickplay,
+      'castPeople': castPeople,
+      'nextUp': ?nextUp,
+      'nextUpThresholdMs': nextUpThresholdMs,
+      'pauseMeta': ?pauseMeta,
+      'selectedBitrateMbps': selectedBitrateMbps,
     });
   }
 
