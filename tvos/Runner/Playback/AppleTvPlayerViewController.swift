@@ -11,6 +11,7 @@ final class AppleTvPlayerViewController: UIViewController {
     var onSetSpeed: ((Double) -> Void)?
     var onSetBitrate: ((Int) -> Void)?
     var onSelectChannel: ((String) -> Void)?
+    var onToggleFavorite: (() -> Void)?
     var baseSubtitlePos = 92
     private var didAttachSurface = false
     private var updateTimer: Timer?
@@ -26,6 +27,8 @@ final class AppleTvPlayerViewController: UIViewController {
     private var streamInfoSections: [[String: Any]] = []
     private var hasCast = false
     private var castPeople: [(name: String, subtitle: String, imageUrl: String)] = []
+    private var canFavorite = false
+    private var isFavorite = false
     private var selectedBitrateMbps = -1
     private var logoUrlString = ""
     private var headerPrimary = ""
@@ -49,6 +52,10 @@ final class AppleTvPlayerViewController: UIViewController {
     private var activeSkipSegmentKey: String?
     private let skipSegmentButton = UIView()
     private let skipSegmentLabel = UILabel()
+
+    private let loadingOverlay = UIView()
+    private let loadingSpinner = UIActivityIndicatorView(style: .large)
+    private var loadingDismissed = false
 
     private var isLive = false
     private var liveProgram:
@@ -75,7 +82,7 @@ final class AppleTvPlayerViewController: UIViewController {
     private enum Zone { case scrubber, buttons }
     private enum ControlId {
         case prev, skipBack, playPause, skipForward, next
-        case speed, chapters, subtitles, audio, cast, quality, zoom, info, channels
+        case speed, chapters, subtitles, audio, cast, quality, zoom, info, channels, favorite
     }
     private var focusedZone: Zone = .buttons
     private var focusedControlIndex = 0
@@ -305,6 +312,39 @@ final class AppleTvPlayerViewController: UIViewController {
         setupPauseOverlay()
         setupLiveOverlays()
         setupSkipSegment()
+        setupLoadingOverlay()
+    }
+
+    private func setupLoadingOverlay() {
+        loadingOverlay.translatesAutoresizingMaskIntoConstraints = false
+        loadingOverlay.backgroundColor = .black
+        view.addSubview(loadingOverlay)
+        loadingSpinner.translatesAutoresizingMaskIntoConstraints = false
+        loadingSpinner.color = .white
+        loadingSpinner.hidesWhenStopped = true
+        loadingOverlay.addSubview(loadingSpinner)
+        NSLayoutConstraint.activate([
+            loadingOverlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            loadingOverlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            loadingOverlay.topAnchor.constraint(equalTo: view.topAnchor),
+            loadingOverlay.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            loadingSpinner.centerXAnchor.constraint(equalTo: loadingOverlay.centerXAnchor),
+            loadingSpinner.centerYAnchor.constraint(equalTo: loadingOverlay.centerYAnchor),
+        ])
+        loadingSpinner.startAnimating()
+    }
+
+    private func updateLoadingOverlay() {
+        guard !loadingDismissed else { return }
+        if player.currentTime > 0 || player.state == .playing || player.state == .error {
+            loadingDismissed = true
+            loadingSpinner.stopAnimating()
+            UIView.animate(withDuration: 0.25) {
+                self.loadingOverlay.alpha = 0
+            } completion: { _ in
+                self.loadingOverlay.isHidden = true
+            }
+        }
     }
 
     private func setupSkipSegment() {
@@ -633,6 +673,7 @@ final class AppleTvPlayerViewController: UIViewController {
         case .zoom: return player.zoomMode.iconName
         case .info: return "info.circle"
         case .channels: return "list.bullet.rectangle"
+        case .favorite: return isFavorite ? "heart.fill" : "heart"
         }
     }
 
@@ -680,6 +721,7 @@ final class AppleTvPlayerViewController: UIViewController {
             ids.append(.playPause)
             ids.append(.skipForward)
             if hasNext { ids.append(.next) }
+            if canFavorite { ids.append(.favorite) }
             ids.append(.speed)
             if chapters.count > 1 { ids.append(.chapters) }
             if !subtitleTracks.isEmpty { ids.append(.subtitles) }
@@ -726,6 +768,8 @@ final class AppleTvPlayerViewController: UIViewController {
         selectedBitrateMbps = (args["selectedBitrateMbps"] as? NSNumber)?.intValue ?? -1
         nextUpThresholdMs = (args["nextUpThresholdMs"] as? NSNumber)?.intValue ?? 0
         hasCast = (args["hasCast"] as? Bool) ?? false
+        canFavorite = (args["canFavorite"] as? Bool) ?? false
+        isFavorite = (args["isFavorite"] as? Bool) ?? false
 
         castPeople = ((args["castPeople"] as? [[String: Any]]) ?? []).compactMap { e in
             guard let name = e["name"] as? String, !name.isEmpty else { return nil }
@@ -1144,6 +1188,8 @@ final class AppleTvPlayerViewController: UIViewController {
             presentInfoPanel()
         case .channels:
             presentChannelList()
+        case .favorite:
+            onToggleFavorite?()
         }
     }
 
@@ -1192,6 +1238,7 @@ final class AppleTvPlayerViewController: UIViewController {
         case .zoom: return "Zoom Mode"
         case .info: return "Playback Information"
         case .channels: return "Channels"
+        case .favorite: return isFavorite ? "Remove from Favorites" : "Add to Favorites"
         }
     }
 
@@ -1662,6 +1709,7 @@ final class AppleTvPlayerViewController: UIViewController {
         }
         updatePauseOverlay()
         updateMediaSegments()
+        updateLoadingOverlay()
 
         let shouldShow =
             isPaused() || scrubTargetMs != nil

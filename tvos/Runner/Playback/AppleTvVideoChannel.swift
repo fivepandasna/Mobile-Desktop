@@ -168,6 +168,9 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
         vc.onSelectChannel = { [weak self] channelId in
             self?.send(["event": "selectChannel", "channelId": channelId])
         }
+        vc.onToggleFavorite = { [weak self] in
+            self?.send(["event": "toggleFavorite"])
+        }
         if let meta = lastMetadata {
             vc.applyUiMetadata(meta)
         }

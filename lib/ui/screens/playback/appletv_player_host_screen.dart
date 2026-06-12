@@ -12,6 +12,7 @@ import '../../../data/models/media_segment.dart';
 import '../../../data/models/trickplay_info.dart';
 import '../../../data/services/media_segment_service.dart';
 import '../../../data/services/media_server_client_factory.dart';
+import '../../../data/repositories/item_mutation_repository.dart';
 import '../../../playback/appletv_mpv_backend.dart';
 import '../../../playback/playback_profile_diagnostics.dart';
 import '../../../preference/preference_constants.dart';
@@ -555,6 +556,48 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         item.seriesId!.isNotEmpty;
   }
 
+  bool _canFavorite(dynamic item) {
+    if (item is! AggregatedItem) return false;
+    final id = _itemIdForQueueItem(item);
+    return id != null && id.isNotEmpty;
+  }
+
+  bool _queueItemIsFavorite(dynamic item) {
+    if (item is AggregatedItem) return item.isFavorite;
+    final userData = _rawDataForQueueItem(item)?['UserData'];
+    if (userData is Map) return userData['IsFavorite'] as bool? ?? false;
+    return false;
+  }
+
+  void _toggleFavorite(dynamic item) {
+    final itemId = _itemIdForQueueItem(item);
+    if (itemId == null || itemId.isEmpty) return;
+    final client = _clientForQueueItem(item);
+    if (client == null) return;
+    final wasFavorite = _queueItemIsFavorite(item);
+    () async {
+      try {
+        await ItemMutationRepository(
+          client,
+        ).setFavorite(itemId, isFavorite: !wasFavorite);
+        final raw = _rawDataForQueueItem(item);
+        if (raw != null) {
+          final existing = raw['UserData'];
+          final userData = existing is Map<String, dynamic>
+              ? existing
+              : (existing is Map
+                    ? existing.cast<String, dynamic>()
+                    : <String, dynamic>{});
+          userData['IsFavorite'] = !wasFavorite;
+          raw['UserData'] = userData;
+        }
+      } catch (_) {
+      } finally {
+        if (mounted) _pushMetadata();
+      }
+    }();
+  }
+
   List<Map<String, dynamic>> _castPeople(dynamic item) {
     final imageApi = _clientForQueueItem(item)?.imageApi;
     if (imageApi == null) return const [];
@@ -871,6 +914,8 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
       pauseMeta: _pauseMetaPayload(item),
       selectedBitrateMbps: manager.maxBitrateOverrideMbps ?? -1,
       mediaSegments: _mediaSegments(item),
+      canFavorite: _canFavorite(item),
+      isFavorite: _queueItemIsFavorite(item),
     );
 
     _resolveCastAsync(item);
@@ -937,6 +982,8 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
       case 'setBitrate':
         final mbps = (action['mbps'] as num?)?.toInt();
         unawaited(manager.changeBitrate(mbps == null || mbps < 0 ? null : mbps));
+      case 'toggleFavorite':
+        _toggleFavorite(manager.queueService.currentItem);
     }
     Future<void>.delayed(const Duration(milliseconds: 300), _pushMetadata);
   }
