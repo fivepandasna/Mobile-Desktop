@@ -40,6 +40,7 @@ class AppleTvMpvBackend implements PlayerBackend {
 
   int _textTrackCount = 0;
   bool _tracksKnown = false;
+  int? _activeSubtitleTrackIndex;
   Completer<void>? _tracksReadyCompleter;
 
   bool _disposed = false;
@@ -194,6 +195,7 @@ class AppleTvMpvBackend implements PlayerBackend {
     _completed = false;
     _tracksKnown = false;
     _textTrackCount = 0;
+    _activeSubtitleTrackIndex = null;
     _tracksReadyCompleter = null;
 
     await _ensurePlayerPresented();
@@ -311,10 +313,6 @@ class AppleTvMpvBackend implements PlayerBackend {
       trueHdPassthroughEnabled: _prefs.resolveTrueHdPassthroughEnabled(),
       trueHdAtmosPassthroughEnabled: _prefs
           .resolveTrueHdAtmosPassthroughEnabled(),
-      downMixAudio:
-          _prefs.resolveAudioOutputMode() == AudioOutputMode.forceStereo,
-      audioFallbackToStereoAac:
-          _prefs.resolveAudioFallbackCodec() == AudioFallbackCodec.aacStereo,
       maxResolution: maxResolution,
       pgsDirectPlay: _prefs.get(UserPreferences.pgsDirectPlay),
       assDirectPlay: _prefs.get(UserPreferences.assDirectPlay),
@@ -417,6 +415,7 @@ class AppleTvMpvBackend implements PlayerBackend {
     bool isExternalSubtitle = false,
     String? externalSubtitleUrl,
   }) async {
+    _activeSubtitleTrackIndex = index;
     await _invoke<void>('setSubtitleTrack', {
       'index': index,
       'isBitmapSubtitle': isBitmapSubtitle,
@@ -428,8 +427,16 @@ class AppleTvMpvBackend implements PlayerBackend {
 
   @override
   Future<void> disableSubtitleTrack() async {
+    _activeSubtitleTrackIndex = -1;
     await _invoke<void>('disableSubtitleTrack');
   }
+
+  @override
+  int? get activeSubtitleTrackIndex => _activeSubtitleTrackIndex;
+
+  @override
+  Future<int?> getActiveSubtitleTrackIndexAsync() async =>
+      _activeSubtitleTrackIndex;
 
   @override
   Future<void> waitForTracksReady() async {
