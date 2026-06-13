@@ -45,9 +45,11 @@ class SettingsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final panelWidth = PlatformDetection.useMobileUi
-        ? (screenWidth - 8).clamp(320.0, screenWidth)
-        : (screenWidth - 16).clamp(320.0, 420.0);
+    final panelWidth = PlatformDetection.isAppleTV
+        ? screenWidth
+        : PlatformDetection.useMobileUi
+            ? (screenWidth - 8).clamp(320.0, screenWidth)
+            : (screenWidth - 16).clamp(320.0, 420.0);
     return Align(
       alignment: Alignment.centerRight,
       child: Material(

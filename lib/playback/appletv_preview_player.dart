@@ -40,6 +40,7 @@ class AppleTvPreviewPlayer {
     String url, {
     Map<String, String>? headers,
     double volume = 0,
+    String? backend,
   }) async {
     if (_disposed) return;
     final result = await _control.invokeMethod<Map<dynamic, dynamic>>('open', {
@@ -47,6 +48,7 @@ class AppleTvPreviewPlayer {
       'url': url,
       if (headers != null && headers.isNotEmpty) 'headers': headers,
       'volume': volume,
+      'backend': ?backend,
     });
     textureId = (result?['textureId'] as num?)?.toInt();
     if (textureId == null) {

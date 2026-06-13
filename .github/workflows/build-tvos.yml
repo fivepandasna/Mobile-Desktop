@@ -138,6 +138,11 @@ jobs:
             || { echo "::error::Built app is missing flutter_assets fonts"; exit 1; }
           test -e "$APP/PlugIns/MoonfinTopShelf.appex/MoonfinTopShelf" \
             || { echo "::error::Top Shelf extension missing from PlugIns"; exit 1; }
+          PLIST_MIN=$(plutil -extract MinimumOSVersion raw "$APP/Frameworks/App.framework/Info.plist")
+          BIN_MIN=$(vtool -show-build "$APP/Frameworks/App.framework/App" | awk '/minos/{print $2; exit}')
+          echo "App.framework Info.plist MinimumOSVersion=$PLIST_MIN, binary minos=$BIN_MIN"
+          [ "$PLIST_MIN" = "$BIN_MIN" ] \
+            || { echo "::error::App.framework MinimumOSVersion ($PLIST_MIN) != binary minos ($BIN_MIN) (ITMS-90208)"; exit 1; }
           rm -rf "$RUNNER_TEMP/Payload" "$RUNNER_TEMP/moonfin.ipa"
           mkdir -p "$RUNNER_TEMP/Payload"
           cp -R "$APP" "$RUNNER_TEMP/Payload/"
@@ -174,6 +179,12 @@ jobs:
           APPEX="$RUNNER_TEMP/Runner.xcarchive/Products/Applications/Runner.app/PlugIns/MoonfinTopShelf.appex/MoonfinTopShelf"
           test -e "$APPEX" \
             || { echo "::error::Top Shelf extension missing from archive"; exit 1; }
+          APP="$RUNNER_TEMP/Runner.xcarchive/Products/Applications/Runner.app"
+          PLIST_MIN=$(plutil -extract MinimumOSVersion raw "$APP/Frameworks/App.framework/Info.plist")
+          BIN_MIN=$(vtool -show-build "$APP/Frameworks/App.framework/App" | awk '/minos/{print $2; exit}')
+          echo "App.framework Info.plist MinimumOSVersion=$PLIST_MIN, binary minos=$BIN_MIN"
+          [ "$PLIST_MIN" = "$BIN_MIN" ] \
+            || { echo "::error::App.framework MinimumOSVersion ($PLIST_MIN) != binary minos ($BIN_MIN) (ITMS-90208)"; exit 1; }
 
       - name: Export and upload to TestFlight
         if: ${{ inputs.distribution == 'testflight' }}

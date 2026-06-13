@@ -843,6 +843,7 @@ class _MediaBarState extends State<MediaBar>
                   ? YouTubeStreamResolver.youtubeHeaders
                   : null,
               volume: 0,
+              backend: 'mpv',
             )
             .timeout(_openTimeout);
         if (!mounted ||

@@ -86,7 +86,7 @@ void registerAppModule() {
         AppUpdateService(_getIt<PreferenceStore>(), _getIt<UserPreferences>()),
   );
   _getIt.registerLazySingleton(
-    () => ScreensaverController(),
+    () => ScreensaverController(_getIt<UserPreferences>(), _getIt<PlaybackManager>()),
     dispose: (controller) => controller.dispose(),
   );
   _getIt.registerLazySingleton(() => const NativeCastChannel());

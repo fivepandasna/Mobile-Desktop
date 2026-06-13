@@ -1154,7 +1154,7 @@ class _ContentRowsState extends State<_ContentRows>
         _previewUsingAppleTv = true;
         final player = _ensureAppleTvSharedPreviewPlayer();
         await player
-            .open(previewUrl, volume: previewVolume)
+            .open(previewUrl, volume: previewVolume, backend: 'mpv')
             .timeout(_previewOpenTimeout);
         if (!_isPreviewRequestActive(requestId, previewKey)) {
           await player.stop();

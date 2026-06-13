@@ -50,6 +50,7 @@ import 'home_sections_screen.dart';
 import 'home_row_toggles_screen.dart';
 import 'library_settings_screen.dart';
 import 'media_bar_settings_screen.dart';
+import 'screensaver_settings_screen.dart';
 import 'local_previews_settings_screen.dart';
 import 'parental_settings_screen.dart';
 import 'pin_code_settings_screen.dart';
@@ -212,13 +213,6 @@ class _SettingsSidePanelState extends ConsumerState<SettingsSidePanel> {
       ),
     ];
 
-    final navbarIsLeft =
-        PlatformDetection.isAppleTV &&
-        GetIt.instance<UserPreferences>().get(
-              UserPreferences.navbarPosition,
-            ) ==
-            NavbarPosition.left;
-
     return Scaffold(
       appBar: AppBar(
         leading: PlatformDetection.isTV
@@ -231,7 +225,6 @@ class _SettingsSidePanelState extends ConsumerState<SettingsSidePanel> {
         title: Text(l10n.settings),
       ),
       body: ListView(
-        padding: navbarIsLeft ? const EdgeInsets.only(left: 56) : null,
         children: [for (final entry in entries) _PanelEntryTile(entry: entry)],
       ),
     );
@@ -599,6 +592,15 @@ class _CustomizationCategoryScreen extends StatelessWidget {
               onTap: () =>
                   context.pushSettingsScreen(const _LibrariesCategoryScreen()),
             ),
+            if (PlatformDetection.isTV)
+              _TvSettingsListTile(
+                leading: const Icon(Icons.wallpaper),
+                title: Text(l10n.screensaver),
+                subtitle: Text(l10n.enableBuiltInScreensaver),
+                onTap: () => context.pushSettingsScreen(
+                  const ScreensaverSettingsScreen(),
+                ),
+              ),
           ],
         ),
       ),

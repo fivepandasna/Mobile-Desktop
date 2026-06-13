@@ -7,6 +7,7 @@ import 'package:server_core/server_core.dart';
 
 import '../../../data/viewmodels/live_tv_guide_view_model.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../util/platform_detection.dart';
 import '../../navigation/destinations.dart';
 import '../../widgets/horizontal_scroll_section.dart';
 import '../../widgets/live_tv/live_tv_mini_player.dart';
@@ -344,6 +345,10 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
+        left: !PlatformDetection.isAppleTV,
+        top: !PlatformDetection.isAppleTV,
+        right: !PlatformDetection.isAppleTV,
+        bottom: !PlatformDetection.isAppleTV,
         child: LayoutBuilder(
           builder: (context, constraints) {
             final hours = _guideHoursForWidth(

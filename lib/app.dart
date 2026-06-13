@@ -28,6 +28,7 @@ import 'ui/widgets/offline_banner.dart';
 import 'ui/widgets/app_update_dialog.dart';
 import 'ui/widgets/exit_confirmation_dialog.dart';
 import 'ui/screensaver/screensaver_controller.dart';
+import 'ui/screensaver/screensaver_host.dart';
 import 'util/app_distribution.dart';
 import 'util/app_exit.dart';
 import 'util/focus/dpad_keys.dart';
@@ -149,31 +150,35 @@ class _MoonfinAppState extends State<MoonfinApp> {
                 final overlay = Overlay(
                   initialEntries: [
                     OverlayEntry(
-                      builder: (context) => InputModeTracker(
-                        child: _GlobalShortcutScope(
-                          child: Material(
-                            type: MaterialType.transparency,
-                            child: Column(
-                              children: [
-                                const OfflineBanner(),
-                                Expanded(
-                                  child: _ConnectivityListener(
-                                    child: child ?? const SizedBox.shrink(),
-                                  ),
-                                ),
-                                if (!hidePlayer)
-                                  const RepaintBoundary(
-                                    child: MiniAudioPlayer(),
-                                  ),
-                                if (!hidePlayer)
-                                  const RepaintBoundary(
-                                    child: CastMiniPlayer(),
-                                  ),
-                              ],
+                      builder: (context) {
+                        final Widget shell = Column(
+                          children: [
+                            const OfflineBanner(),
+                            Expanded(
+                              child: _ConnectivityListener(
+                                child: child ?? const SizedBox.shrink(),
+                              ),
+                            ),
+                            if (!hidePlayer)
+                              const RepaintBoundary(child: MiniAudioPlayer()),
+                            if (!hidePlayer)
+                              const RepaintBoundary(child: CastMiniPlayer()),
+                          ],
+                        );
+                        return InputModeTracker(
+                          child: _GlobalShortcutScope(
+                            child: Material(
+                              type: MaterialType.transparency,
+                              child: PlatformDetection.isTV
+                                  ? Stack(
+                                      fit: StackFit.expand,
+                                      children: [shell, const ScreensaverHost()],
+                                    )
+                                  : shell,
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                   ],
                 );
@@ -383,6 +388,9 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
   }
 
   void _onPointerDown(PointerDownEvent event) {
+    if (PlatformDetection.isTV) {
+      _screensaverController.notifyInteraction();
+    }
     if (!_trackMouseThumbHistory) {
       return;
     }
@@ -408,6 +416,9 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
 
   @override
   Future<bool> didPopRoute() async {
+    if (PlatformDetection.isTV && _screensaverController.dismissIfVisible()) {
+      return true;
+    }
     if (DialogBackSuppressor.consume()) return true;
     if (OverlaySheetController.closeTopSheet()) return true;
     if (_isPlayerRoute()) return false;
@@ -444,6 +455,10 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
   }
 
   bool _onHardwareKeyEvent(KeyEvent event) {
+    if (PlatformDetection.isTV &&
+        _screensaverController.handleKeyEvent(event)) {
+      return true;
+    }
     if (event is! KeyDownEvent) {
       return false;
     }

@@ -8,6 +8,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 import '../../../data/services/sponsorblock_service.dart';
 import '../../../data/services/youtube_stream_resolver.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../playback/appletv_preview_player.dart';
 import '../../../util/platform_detection.dart';
 import '../../widgets/web_youtube_trailer.dart';
 
@@ -27,6 +28,8 @@ class _TrailerPlayerScreenState extends State<TrailerPlayerScreen> {
 
   Player? _player;
   VideoController? _controller;
+  AppleTvPreviewPlayer? _appleTvPlayer;
+  StreamSubscription<void>? _appleTvCompletedSub;
   StreamSubscription<Duration>? _sponsorBlockPositionSub;
   final _sponsorBlockService = SponsorBlockService();
   final _sponsorBlockSession = SponsorBlockSkipSession();
@@ -84,6 +87,10 @@ class _TrailerPlayerScreenState extends State<TrailerPlayerScreen> {
   }
 
   void _startStreamPlaybackPath() {
+    if (PlatformDetection.isAppleTV) {
+      unawaited(_openTrailerAppleTv());
+      return;
+    }
     _player ??= Player(configuration: const PlayerConfiguration(libass: false));
     _controller ??= VideoController(
       _player!,
@@ -117,12 +124,15 @@ class _TrailerPlayerScreenState extends State<TrailerPlayerScreen> {
   @override
   void dispose() {
     _sponsorBlockPositionSub?.cancel();
+    _appleTvCompletedSub?.cancel();
+    unawaited(_appleTvPlayer?.dispose());
     _player?.stop();
     _player?.dispose();
     super.dispose();
   }
 
-  Future<void> _openTrailer() async {
+  Future<({String? streamUrl, String? sponsorBlockVideoId, bool useYouTubeHeaders})>
+  _resolveStreamUrl() async {
     String? streamUrl;
     String? sponsorBlockVideoId;
     bool useYouTubeHeaders = false;
@@ -152,6 +162,75 @@ class _TrailerPlayerScreenState extends State<TrailerPlayerScreen> {
         useYouTubeHeaders = false;
       }
     }
+
+    return (
+      streamUrl: streamUrl,
+      sponsorBlockVideoId: sponsorBlockVideoId,
+      useYouTubeHeaders: useYouTubeHeaders,
+    );
+  }
+
+  Future<void> _openTrailerAppleTv() async {
+    final resolved = await _resolveStreamUrl();
+    if (!mounted) return;
+    final streamUrl = resolved.streamUrl;
+    if (streamUrl == null || streamUrl.isEmpty) {
+      final l10n = AppLocalizations.of(context);
+      setState(() {
+        _loading = false;
+        _error = l10n.unableToLoadTrailerStream;
+      });
+      return;
+    }
+
+    try {
+      final player = AppleTvPreviewPlayer();
+      _appleTvPlayer = player;
+      _appleTvCompletedSub = player.completedStream.listen((_) {
+        if (mounted) Navigator.of(context).maybePop();
+      });
+      await player
+          .open(
+            streamUrl,
+            headers: resolved.useYouTubeHeaders
+                ? YouTubeStreamResolver.youtubeHeaders
+                : null,
+            volume: 100,
+            backend: 'mpv',
+          )
+          .timeout(_openTimeout);
+      if (!mounted) {
+        await player.dispose();
+        return;
+      }
+      await player.resume();
+      if (!mounted) {
+        await player.dispose();
+        return;
+      }
+      setState(() => _loading = false);
+    } on TimeoutException {
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      setState(() {
+        _loading = false;
+        _error = l10n.trailerTimedOut;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      setState(() {
+        _loading = false;
+        _error = l10n.playbackFailedForTrailer;
+      });
+    }
+  }
+
+  Future<void> _openTrailer() async {
+    final resolved = await _resolveStreamUrl();
+    final streamUrl = resolved.streamUrl;
+    final sponsorBlockVideoId = resolved.sponsorBlockVideoId;
+    final useYouTubeHeaders = resolved.useYouTubeHeaders;
 
     if (!mounted) return;
 
@@ -283,6 +362,20 @@ class _TrailerPlayerScreenState extends State<TrailerPlayerScreen> {
                         ),
                       ),
                     )
+                  : PlatformDetection.isAppleTV
+                  ? (_appleTvPlayer?.textureId != null
+                        ? FittedBox(
+                            fit: BoxFit.contain,
+                            clipBehavior: Clip.hardEdge,
+                            child: SizedBox(
+                              width: 1920,
+                              height: 1080,
+                              child: Texture(
+                                textureId: _appleTvPlayer!.textureId!,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink())
                   : (_controller != null
                         ? Video(
                             controller: _controller!,
@@ -315,6 +408,7 @@ class _TrailerPlayerScreenState extends State<TrailerPlayerScreen> {
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                   onPressed: () {
                     _player?.stop();
+                    unawaited(_appleTvPlayer?.stop());
                     Navigator.of(context).pop();
                   },
                 ),
