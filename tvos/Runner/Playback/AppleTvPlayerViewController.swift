@@ -16,6 +16,8 @@ final class AppleTvPlayerViewController: UIViewController {
     var onStillWatchingStop: (() -> Void)?
     var onSearchSubtitles: (() -> Void)?
     var onDownloadSubtitle: ((String) -> Void)?
+    var onSyncplayLeave: (() -> Void)?
+    var onSyncplayIgnoreWait: ((Bool) -> Void)?
     var baseSubtitlePos = 92
     private var didAttachSurface = false
     private var updateTimer: Timer?
@@ -35,6 +37,10 @@ final class AppleTvPlayerViewController: UIViewController {
     private var isFavorite = false
     private var canDownloadSubtitles = false
     private weak var subtitleSearchingAlert: UIAlertController?
+    private var syncPlayEnabled = false
+    private var syncPlayGroupName = ""
+    private var syncPlayParticipants: [String] = []
+    private var syncPlayIgnoreWait = false
     private var stillWatchingShown = false
     private var selectedBitrateMbps = -1
     private var logoUrlString = ""
@@ -90,6 +96,7 @@ final class AppleTvPlayerViewController: UIViewController {
     private enum ControlId {
         case prev, skipBack, playPause, skipForward, next
         case speed, chapters, subtitles, audio, cast, quality, zoom, info, channels, favorite
+        case syncplay
     }
     private var focusedZone: Zone = .buttons
     private var focusedControlIndex = 0
@@ -681,6 +688,7 @@ final class AppleTvPlayerViewController: UIViewController {
         case .info: return "info.circle"
         case .channels: return "list.bullet.rectangle"
         case .favorite: return isFavorite ? "heart.fill" : "heart"
+        case .syncplay: return "person.2.wave.2"
         }
     }
 
@@ -734,6 +742,7 @@ final class AppleTvPlayerViewController: UIViewController {
             if !subtitleTracks.isEmpty { ids.append(.subtitles) }
             if audioTracks.count > 1 { ids.append(.audio) }
             if hasCast { ids.append(.cast) }
+            if syncPlayEnabled { ids.append(.syncplay) }
             ids.append(.quality)
             ids.append(.zoom)
             if !streamInfoSections.isEmpty { ids.append(.info) }
@@ -778,6 +787,14 @@ final class AppleTvPlayerViewController: UIViewController {
         canFavorite = (args["canFavorite"] as? Bool) ?? false
         isFavorite = (args["isFavorite"] as? Bool) ?? false
         canDownloadSubtitles = (args["canDownloadSubtitles"] as? Bool) ?? false
+        if let sync = args["syncPlay"] as? [String: Any] {
+            syncPlayEnabled = true
+            syncPlayGroupName = (sync["groupName"] as? String) ?? "SyncPlay"
+            syncPlayParticipants = (sync["participants"] as? [String]) ?? []
+            syncPlayIgnoreWait = (sync["ignoreWait"] as? Bool) ?? false
+        } else {
+            syncPlayEnabled = false
+        }
         if (args["showStillWatching"] as? Bool) == true {
             presentStillWatching()
         }
@@ -1201,6 +1218,8 @@ final class AppleTvPlayerViewController: UIViewController {
             presentChannelList()
         case .favorite:
             onToggleFavorite?()
+        case .syncplay:
+            presentSyncPlay()
         }
     }
 
@@ -1220,6 +1239,17 @@ final class AppleTvPlayerViewController: UIViewController {
                 self.stillWatchingShown = false
                 self.onStillWatchingStop?()
             })
+        panel.modalPresentationStyle = .overFullScreen
+        present(panel, animated: true)
+    }
+
+    private func presentSyncPlay() {
+        let panel = SyncPlayPanelViewController(
+            groupName: syncPlayGroupName,
+            participants: syncPlayParticipants,
+            ignoreWait: syncPlayIgnoreWait,
+            onIgnoreWait: { [weak self] value in self?.onSyncplayIgnoreWait?(value) },
+            onLeave: { [weak self] in self?.onSyncplayLeave?() })
         panel.modalPresentationStyle = .overFullScreen
         present(panel, animated: true)
     }
@@ -1270,6 +1300,7 @@ final class AppleTvPlayerViewController: UIViewController {
         case .info: return "Playback Information"
         case .channels: return "Channels"
         case .favorite: return isFavorite ? "Remove from Favorites" : "Add to Favorites"
+        case .syncplay: return "SyncPlay"
         }
     }
 
@@ -2482,6 +2513,133 @@ private final class StillWatchingViewController: UIViewController {
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
         for press in presses where press.type == .menu {
             dismiss(animated: true) { self.onExit() }
+            return
+        }
+        super.pressesBegan(presses, with: event)
+    }
+}
+
+private final class SyncPlayPanelViewController: UIViewController {
+    private let groupName: String
+    private let participants: [String]
+    private var ignoreWait: Bool
+    private let onIgnoreWait: (Bool) -> Void
+    private let onLeave: () -> Void
+    private let ignoreWaitButton = UIButton(type: .system)
+
+    init(
+        groupName: String, participants: [String], ignoreWait: Bool,
+        onIgnoreWait: @escaping (Bool) -> Void, onLeave: @escaping () -> Void
+    ) {
+        self.groupName = groupName
+        self.participants = participants
+        self.ignoreWait = ignoreWait
+        self.onIgnoreWait = onIgnoreWait
+        self.onLeave = onLeave
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = UIColor(white: 0, alpha: 0.6)
+
+        let panel = UIView()
+        panel.translatesAutoresizingMaskIntoConstraints = false
+        panel.backgroundColor = UIColor(white: 0.1, alpha: 0.97)
+        panel.layer.cornerRadius = 22
+        view.addSubview(panel)
+
+        let title = UILabel()
+        title.translatesAutoresizingMaskIntoConstraints = false
+        title.text = groupName
+        title.font = .systemFont(ofSize: 38, weight: .bold)
+        title.textColor = .white
+        panel.addSubview(title)
+
+        let countLabel = UILabel()
+        countLabel.translatesAutoresizingMaskIntoConstraints = false
+        countLabel.text = participants.count == 1
+            ? "1 participant" : "\(participants.count) participants"
+        countLabel.font = .systemFont(ofSize: 24, weight: .regular)
+        countLabel.textColor = UIColor(white: 1, alpha: 0.6)
+        panel.addSubview(countLabel)
+
+        let stack = UIStackView()
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        stack.alignment = .leading
+        stack.spacing = 8
+        for participant in participants {
+            let label = UILabel()
+            label.text = participant
+            label.font = .systemFont(ofSize: 24, weight: .medium)
+            label.textColor = .white
+            stack.addArrangedSubview(label)
+        }
+        panel.addSubview(stack)
+
+        ignoreWaitButton.translatesAutoresizingMaskIntoConstraints = false
+        ignoreWaitButton.titleLabel?.font = .systemFont(ofSize: 28, weight: .semibold)
+        updateIgnoreWaitTitle()
+        ignoreWaitButton.addAction(
+            UIAction { [weak self] _ in
+                guard let self else { return }
+                self.ignoreWait.toggle()
+                self.updateIgnoreWaitTitle()
+                self.onIgnoreWait(self.ignoreWait)
+            }, for: .primaryActionTriggered)
+        panel.addSubview(ignoreWaitButton)
+
+        let leaveButton = UIButton(type: .system)
+        leaveButton.translatesAutoresizingMaskIntoConstraints = false
+        leaveButton.setTitle("Leave Group", for: .normal)
+        leaveButton.setTitleColor(
+            UIColor(red: 0.95, green: 0.3, blue: 0.3, alpha: 1), for: .normal)
+        leaveButton.titleLabel?.font = .systemFont(ofSize: 28, weight: .semibold)
+        leaveButton.addAction(
+            UIAction { [weak self] _ in
+                self?.dismiss(animated: true) { self?.onLeave() }
+            }, for: .primaryActionTriggered)
+        panel.addSubview(leaveButton)
+
+        NSLayoutConstraint.activate([
+            panel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            panel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            panel.widthAnchor.constraint(equalToConstant: 820),
+
+            title.topAnchor.constraint(equalTo: panel.topAnchor, constant: 48),
+            title.leadingAnchor.constraint(equalTo: panel.leadingAnchor, constant: 56),
+
+            countLabel.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 6),
+            countLabel.leadingAnchor.constraint(equalTo: title.leadingAnchor),
+
+            stack.topAnchor.constraint(equalTo: countLabel.bottomAnchor, constant: 24),
+            stack.leadingAnchor.constraint(equalTo: title.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: panel.trailingAnchor, constant: -56),
+
+            ignoreWaitButton.topAnchor.constraint(
+                equalTo: stack.bottomAnchor, constant: 32),
+            ignoreWaitButton.leadingAnchor.constraint(equalTo: title.leadingAnchor),
+
+            leaveButton.topAnchor.constraint(
+                equalTo: ignoreWaitButton.bottomAnchor, constant: 16),
+            leaveButton.leadingAnchor.constraint(equalTo: title.leadingAnchor),
+            leaveButton.bottomAnchor.constraint(equalTo: panel.bottomAnchor, constant: -48),
+        ])
+    }
+
+    private func updateIgnoreWaitTitle() {
+        ignoreWaitButton.setTitle(
+            ignoreWait ? "Ignore Wait: On" : "Ignore Wait: Off", for: .normal)
+    }
+
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        for press in presses where press.type == .menu {
+            dismiss(animated: true)
             return
         }
         super.pressesBegan(presses, with: event)

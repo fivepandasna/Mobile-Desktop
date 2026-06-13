@@ -134,6 +134,8 @@ class AppleTvMpvBackend implements PlayerBackend {
       case 'stillWatchingStop':
       case 'searchSubtitles':
       case 'downloadSubtitle':
+      case 'syncplayLeave':
+      case 'syncplayIgnoreWait':
         _uiActionStream.add(map.cast<String, dynamic>());
       case 'tracksChanged':
         _tracksKnown = true;
@@ -400,6 +402,7 @@ class AppleTvMpvBackend implements PlayerBackend {
     bool isFavorite = false,
     bool showStillWatching = false,
     bool canDownloadSubtitles = false,
+    Map<String, dynamic>? syncPlay,
     bool isLive = false,
     Map<String, dynamic>? liveProgram,
     String liveChannelNumber = '',
@@ -430,6 +433,7 @@ class AppleTvMpvBackend implements PlayerBackend {
       'isFavorite': isFavorite,
       'showStillWatching': showStillWatching,
       'canDownloadSubtitles': canDownloadSubtitles,
+      'syncPlay': ?syncPlay,
       'isLive': isLive,
       'liveProgram': ?liveProgram,
       'liveChannelNumber': liveChannelNumber,

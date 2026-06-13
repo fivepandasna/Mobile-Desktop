@@ -16,6 +16,7 @@ import '../../../data/repositories/item_mutation_repository.dart';
 import '../../../auth/repositories/user_repository.dart';
 import '../../../playback/appletv_mpv_backend.dart';
 import '../../../playback/playback_profile_diagnostics.dart';
+import '../../../syncplay/syncplay_manager.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/user_preferences.dart';
 
@@ -41,6 +42,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
   int _consecutiveEpisodes = 0;
   String? _stillWatchingLastItemId;
   bool _pendingStillWatching = false;
+  SyncPlayManager? _syncPlay;
 
   AppleTvMpvBackend? get _backend {
     try {
@@ -72,6 +74,10 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
         (_) => _handleExit(),
       );
       _bringupSub = manager.bringupStateStream.listen((_) => _pushMetadata());
+    }
+    if (GetIt.instance.isRegistered<SyncPlayManager>()) {
+      _syncPlay = GetIt.instance<SyncPlayManager>();
+      _syncPlay!.addListener(_onSyncPlayChanged);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _pushMetadata();
@@ -1094,6 +1100,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
       isFavorite: _queueItemIsFavorite(item),
       showStillWatching: _pendingStillWatching,
       canDownloadSubtitles: _canDownloadSubtitles(item),
+      syncPlay: _syncPlayPayload(),
     );
     _pendingStillWatching = false;
 
@@ -1130,6 +1137,20 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
     } catch (_) {
       return defaultValue;
     }
+  }
+
+  void _onSyncPlayChanged() {
+    if (mounted) _pushMetadata();
+  }
+
+  Map<String, dynamic>? _syncPlayPayload() {
+    final sync = _syncPlay;
+    if (sync == null || !sync.state.enabled) return null;
+    return {
+      'groupName': sync.state.groupName ?? 'SyncPlay',
+      'participants': sync.state.participants,
+      'ignoreWait': sync.ignoreWaitEnabled,
+    };
   }
 
   void _onQueueChanged() {
@@ -1195,6 +1216,13 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
       case 'downloadSubtitle':
         final id = action['id']?.toString();
         if (id != null && id.isNotEmpty) _downloadSubtitle(id);
+      case 'syncplayLeave':
+        unawaited(_syncPlay?.leaveGroup() ?? Future<void>.value());
+      case 'syncplayIgnoreWait':
+        final value = action['value'] == true;
+        unawaited(
+          _syncPlay?.requestSetIgnoreWait(value) ?? Future<void>.value(),
+        );
     }
     Future<void>.delayed(const Duration(milliseconds: 300), _pushMetadata);
   }
@@ -1215,6 +1243,7 @@ class _AppleTvPlayerHostScreenState extends State<AppleTvPlayerHostScreen> {
     _sessionEndedSub?.cancel();
     _bringupSub?.cancel();
     _actionSub?.cancel();
+    _syncPlay?.removeListener(_onSyncPlayChanged);
     unawaited(_backend?.dismissPlayer() ?? Future<void>.value());
     try {
       GetIt.instance<PlaybackManager>().stop(userInitiated: true);

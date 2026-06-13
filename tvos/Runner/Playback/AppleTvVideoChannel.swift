@@ -186,6 +186,12 @@ final class AppleTvVideoChannel: NSObject, FlutterStreamHandler {
         vc.onDownloadSubtitle = { [weak self] id in
             self?.send(["event": "downloadSubtitle", "id": id])
         }
+        vc.onSyncplayLeave = { [weak self] in
+            self?.send(["event": "syncplayLeave"])
+        }
+        vc.onSyncplayIgnoreWait = { [weak self] value in
+            self?.send(["event": "syncplayIgnoreWait", "value": value])
+        }
         if let meta = lastMetadata {
             vc.applyUiMetadata(meta)
         }
