@@ -20,6 +20,7 @@
 		4E5A5870850C50C8C2179B09 /* AudioUnitInterpose.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B21837790FBF0F01F83A222 /* AudioUnitInterpose.c */; };
 		5BA7845828F41526E1B65D24 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E49740A9B3056886C7389DA /* Pods_Runner.framework */; };
 		6BDB0CA2F17384360FC7A86A /* NativePlayerWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB983BF44E10FDD7C1C6A86 /* NativePlayerWrapper.swift */; };
+		6E8429C73DFB8688BD40C60F /* AppleTvSystemChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0D05FC70CE4F8BD2EC3962C /* AppleTvSystemChannel.swift */; };
 		7BC8A8140C07EF63D219CAE4 /* SubtitleDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8FB1F102374E32454EA3D4 /* SubtitleDecoder.swift */; };
 		8557BDEED1364C160FDCCA78 /* FFDemuxer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2C5316F2396D410BF8F85E /* FFDemuxer.swift */; };
 		86EBDA29EC9F3F8B48EC6A25 /* AppleTvPreviewChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3D4A2E4C583DF7B8CAE4BA /* AppleTvPreviewChannel.swift */; };
@@ -106,6 +107,7 @@
 		97C146FF1CF9000082B4168E /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		99109D0268859C9931C2BB69 /* DisplayCriteriaManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DisplayCriteriaManager.swift; sourceTree = "<group>"; };
 		9D8FB1F102374E32454EA3D4 /* SubtitleDecoder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubtitleDecoder.swift; sourceTree = "<group>"; };
+		A0D05FC70CE4F8BD2EC3962C /* AppleTvSystemChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleTvSystemChannel.swift; sourceTree = "<group>"; };
 		AAA000000000000000000003 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		ABB61EC1F545441192DA6CA2 /* NativeVideoSurface.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NativeVideoSurface.swift; sourceTree = "<group>"; };
 		ACEF4B8C13F871646DA3AA02 /* ServiceProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServiceProvider.swift; sourceTree = "<group>"; };
@@ -225,6 +227,7 @@
 				262ACA82479C66EBA778DB00 /* Runner.entitlements */,
 				2D0DB225C5FD5F802D648CC0 /* TopShelfChannel.swift */,
 				5B3D4A2E4C583DF7B8CAE4BA /* AppleTvPreviewChannel.swift */,
+				A0D05FC70CE4F8BD2EC3962C /* AppleTvSystemChannel.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -483,6 +486,7 @@
 				3E667EB6FA1A725FA86597C7 /* DisplayCriteriaManager.swift in Sources */,
 				991C71B70423D0CB846BAF6C /* TopShelfChannel.swift in Sources */,
 				86EBDA29EC9F3F8B48EC6A25 /* AppleTvPreviewChannel.swift in Sources */,
+				6E8429C73DFB8688BD40C60F /* AppleTvSystemChannel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

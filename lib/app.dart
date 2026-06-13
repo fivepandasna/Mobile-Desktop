@@ -28,6 +28,7 @@ import 'ui/widgets/offline_banner.dart';
 import 'ui/widgets/app_update_dialog.dart';
 import 'ui/widgets/exit_confirmation_dialog.dart';
 import 'ui/screensaver/screensaver_controller.dart';
+import 'ui/screensaver/screensaver_host.dart';
 import 'util/app_distribution.dart';
 import 'util/app_exit.dart';
 import 'util/focus/dpad_keys.dart';
@@ -153,22 +154,29 @@ class _MoonfinAppState extends State<MoonfinApp> {
                         child: _GlobalShortcutScope(
                           child: Material(
                             type: MaterialType.transparency,
-                            child: Column(
+                            child: Stack(
+                              fit: StackFit.expand,
                               children: [
-                                const OfflineBanner(),
-                                Expanded(
-                                  child: _ConnectivityListener(
-                                    child: child ?? const SizedBox.shrink(),
-                                  ),
+                                Column(
+                                  children: [
+                                    const OfflineBanner(),
+                                    Expanded(
+                                      child: _ConnectivityListener(
+                                        child: child ?? const SizedBox.shrink(),
+                                      ),
+                                    ),
+                                    if (!hidePlayer)
+                                      const RepaintBoundary(
+                                        child: MiniAudioPlayer(),
+                                      ),
+                                    if (!hidePlayer)
+                                      const RepaintBoundary(
+                                        child: CastMiniPlayer(),
+                                      ),
+                                  ],
                                 ),
-                                if (!hidePlayer)
-                                  const RepaintBoundary(
-                                    child: MiniAudioPlayer(),
-                                  ),
-                                if (!hidePlayer)
-                                  const RepaintBoundary(
-                                    child: CastMiniPlayer(),
-                                  ),
+                                if (PlatformDetection.isTV)
+                                  const ScreensaverHost(),
                               ],
                             ),
                           ),
