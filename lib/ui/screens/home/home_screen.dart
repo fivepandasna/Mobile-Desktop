@@ -552,6 +552,11 @@ class _ContentRowsState extends State<_ContentRows>
   List<HomeRow>? _cachedExtentRows;
   PosterSize? _cachedExtentPosterSize;
   double? _cachedExtentDesktopScale;
+  bool? _cachedExtentFullScreenRows;
+  HomeRowsStyle? _cachedExtentHomeRowsStyle;
+  bool? _cachedExtentShowInfoOverlay;
+  NavbarPosition? _cachedExtentNavbarPosition;
+  double? _cachedExtentViewportHeight;
   int _cachedExtentPrefsVersion = -1;
   List<double>? _cachedRowExtents;
   int _layoutPrefsVersion = 0;
@@ -2061,7 +2066,8 @@ class _ContentRowsState extends State<_ContentRows>
                 : 768.0;
             final overlayEnabled = _showHomeRowInfoOverlay();
 
-            if (PlatformDetection.isTV &&
+            final fullScreenRows = !PlatformDetection.useMobileUi && widget.prefs.get(UserPreferences.fullScreenRows);
+            if ((PlatformDetection.isTV || fullScreenRows) &&
                 _scrollController.hasClients) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (!mounted || !_scrollController.hasClients) {
@@ -2171,9 +2177,10 @@ class _ContentRowsState extends State<_ContentRows>
       }
       final indexChanged = _activeFocusedRowIndex != rowIndex;
       _activeFocusedRowIndex = rowIndex;
+      final fullScreenRows = !PlatformDetection.useMobileUi && widget.prefs.get(UserPreferences.fullScreenRows);
       if (!isMobileUi && _mediaBarVisible && !_verticalNavInFlight) {
         setState(() => _mediaBarVisible = false);
-      } else if (indexChanged && PlatformDetection.isTV) {
+      } else if (indexChanged && (PlatformDetection.isTV || fullScreenRows)) {
         setState(() {});
       }
     } else if (_activeFocusedRowIndex == rowIndex) {
@@ -2227,6 +2234,7 @@ class _ContentRowsState extends State<_ContentRows>
     _scrollIdleTimer = Timer(const Duration(milliseconds: 250), () {
       if (!mounted) return;
       _isActivelyScrolling = false;
+      _snapToNearestRow();
       setState(() {});
     });
     if (_activePreviewKey != null) {
@@ -2257,17 +2265,87 @@ class _ContentRowsState extends State<_ContentRows>
     }
   }
 
+  void _snapToNearestRow() {
+    if (!mounted || !_scrollController.hasClients) return;
+    final prefs = widget.prefs;
+    final fullScreenRows = !PlatformDetection.useMobileUi && prefs.get(UserPreferences.fullScreenRows);
+    if (!fullScreenRows) return;
+
+    final currentOffset = _scrollController.offset;
+    double minDiff = double.infinity;
+    double bestOffset = currentOffset;
+
+    for (var i = 0; i < _rowTopOffsets.length; i++) {
+      final target = (_rowTopOffsets[i] - (_overlayBottom + 8.0))
+          .clamp(0.0, _scrollController.position.maxScrollExtent);
+      final diff = (target - currentOffset).abs();
+      if (diff < minDiff) {
+        minDiff = diff;
+        bestOffset = target;
+      }
+    }
+
+    if ((bestOffset - currentOffset).abs() > 1.0) {
+      _scrollController.animateTo(
+        bestOffset,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
   double _libraryRowExtent(double rowHeight, {double metadataScale = 1.0}) =>
       rowHeight + (34 * metadataScale);
 
   double _desktopUiScaleFactor() {
-    if (!PlatformDetection.useDesktopUi) return 1.0;
     return widget.prefs.get(UserPreferences.desktopUiScale).scaleFactor;
   }
 
   double _squarePosterSide(PosterSize posterSize) {
-    final platformScale = PlatformDetection.isTV ? 0.8 : _desktopUiScaleFactor();
+    final scaleFactor = _desktopUiScaleFactor();
+    final platformScale = PlatformDetection.isTV ? 0.8 * scaleFactor : scaleFactor;
     return posterSize.portraitHeight.toDouble() * platformScale;
+  }
+
+  double _rowContentHeight(
+    HomeRow row,
+    PosterSize posterSize,
+    UserPreferences prefs,
+  ) {
+    final desktopScale = _desktopUiScaleFactor();
+    final metadataScale = desktopScale;
+    if (row.isLoading) {
+      return _libraryRowExtent(220 * metadataScale, metadataScale: metadataScale);
+    } else if (row.rowType == HomeRowType.liveTv ||
+        row.rowType == HomeRowType.libraryTilesSmall) {
+      final squarePosterSide = _squarePosterSide(posterSize);
+      final rowHeight = squarePosterSide + (56 * metadataScale);
+      return _libraryRowExtent(rowHeight, metadataScale: metadataScale);
+    } else {
+      final isSeerrRowOverride = _isSeerrFilterRow(row);
+      final isRowsV2 = prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 && !isSeerrRowOverride;
+      final rowImageType = isSeerrRowOverride
+          ? ImageType.thumb
+          : (isRowsV2 ? ImageType.poster : _homeRowImageTypeForRow(row, prefs));
+      final platformScale = PlatformDetection.isTV ? 0.8 * desktopScale : desktopScale;
+      var maxCardHeight = 220.0 * metadataScale;
+      if (isRowsV2) {
+        final imageHeight = posterSize.portraitHeight.toDouble() * platformScale * 2;
+        maxCardHeight = imageHeight + (_v2MetadataHeightBudget(prefs) * metadataScale);
+      } else {
+        for (final item in row.items) {
+          final aspectRatio = _aspectRatioForRowItem(item, row, rowImageType);
+          final imageHeight = (aspectRatio > 1
+              ? posterSize.landscapeHeight.toDouble()
+              : posterSize.portraitHeight.toDouble()) * platformScale;
+          final cardHeight = imageHeight + (46 * metadataScale);
+          if (cardHeight > maxCardHeight) {
+            maxCardHeight = cardHeight;
+          }
+        }
+      }
+      return _libraryRowExtent(maxCardHeight, metadataScale: metadataScale);
+    }
   }
 
   double _estimatedRowExtent(
@@ -2275,43 +2353,47 @@ class _ContentRowsState extends State<_ContentRows>
     PosterSize posterSize,
     UserPreferences prefs,
   ) {
-    final desktopScale = _desktopUiScaleFactor();
-    final metadataScale = PlatformDetection.useDesktopUi ? desktopScale : 1.0;
-    if (row.isLoading) {
-      return _libraryRowExtent(220 * metadataScale, metadataScale: metadataScale);
-    }
+    var extent = _rowContentHeight(row, posterSize, prefs);
 
-    if (row.rowType == HomeRowType.liveTv ||
-        row.rowType == HomeRowType.libraryTilesSmall) {
-      final squarePosterSide = _squarePosterSide(posterSize);
-      final rowHeight = squarePosterSide + (56 * metadataScale);
-      return _libraryRowExtent(rowHeight, metadataScale: metadataScale);
-    }
+    final fullScreenRows = !PlatformDetection.useMobileUi && prefs.get(UserPreferences.fullScreenRows);
+    if (fullScreenRows) {
+      final desktopScale = _desktopUiScaleFactor();
+      final viewportHeight = MediaQuery.sizeOf(context).height;
+      final safeTop = MediaQuery.paddingOf(context).top;
+      final isRowsV2 = prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 && !_isSeerrFilterRow(row);
 
-    final isSeerrRowOverride = _isSeerrFilterRow(row);
-    final isRowsV2 = prefs.get(UserPreferences.homeRowsStyle) == HomeRowsStyle.v2 && !isSeerrRowOverride;
-    final rowImageType = isSeerrRowOverride
-        ? ImageType.thumb
-        : (isRowsV2 ? ImageType.poster : _homeRowImageTypeForRow(row, prefs));
-    final platformScale = PlatformDetection.isTV ? 0.8 : desktopScale;
-    var maxCardHeight = 220.0 * metadataScale;
-    if (isRowsV2) {
-      final imageHeight = posterSize.portraitHeight.toDouble() * platformScale * 2;
-      maxCardHeight = imageHeight + (_v2MetadataHeightBudget(prefs) * metadataScale);
-    } else {
-      for (final item in row.items) {
-        final aspectRatio = _aspectRatioForRowItem(item, row, rowImageType);
-        final imageHeight = (aspectRatio > 1
-            ? posterSize.landscapeHeight.toDouble()
-            : posterSize.portraitHeight.toDouble()) * platformScale;
-        final cardHeight = imageHeight + (46 * metadataScale);
-        if (cardHeight > maxCardHeight) {
-          maxCardHeight = cardHeight;
+      final navbarIsTop = prefs.get(UserPreferences.navbarPosition) == NavbarPosition.top;
+      final navbarHeight = PlatformDetection.isTV
+          ? 95.0
+          : (navbarIsTop
+              ? (PlatformDetection.useMobileUi ? 60.0 : 80.0)
+              : 0.0);
+
+      double topOffset;
+      if (isRowsV2) {
+        topOffset = (safeTop + navbarHeight + 8.0).clamp(56.0, double.infinity);
+      } else {
+        final showInfoOverlay = prefs.get(UserPreferences.homeRowInfoOverlay);
+        if (showInfoOverlay) {
+          final infoTopBasePadding = (navbarHeight == 0) ? 14.0 : 8.0;
+          final infoTopPadding = safeTop + navbarHeight + infoTopBasePadding;
+          final infoAreaHeight = InfoArea.fixedHeight(
+            isMobile: false,
+            desktopScale: desktopScale,
+          );
+          topOffset = infoTopPadding + infoAreaHeight + 8.0;
+        } else {
+          topOffset = safeTop + 56.0;
         }
+      }
+
+      final targetExtent = viewportHeight - topOffset;
+      if (extent < targetExtent) {
+        extent = targetExtent;
       }
     }
 
-    return _libraryRowExtent(maxCardHeight, metadataScale: metadataScale);
+    return extent;
   }
 
   List<double> _computeRowExtents(
@@ -2320,10 +2402,21 @@ class _ContentRowsState extends State<_ContentRows>
     UserPreferences prefs,
   ) {
     final desktopScale = _desktopUiScaleFactor();
+    final fullScreenRows = !PlatformDetection.useMobileUi && prefs.get(UserPreferences.fullScreenRows);
+    final homeRowsStyle = prefs.get(UserPreferences.homeRowsStyle);
+    final showInfoOverlay = prefs.get(UserPreferences.homeRowInfoOverlay);
+    final navbarPosition = prefs.get(UserPreferences.navbarPosition);
+    final viewportHeight = MediaQuery.sizeOf(context).height;
+
     if (_cachedRowExtents != null &&
         identical(_cachedExtentRows, rows) &&
         _cachedExtentPosterSize == posterSize &&
         _cachedExtentDesktopScale == desktopScale &&
+        _cachedExtentFullScreenRows == fullScreenRows &&
+        _cachedExtentHomeRowsStyle == homeRowsStyle &&
+        _cachedExtentShowInfoOverlay == showInfoOverlay &&
+        _cachedExtentNavbarPosition == navbarPosition &&
+        _cachedExtentViewportHeight == viewportHeight &&
         _cachedExtentPrefsVersion == _layoutPrefsVersion) {
       return _cachedRowExtents!;
     }
@@ -2334,6 +2427,11 @@ class _ContentRowsState extends State<_ContentRows>
     _cachedExtentRows = rows;
     _cachedExtentPosterSize = posterSize;
     _cachedExtentDesktopScale = desktopScale;
+    _cachedExtentFullScreenRows = fullScreenRows;
+    _cachedExtentHomeRowsStyle = homeRowsStyle;
+    _cachedExtentShowInfoOverlay = showInfoOverlay;
+    _cachedExtentNavbarPosition = navbarPosition;
+    _cachedExtentViewportHeight = viewportHeight;
     _cachedExtentPrefsVersion = _layoutPrefsVersion;
     _cachedRowExtents = extents;
     return extents;
@@ -2374,14 +2472,10 @@ class _ContentRowsState extends State<_ContentRows>
   double _v2MetadataHeightBudget(UserPreferences prefs) {
     final hasAdditionalRatings =
         prefs.get(UserPreferences.enableAdditionalRatings);
-    final fullScreenRows =
-        PlatformDetection.isTV && prefs.get(UserPreferences.fullScreenRows);
     final hasAdditionalRatingsPadding =
         hasAdditionalRatings ? 8.0 : 0.0;
-    final fullScreenRowsPadding =
-        fullScreenRows ? 156.0 : 0.0;
     final heightBudget =
-        136.0 + hasAdditionalRatingsPadding + fullScreenRowsPadding;
+        136.0 + hasAdditionalRatingsPadding;
     return heightBudget;
   }
 
@@ -2406,15 +2500,16 @@ class _ContentRowsState extends State<_ContentRows>
     required bool showInfoOverlay,
     required double overlayBottom,
   }) {
+    final fullScreenRows = !PlatformDetection.useMobileUi && widget.prefs.get(UserPreferences.fullScreenRows);
     if (!showInfoOverlay || !_infoRevealed) {
       return child;
     }
 
-    if (!PlatformDetection.isTV && !_isMediaBarIncluded()) {
+    if (!PlatformDetection.isTV && !fullScreenRows && !_isMediaBarIncluded()) {
       return child;
     }
 
-    if (PlatformDetection.isTV) {
+    if (PlatformDetection.isTV || fullScreenRows) {
       final focusedRowIndex = _focusedRowIndex(FocusManager.instance.primaryFocus);
       final rowViewportTop = rowTopOffsets[rowIndex] - _scrollOffset;
       final rowBottom = rowViewportTop + rowExtents[rowIndex];
@@ -2505,7 +2600,6 @@ class _ContentRowsState extends State<_ContentRows>
 
     final includeMediaBar = _isMediaBarIncluded();
     final bannerMode = _isBannerMode();
-    final includeBigMediaBar = includeMediaBar && !bannerMode;
     final mediaBarHeight = _mediaBarHeight();
     final carouselPaused =
       widget.isHoverPaused ||
@@ -2515,7 +2609,7 @@ class _ContentRowsState extends State<_ContentRows>
     final showInfoOverlay = _showHomeRowInfoOverlay();
     final safeTop = MediaQuery.of(context).padding.top;
     final desktopScale = _desktopUiScaleFactor();
-    final fullScreenRows = PlatformDetection.isTV && prefs.get(UserPreferences.fullScreenRows);
+    final fullScreenRows = !PlatformDetection.useMobileUi && prefs.get(UserPreferences.fullScreenRows);
     final navbarIsTop = widget.prefs.get(UserPreferences.navbarPosition) == NavbarPosition.top;
     final navbarIsLeft = !navbarIsTop;
     final navbarHeight = PlatformDetection.isTV
@@ -2524,13 +2618,15 @@ class _ContentRowsState extends State<_ContentRows>
             : (navbarIsTop
                 ? 45.0
                 : 15.0))
-        : (PlatformDetection.useMobileUi
-            ? 60.0
-            : 80.0);
+        : (navbarIsTop
+            ? (PlatformDetection.useMobileUi ? 60.0 : 80.0)
+            : (fullScreenRows ? 0.0 : 80.0));
     final listTopPadding = includeMediaBar || showInfoOverlay
         ? 0.0
         : _isHomeRowsStyleV2()
-            ? safeTop + navbarHeight + 8
+            ? (fullScreenRows
+                ? (safeTop + navbarHeight + 8.0).clamp(56.0, double.infinity)
+                : safeTop + navbarHeight + 8)
             : safeTop + 56;
     final tvTopNavbarInset =
         navbarIsTop && PlatformDetection.isTV && !PlatformDetection.useMobileUi
@@ -2539,9 +2635,8 @@ class _ContentRowsState extends State<_ContentRows>
     final navbarLeftInset = navbarIsTop ? 16.0 + tvTopNavbarInset : 56.0;
     final infoHeaderLeftInset =
       (!PlatformDetection.useMobileUi && navbarIsTop) ? 8.0 : 0.0;
-    final rowLeftInset = navbarIsLeft && !PlatformDetection.useMobileUi
-        ? 56.0
-        : tvTopNavbarInset;
+    final rowLeftInset = (navbarIsLeft && !PlatformDetection.useMobileUi ? 56.0 : tvTopNavbarInset) +
+        (!PlatformDetection.useMobileUi ? 16.0 : 0.0);
     final infoTopBasePadding =
       (!PlatformDetection.useMobileUi && navbarHeight == 0) ? 14.0 : 8.0;
     final infoTopPadding = safeTop + navbarHeight + infoTopBasePadding;
@@ -2559,10 +2654,10 @@ class _ContentRowsState extends State<_ContentRows>
         ? (_infoRevealed ? infoOverlayPlaceholder : 0.0)
         : infoOverlayPlaceholder;
     final overlayBottom = _isHomeRowsStyleV2()
-        ? navbarHeight
+        ? (fullScreenRows ? (navbarHeight > 48.0 ? navbarHeight : 48.0) : navbarHeight)
         : showInfoOverlay
             ? infoTopPadding + infoAreaHeight
-            : 0.0;
+            : (fullScreenRows ? safeTop + 48.0 : 0.0);
     final rowExtents = _computeRowExtents(rows, posterSize, prefs);
     final rowTopOffsets = <double>[];
     var currentTop = listTopPadding + infoPlaceholderHeight;
@@ -2711,17 +2806,6 @@ class _ContentRowsState extends State<_ContentRows>
                   isLoading: true,
                   children: const [],
                 );
-                return Padding(
-                  padding: EdgeInsets.only(left: rowLeftInset),
-                  child: _buildShiftedRow(
-                    child: rowChild,
-                    rowIndex: rowIndex,
-                    rowTopOffsets: rowTopOffsets,
-                    rowExtents: rowExtents,
-                    showInfoOverlay: showInfoOverlay,
-                    overlayBottom: overlayBottom,
-                  ),
-                );
               } else if (row.rowType == HomeRowType.liveTv) {
                 rowChild = _buildLiveTvRow(
                   row,
@@ -2754,7 +2838,42 @@ class _ContentRowsState extends State<_ContentRows>
                   l10n: l10n,
                 );
               }
-              return Padding(
+
+              final contentHeight = _rowContentHeight(row, posterSize, prefs);
+              final targetExtent = rowExtents[rowIndex];
+              final extraTopPadding = fullScreenRows
+                  ? ((targetExtent - contentHeight) / 2.0).clamp(0.0, double.infinity)
+                  : 0.0;
+
+              final paddedRowChild = extraTopPadding > 0.0
+                  ? Padding(
+                      padding: EdgeInsets.only(top: extraTopPadding),
+                      child: rowChild,
+                    )
+                  : rowChild;
+
+              if (row.isLoading) {
+                final itemWidget = Padding(
+                  padding: EdgeInsets.only(left: rowLeftInset),
+                  child: _buildShiftedRow(
+                    child: paddedRowChild,
+                    rowIndex: rowIndex,
+                    rowTopOffsets: rowTopOffsets,
+                    rowExtents: rowExtents,
+                    showInfoOverlay: showInfoOverlay,
+                    overlayBottom: overlayBottom,
+                  ),
+                );
+                if (fullScreenRows) {
+                  return SizedBox(
+                    height: rowExtents[rowIndex],
+                    child: itemWidget,
+                  );
+                }
+                return itemWidget;
+              }
+
+              final itemWidget = Padding(
                 padding: EdgeInsets.only(left: rowLeftInset),
                 child: AnimatedPadding(
                   duration: _focusedRowSpacingDuration,
@@ -2767,7 +2886,7 @@ class _ContentRowsState extends State<_ContentRows>
                         : 0,
                   ),
                   child: _buildShiftedRow(
-                    child: rowChild,
+                    child: paddedRowChild,
                     rowIndex: rowIndex,
                     rowTopOffsets: rowTopOffsets,
                     rowExtents: rowExtents,
@@ -2776,6 +2895,17 @@ class _ContentRowsState extends State<_ContentRows>
                   ),
                 ),
               );
+              if (fullScreenRows) {
+                return SizedBox(
+                  height: rowExtents[rowIndex] +
+                      ((PlatformDetection.isTV &&
+                              rowIndex == _activeFocusedRowIndex)
+                          ? _focusedRowExtraSpacing * 2
+                          : 0.0),
+                  child: itemWidget,
+                );
+              }
+              return itemWidget;
               },
             ),
           ),
@@ -2788,7 +2918,7 @@ class _ContentRowsState extends State<_ContentRows>
               child: IgnorePointer(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
-                    navbarLeftInset,
+                    PlatformDetection.useMobileUi ? navbarLeftInset : rowLeftInset,
                     infoTopPadding,
                     16,
                     8,
@@ -2814,9 +2944,7 @@ class _ContentRowsState extends State<_ContentRows>
     required List<HomeRow> rows,
   }) {
     final l10n = AppLocalizations.of(context);
-    final metadataScale = PlatformDetection.useDesktopUi
-        ? _desktopUiScaleFactor()
-        : 1.0;
+    final metadataScale = _desktopUiScaleFactor();
     final squarePosterSide = _squarePosterSide(posterSize);
     final rowHeight = squarePosterSide + (56 * metadataScale);
     final actions = <_LiveTvAction>[
@@ -2886,9 +3014,7 @@ class _ContentRowsState extends State<_ContentRows>
     required List<HomeRow> rows,
   }) {
     final l10n = AppLocalizations.of(context);
-    final metadataScale = PlatformDetection.useDesktopUi
-        ? _desktopUiScaleFactor()
-        : 1.0;
+    final metadataScale = _desktopUiScaleFactor();
     final squarePosterSide = _squarePosterSide(posterSize);
     final rowHeight = squarePosterSide + (56 * metadataScale);
     return _buildTitledRow(
@@ -2977,8 +3103,8 @@ class _ContentRowsState extends State<_ContentRows>
         ? ImageType.thumb
         : (isRowsV2 ? ImageType.poster : _homeRowImageTypeForRow(row, prefs));
     final desktopScale = _desktopUiScaleFactor();
-    final metadataScale = PlatformDetection.useDesktopUi ? desktopScale : 1.0;
-    final platformScale = PlatformDetection.isTV ? 0.8 : desktopScale;
+    final metadataScale = desktopScale;
+    final platformScale = PlatformDetection.isTV ? 0.8 * desktopScale : desktopScale;
     final v2ImageHeight = posterSize.portraitHeight.toDouble() * platformScale * 2;
     final v2MetadataHeightBudget = _v2MetadataHeightBudget(prefs);
     const v2PortraitAspect = 2 / 3;
@@ -2987,8 +3113,10 @@ class _ContentRowsState extends State<_ContentRows>
     final v2FocusedWidth = v2ImageHeight * v2FocusedAspect;
     final navbarIsTopV2 =
         widget.prefs.get(UserPreferences.navbarPosition) == NavbarPosition.top;
-    final rowLeftInsetV2 =
-        (!navbarIsTopV2 && !PlatformDetection.useMobileUi) ? 56.0 : 0.0;
+    final rowLeftInsetV2 = (navbarIsTopV2
+            ? (PlatformDetection.isTV && !PlatformDetection.useMobileUi ? 48.0 : 0.0)
+            : (!PlatformDetection.useMobileUi ? 56.0 : 0.0)) +
+        (!PlatformDetection.useMobileUi ? 16.0 : 0.0);
     final v2ExtendedWidth = isRowsV2
       ? (MediaQuery.of(context).size.width -
           rowLeftInsetV2 -

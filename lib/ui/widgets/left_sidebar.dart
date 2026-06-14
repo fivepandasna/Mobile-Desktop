@@ -688,7 +688,15 @@ class _LeftSidebarState extends State<LeftSidebar> {
                     ),
                   ),
                 ),
-              _buildContent(),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: AnimatedContainer(
+                  duration: _kExpandDuration,
+                  curve: Curves.easeInOut,
+                  width: _isExpanded ? _kExpandedBackdropWidthTV : _kCollapsedWidthTV,
+                  child: _buildContent(),
+                ),
+              ),
             ],
           ),
         ),
@@ -724,29 +732,44 @@ class _LeftSidebarState extends State<LeftSidebar> {
     final showClock =
         clockBehavior == ClockBehavior.always ||
         clockBehavior == ClockBehavior.inMenus;
-    var neonSlot = 0;
-    Color? nextSidebarColor() {
-      if (!isNeon) return null;
-      final c = neonSlot.isEven
-          ? AppColorScheme.accent
-          : AppColorScheme.onSurface;
-      neonSlot += 1;
-      return c;
-    }
-
     return Column(
       children: [
-        if (_isExpanded)
-          _buildUserSection(),
+        Visibility(
+          visible: _isExpanded,
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          child: _buildUserSection(),
+        ),
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
+              var mainNeonSlot = 0;
+              Color? nextMainSidebarColor() {
+                if (!isNeon) return null;
+                final c = mainNeonSlot.isEven
+                    ? AppColorScheme.accent
+                    : AppColorScheme.onSurface;
+                mainNeonSlot += 1;
+                return c;
+              }
+
+              var libraryNeonSlot = 0;
+              Color? nextLibrarySidebarColor() {
+                if (!isNeon) return null;
+                final c = libraryNeonSlot.isEven
+                    ? AppColorScheme.accent
+                    : AppColorScheme.onSurface;
+                libraryNeonSlot += 1;
+                return c;
+              }
+
               final items = <Widget>[
                 _SidebarItem(
                   key: const ValueKey('sidebar-home'),
                   icon: Icons.home_rounded,
                   label: l10n.home,
-                  baseColor: nextSidebarColor(),
+                  baseColor: nextMainSidebarColor(),
                   focusNode: _homeFocusNode,
                   showLabel: _showLabels,
                   onPressed: () {
@@ -765,7 +788,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
                   key: const ValueKey('sidebar-search'),
                   icon: Icons.search_rounded,
                   label: l10n.search,
-                  baseColor: nextSidebarColor(),
+                  baseColor: nextMainSidebarColor(),
                   showLabel: _showLabels,
                   onPressed: () {
                     _onNavigate();
@@ -782,7 +805,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
                     key: const ValueKey('sidebar-shuffle'),
                     icon: Icons.shuffle_rounded,
                     label: l10n.shuffle,
-                    baseColor: nextSidebarColor(),
+                    baseColor: nextMainSidebarColor(),
                     showLabel: _showLabels,
                     onPressed: () {
                       _onNavigate();
@@ -792,7 +815,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
                 if (showGenres)
                   _SidebarItem(
                     key: const ValueKey('sidebar-genres'),
-                    baseColor: nextSidebarColor(),
+                    baseColor: nextMainSidebarColor(),
                     iconBuilder: (size, color) => Image.asset(
                       'assets/icons/genres.png',
                       width: size,
@@ -816,7 +839,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
                     key: const ValueKey('sidebar-favorites'),
                     icon: Icons.favorite_rounded,
                     label: l10n.favorites,
-                    baseColor: nextSidebarColor(),
+                    baseColor: nextMainSidebarColor(),
                     showLabel: _showLabels,
                     onPressed: () {
                       _onNavigate();
@@ -833,7 +856,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
                     key: const ValueKey('sidebar-folders'),
                     icon: Icons.folder_rounded,
                     label: l10n.folders,
-                    baseColor: nextSidebarColor(),
+                    baseColor: nextMainSidebarColor(),
                     showLabel: _showLabels,
                     onPressed: () {
                       _onNavigate();
@@ -850,7 +873,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
                     key: const ValueKey('sidebar-syncplay'),
                     icon: Icons.groups_rounded,
                     label: l10n.syncPlay,
-                    baseColor: nextSidebarColor(),
+                    baseColor: nextMainSidebarColor(),
                     showLabel: _showLabels,
                     onPressed: () {
                       _onNavigate();
@@ -866,7 +889,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
                     GetIt.instance<PluginSyncService>().seerrAvailable)
                   _SidebarItem(
                     key: const ValueKey('sidebar-seerr'),
-                    baseColor: nextSidebarColor(),
+                    baseColor: nextMainSidebarColor(),
                     iconBuilder: (size, color) => seerrPrefs.isSeerrVariant
                         ? SeerrIcon(size: size, color: color)
                         : JellyseerrIcon(size: size, color: color),
@@ -885,7 +908,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
                 if (showLibraries && _libraries.isNotEmpty) ...[
                   _SidebarItem(
                     key: const ValueKey('sidebar-libraries'),
-                    baseColor: nextSidebarColor(),
+                    baseColor: nextMainSidebarColor(),
                     iconBuilder: (size, color) => Image.asset(
                       'assets/icons/clapperboard.png',
                       width: size,
@@ -925,7 +948,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
                                   (lib) => _SidebarLibraryItem(
                                     key: ObjectKey(lib.id),
                                     label: lib.name,
-                                    baseColor: nextSidebarColor(),
+                                    baseColor: nextLibrarySidebarColor(),
                                     showLabel: _showLabels,
                                     onPressed: () {
                                       _onNavigate();
@@ -956,7 +979,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
                   key: const ValueKey('sidebar-settings'),
                   icon: Icons.settings_rounded,
                   label: l10n.settings,
-                  baseColor: nextSidebarColor(),
+                  baseColor: nextMainSidebarColor(),
                   focusNode: _settingsFocusNode,
                   showLabel: _showLabels,
                   onPressed: () async {
@@ -974,7 +997,7 @@ class _LeftSidebarState extends State<LeftSidebar> {
 
               return SingleChildScrollView(
                 controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(vertical: 4),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     minHeight: math.max(0, constraints.maxHeight - 8),
@@ -988,25 +1011,38 @@ class _LeftSidebarState extends State<LeftSidebar> {
             },
           ),
         ),
-        if (showClock && _showLabels)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: ValueListenableBuilder<String>(
-              valueListenable: _currentTime,
-              builder: (context, time, _) {
-                return Text(
-                  time,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+        if (showClock)
+          Visibility(
+            visible: _showLabels,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: ValueListenableBuilder<String>(
+                    valueListenable: _currentTime,
+                    builder: (context, time, _) {
+                      return Text(
+                        time,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+                const SizedBox(height: 8),
+              ],
             ),
-          ),
-        SizedBox(height: showClock && _showLabels ? 8 : 16),
+          )
+        else
+          const SizedBox(height: 16),
       ],
     );
   }
@@ -1244,7 +1280,10 @@ class _SidebarItemState extends State<_SidebarItem> {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               height: desktopSidebar ? 44 : 40,
-              padding: EdgeInsets.symmetric(horizontal: _tvCompact ? 4 : 10),
+              padding: EdgeInsets.only(
+                left: _tvCompact ? 12 : 18,
+                right: _tvCompact ? 12 : 18,
+              ),
               decoration: BoxDecoration(
                 color: tvFocused
                     ? Colors.white
@@ -1253,9 +1292,9 @@ class _SidebarItemState extends State<_SidebarItem> {
                           ? baseColor.withValues(alpha: 0.12)
                           : focusColor.withValues(alpha: 0.12))
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(
-                  PlatformDetection.isTV ? 24 : 8,
-                ),
+                borderRadius: PlatformDetection.isTV
+                    ? BorderRadius.circular(24)
+                    : BorderRadius.zero,
               ),
               child: Row(
                 children: [
@@ -1361,8 +1400,8 @@ class _SidebarLibraryItemState extends State<_SidebarLibraryItem> {
               duration: const Duration(milliseconds: 150),
               height: desktopSidebar ? 40 : 36,
               padding: EdgeInsets.only(
-                left: desktopSidebar ? 56 : 50,
-                right: 10,
+                left: desktopSidebar ? 64 : 58,
+                right: 18,
               ),
               decoration: BoxDecoration(
                 color: tvFocused
@@ -1372,9 +1411,9 @@ class _SidebarLibraryItemState extends State<_SidebarLibraryItem> {
                           ? baseColor.withValues(alpha: 0.12)
                           : focusColor.withValues(alpha: 0.1))
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(
-                  PlatformDetection.isTV ? 24 : 8,
-                ),
+                borderRadius: PlatformDetection.isTV
+                    ? BorderRadius.circular(24)
+                    : BorderRadius.zero,
               ),
               alignment: Alignment.centerLeft,
               child: widget.showLabel
