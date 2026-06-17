@@ -249,7 +249,7 @@
             }
         }
     },
-    "exitApp": "Forlade Moonfin?",
+    "exitApp": "Afslut Moonfin?",
     "@exitApp": {
         "description": "Title of exit confirmation dialog"
     },
@@ -257,19 +257,19 @@
     "@exitAppConfirmation": {
         "description": "Body text of exit confirmation dialog"
     },
-    "exit": "Udgang",
+    "exit": "Afslut",
     "@exit": {
         "description": "Exit button label"
     },
-    "noHomeRowsLoaded": "Ingen hjemmerækker kunne indlæses",
+    "noHomeRowsLoaded": "Ingen Hjem-rækker kunne indlæses",
     "@noHomeRowsLoaded": {
         "description": "Heading when home screen has no rows to display"
     },
-    "noHomeRowsHint": "Prøv at opdatere eller reducere aktive hjemmesektioner.",
+    "noHomeRowsHint": "Prøv at opdatere eller reducere aktive Hjem-sektioner.",
     "@noHomeRowsHint": {
         "description": "Hint text below the no-home-rows heading"
     },
-    "retryHomeRows": "Prøv Hjem-rækkerne igen",
+    "retryHomeRows": "Genindlæs Hjem-rækkerne",
     "@retryHomeRows": {
         "description": "Button to retry loading home rows after failure"
     },
@@ -281,15 +281,15 @@
     "@recordings": {
         "description": "Live TV recordings button label"
     },
-    "schedule": "Skema",
+    "schedule": "Planlægning",
     "@schedule": {
         "description": "Live TV schedule button label"
     },
-    "series": "Serie",
+    "series": "Serier",
     "@series": {
         "description": "Section header for TV series"
     },
-    "noItemsFound": "Ingen varer fundet",
+    "noItemsFound": "Ingen elementer fundet",
     "@noItemsFound": {
         "description": "Empty state when no items match the current view"
     },
@@ -305,7 +305,7 @@
     "@genres": {
         "description": "Genres navigation label"
     },
-    "collectionPlaceholder": "Samlingsgenstande vises her",
+    "collectionPlaceholder": "Samlingselementer vises her",
     "@collectionPlaceholder": {
         "description": "Placeholder text for empty collection screen"
     },
@@ -313,7 +313,7 @@
     "@browseByLetter": {
         "description": "Title for alphabetical browse screen"
     },
-    "alphabeticalBrowsePlaceholder": "Alfabetisk browse vises her",
+    "alphabeticalBrowsePlaceholder": "Alfabetisk oversigt vises her",
     "@alphabeticalBrowsePlaceholder": {
         "description": "Placeholder text for alphabetical browse screen"
     },
@@ -321,7 +321,7 @@
     "@suggestions": {
         "description": "Title for suggestions screen"
     },
-    "suggestionsPlaceholder": "Foreslåede varer vises her",
+    "suggestionsPlaceholder": "Foreslåede elementer vises her",
     "@suggestionsPlaceholder": {
         "description": "Placeholder text for suggestions screen"
     },
@@ -387,7 +387,7 @@
     "@favorites": {
         "description": "Favorites section heading and filter label"
     },
-    "totalCountItems": "{count} Elementer",
+    "totalCountItems": "{count} elementer",
     "@totalCountItems": {
         "description": "Header showing total item count",
         "placeholders": {
@@ -404,7 +404,7 @@
     "@ended": {
         "description": "Series status badge for ended series"
     },
-    "sortAndFilter": "Sorter og filtrer",
+    "sortAndFilter": "Sortér og filtrér",
     "@sortAndFilter": {
         "description": "Dialog title for sort and filter options"
     },
@@ -1049,7 +1049,7 @@
             }
         }
     },
-    "endsAt": "Slutter ved {time}",
+    "endsAt": "Slutter kl. {time}",
     "@endsAt": {
         "description": "Label showing when media will end",
         "placeholders": {
@@ -1115,7 +1115,7 @@
     "@cast": {
         "description": "Action button label for casting to a device"
     },
-    "trailer": "Anhænger",
+    "trailer": "Trailer",
     "@trailer": {
         "description": "Action button label for trailer playback"
     },
@@ -1606,11 +1606,11 @@
     "@stillWatching": {
         "description": "Title for the still watching screen"
     },
-    "unableToLoadTrailerStream": "Kan ikke indlæse trailerstream.",
+    "unableToLoadTrailerStream": "Kan ikke indlæse trailer.",
     "@unableToLoadTrailerStream": {
         "description": "Error when trailer stream cannot be loaded"
     },
-    "trailerTimedOut": "Traileren fik timeout under lastning.",
+    "trailerTimedOut": "Traileren fik timeout under indlæsning.",
     "@trailerTimedOut": {
         "description": "Error when trailer loading times out"
     },
@@ -6652,7 +6652,7 @@
     "settingsSkipForwardLengthDescription": "Hvor mange sekunder der skal springes frem efter at have trykket på hurtig frem-knappen.",
     "settingsBitstreamAc3ToExternalDecoder": "Bitstream AC3 til ekstern dekoder",
     "settingsCinemaMode": "Biograftilstand",
-    "settingsCinemaModeSubtitle": "Spil trailere/prerolls før en hovedfunktion",
+    "settingsCinemaModeSubtitle": "Spil trailere før en hovedfunktion",
     "settingsShort": "Kort",
     "settingsLong": "Lang",
     "settingsVeryLong": "Meget lang",
