@@ -44,6 +44,23 @@ class NativeDlnaChannel {
         .toList();
   }
 
+  /// Starts a continuous DLNA (SSDP) scan. Newly discovered renderers are
+  /// emitted on [dlnaEventStream] as `{state: 'deviceFound', ...}` events.
+  Future<void> startDlnaDiscovery() async {
+    if (!_supported) {
+      return;
+    }
+    await _channel.invokeMethod<void>('startDlnaDiscovery');
+  }
+
+  /// Stops the continuous DLNA scan started by [startDlnaDiscovery].
+  Future<void> stopDlnaDiscovery() async {
+    if (!_supported) {
+      return;
+    }
+    await _channel.invokeMethod<void>('stopDlnaDiscovery');
+  }
+
   Future<void> playToDlnaDevice({
     required String targetId,
     required String streamUrl,

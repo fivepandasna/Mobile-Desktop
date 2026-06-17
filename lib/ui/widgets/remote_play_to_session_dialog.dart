@@ -104,75 +104,207 @@ class _CastTargetSheetState extends State<_CastTargetSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final loading = !_done;
 
+    final Widget body;
     if (loading && _targets.isEmpty) {
-      return const SafeArea(
-        child: SizedBox(
-          height: 120,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      );
-    }
-
-    if (_done && _targets.isEmpty) {
-      final l10n = AppLocalizations.of(context);
-      final isIOS = defaultTargetPlatform == TargetPlatform.iOS && !kIsWeb;
-      final message = isIOS
-          ? l10n.noRemoteDevicesIos
-          : l10n.noRemoteDevices;
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Center(
-            child: Text(
-              message,
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
+      body = _searchingState(theme, l10n);
+    } else if (_done && _targets.isEmpty) {
+      body = _emptyState(theme, l10n);
+    } else {
+      final sorted = [..._targets]
+        ..sort((a, b) => _kindOrder(a.kind).compareTo(_kindOrder(b.kind)));
+      body = ListView.builder(
+        controller: widget.scrollController,
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        itemCount: sorted.length + (loading ? 1 : 0),
+        itemBuilder: (_, index) {
+          if (index >= sorted.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            );
+          }
+          return _deviceCard(theme, sorted[index]);
+        },
       );
     }
 
     return SafeArea(
       child: Material(
-        color: Theme.of(context).bottomSheetTheme.backgroundColor,
+        color: theme.bottomSheetTheme.backgroundColor ?? theme.colorScheme.surface,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: ListView.separated(
-                controller: widget.scrollController,
-                itemCount: _targets.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
-                itemBuilder: (_, index) {
-                  final target = _targets[index];
-                  return ListTile(
-                    leading: Icon(_iconForTargetKind(target.kind)),
-                    title: Text(target.title),
-                    subtitle: target.subtitle.isNotEmpty ? Text(target.subtitle) : null,
-                    onTap: () => Navigator.of(context).pop(target),
-                  );
-                },
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: Row(
+                children: [
+                  Icon(Icons.cast_rounded, color: theme.colorScheme.primary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      l10n.castRemotePlayback,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  if (loading)
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                ],
               ),
             ),
-            if (loading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: CircularProgressIndicator(),
-              ),
+            const Divider(height: 1),
+            Expanded(child: body),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _searchingState(ThemeData theme, AppLocalizations l10n) {
+    return ListView(
+      controller: widget.scrollController,
+      children: [
+        const SizedBox(height: 48),
+        const Center(child: CircularProgressIndicator()),
+        const SizedBox(height: 16),
+        Center(
+          child: Text(
+            l10n.castRemotePlayback,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.outline,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _emptyState(ThemeData theme, AppLocalizations l10n) {
+    final isIOS = defaultTargetPlatform == TargetPlatform.iOS && !kIsWeb;
+    final message = isIOS ? l10n.noRemoteDevicesIos : l10n.noRemoteDevices;
+    return ListView(
+      controller: widget.scrollController,
+      padding: const EdgeInsets.all(32),
+      children: [
+        const SizedBox(height: 24),
+        Icon(
+          Icons.devices_other_rounded,
+          size: 48,
+          color: theme.colorScheme.outline,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _deviceCard(ThemeData theme, CastTarget target) {
+    final tint = theme.colorScheme.primary;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => Navigator.of(context).pop(target),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: tint.withValues(alpha: 0.14),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _iconForTargetKind(target.kind),
+                    color: tint,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        target.title,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (target.subtitle.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          target.subtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.outline,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: theme.colorScheme.outline,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
+int _kindOrder(CastTargetKind kind) {
+  return switch (kind) {
+    CastTargetKind.jellyfinSession => 0,
+    CastTargetKind.googleCast => 1,
+    CastTargetKind.airPlay => 2,
+    CastTargetKind.dlna => 3,
+  };
+}
+
 IconData _iconForTargetKind(CastTargetKind kind) {
   return switch (kind) {
-    CastTargetKind.jellyfinSession => Icons.cast,
-    CastTargetKind.googleCast => Icons.cast_connected,
-    CastTargetKind.airPlay => Icons.airplay,
-    CastTargetKind.dlna => Icons.router,
+    CastTargetKind.jellyfinSession => Icons.cast_rounded,
+    CastTargetKind.googleCast => Icons.cast_connected_rounded,
+    CastTargetKind.airPlay => Icons.airplay_rounded,
+    CastTargetKind.dlna => Icons.router_rounded,
   };
 }

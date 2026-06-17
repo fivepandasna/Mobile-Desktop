@@ -50,6 +50,7 @@ class DlnaController(private val context: Context) {
     private val consecutivePollFailures = AtomicInteger(0)
     private val discoveredEventSubUrls = mutableMapOf<String, String>()
     private val discoveredRenderingControlUrls = mutableMapOf<String, String>()
+    @Volatile private var isDiscovering = false
 
     companion object {
         private const val SSDP_ADDRESS = "239.255.255.250"
@@ -71,54 +72,107 @@ class DlnaController(private val context: Context) {
     fun discoverTargets(result: MethodChannel.Result) {
         executor.execute {
             val targets = mutableListOf<Map<String, Any>>()
-            var socket: MulticastSocket? = null
-            try {
-                acquireMulticastLock()
-                val group = InetAddress.getByName(SSDP_ADDRESS)
-                socket = MulticastSocket(SSDP_PORT)
-                socket.reuseAddress = true
-                socket.joinGroup(group)
-                socket.soTimeout = DISCOVERY_TIMEOUT_MS
+            val seenLocations = mutableSetOf<String>()
+            runSsdpScan(seenLocations) { device -> targets.add(device) }
+            handler.post { result.success(targets) }
+        }
+    }
 
-                val searchMessage = buildString {
-                    append("M-SEARCH * HTTP/1.1\r\n")
-                    append("HOST: $SSDP_ADDRESS:$SSDP_PORT\r\n")
-                    append("MAN: \"ssdp:discover\"\r\n")
-                    append("MX: 2\r\n")
-                    append("ST: $AVTRANSPORT_URN\r\n")
-                    append("\r\n")
+    /**
+     * Starts a continuous SSDP scan, emitting each newly found renderer as a
+     * `deviceFound` event on the event sink. Keeps re-scanning until
+     * [stopContinuousDiscovery] is called so late-responding renderers are still
+     * surfaced while the picker is open.
+     */
+    fun startContinuousDiscovery() {
+        if (isDiscovering) return
+        isDiscovering = true
+        executor.execute {
+            val seenLocations = mutableSetOf<String>()
+            while (isDiscovering) {
+                runSsdpScan(seenLocations) { device ->
+                    val id = device["id"] as? String
+                    if (id.isNullOrEmpty()) return@runSsdpScan
+                    handler.post {
+                        eventSink?.success(
+                            mapOf(
+                                "kind" to "dlna",
+                                "state" to "deviceFound",
+                                "id" to id,
+                                "title" to (device["title"] ?: "DLNA Device"),
+                                "subtitle" to (device["subtitle"] ?: ""),
+                            ),
+                        )
+                    }
                 }
-                val data = searchMessage.toByteArray()
-                val packet = DatagramPacket(data, data.size, group, SSDP_PORT)
-                socket.send(packet)
-
-                val seenLocations = mutableSetOf<String>()
-                val buf = ByteArray(4096)
-                val deadline = System.currentTimeMillis() + DISCOVERY_TIMEOUT_MS
-
-                while (System.currentTimeMillis() < deadline) {
+                if (isDiscovering) {
                     try {
-                        val recv = DatagramPacket(buf, buf.size)
-                        socket.receive(recv)
-                        val response = String(recv.data, 0, recv.length)
-                        val location = parseHeader(response, "LOCATION") ?: continue
-                        if (!seenLocations.add(location)) continue
-
-                        val deviceInfo = fetchDeviceDescription(location) ?: continue
-                        targets.add(deviceInfo)
-                    } catch (_: java.net.SocketTimeoutException) {
+                        Thread.sleep(1500)
+                    } catch (_: InterruptedException) {
                         break
                     }
                 }
+            }
+        }
+    }
 
-                socket.leaveGroup(group)
-            } catch (_: Exception) {
-            } finally {
-                socket?.close()
-                releaseMulticastLock()
+    fun stopContinuousDiscovery() {
+        isDiscovering = false
+    }
+
+    /**
+     * Runs a single SSDP M-SEARCH round, invoking [onDevice] for each renderer
+     * whose LOCATION has not been seen yet (tracked across rounds via
+     * [seenLocations]).
+     */
+    private fun runSsdpScan(
+        seenLocations: MutableSet<String>,
+        onDevice: (Map<String, Any>) -> Unit,
+    ) {
+        var socket: MulticastSocket? = null
+        try {
+            acquireMulticastLock()
+            val group = InetAddress.getByName(SSDP_ADDRESS)
+            socket = MulticastSocket(SSDP_PORT)
+            socket.reuseAddress = true
+            socket.joinGroup(group)
+            socket.soTimeout = DISCOVERY_TIMEOUT_MS
+
+            val searchMessage = buildString {
+                append("M-SEARCH * HTTP/1.1\r\n")
+                append("HOST: $SSDP_ADDRESS:$SSDP_PORT\r\n")
+                append("MAN: \"ssdp:discover\"\r\n")
+                append("MX: 2\r\n")
+                append("ST: $AVTRANSPORT_URN\r\n")
+                append("\r\n")
+            }
+            val data = searchMessage.toByteArray()
+            val packet = DatagramPacket(data, data.size, group, SSDP_PORT)
+            socket.send(packet)
+
+            val buf = ByteArray(4096)
+            val deadline = System.currentTimeMillis() + DISCOVERY_TIMEOUT_MS
+
+            while (System.currentTimeMillis() < deadline) {
+                try {
+                    val recv = DatagramPacket(buf, buf.size)
+                    socket.receive(recv)
+                    val response = String(recv.data, 0, recv.length)
+                    val location = parseHeader(response, "LOCATION") ?: continue
+                    if (!seenLocations.add(location)) continue
+
+                    val deviceInfo = fetchDeviceDescription(location) ?: continue
+                    onDevice(deviceInfo)
+                } catch (_: java.net.SocketTimeoutException) {
+                    break
+                }
             }
 
-            handler.post { result.success(targets) }
+            socket.leaveGroup(group)
+        } catch (_: Exception) {
+        } finally {
+            socket?.close()
+            releaseMulticastLock()
         }
     }
 
@@ -227,6 +281,7 @@ class DlnaController(private val context: Context) {
     }
 
     fun onDestroy() {
+        stopContinuousDiscovery()
         stopPlaybackPolling()
         stopGena()
         pollExecutor.shutdownNow()

@@ -21,6 +21,7 @@ final class DlnaController: NSObject {
     private var consecutivePollFailures: Int = 0
     private var discoveredEventSubUrls: [String: String] = [:]
     private var discoveredRenderingControlUrls: [String: String] = [:]
+    private var isDiscovering = false
 
     private let session: URLSession = {
         let config = URLSessionConfiguration.ephemeral
@@ -48,75 +49,107 @@ final class DlnaController: NSObject {
             }
 
             var targets: [[String: String]] = []
-            var fd: Int32 = -1
-
-            do {
-                fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
-                guard fd >= 0 else {
-                    DispatchQueue.main.async { completion([]) }
-                    return
-                }
-
-                var yes: Int32 = 1
-                setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, socklen_t(MemoryLayout<Int32>.size))
-
-                var timeout = timeval(tv_sec: Int(self.discoveryTimeoutSeconds), tv_usec: 0)
-                setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
-
-                let searchMessage = [
-                    "M-SEARCH * HTTP/1.1",
-                    "HOST: \(self.ssdpAddress):\(self.ssdpPort)",
-                    "MAN: \"ssdp:discover\"",
-                    "MX: 2",
-                    "ST: \(self.avTransportURN)",
-                    "", "",
-                ].joined(separator: "\r\n")
-
-                guard let data = searchMessage.data(using: .utf8) else {
-                    if fd >= 0 { close(fd) }
-                    DispatchQueue.main.async { completion([]) }
-                    return
-                }
-
-                var addr = sockaddr_in()
-                addr.sin_family = sa_family_t(AF_INET)
-                addr.sin_port = self.ssdpPort.bigEndian
-                inet_pton(AF_INET, self.ssdpAddress, &addr.sin_addr)
-
-                let sent = data.withUnsafeBytes { ptr in
-                    withUnsafePointer(to: &addr) { addrPtr in
-                        addrPtr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sa in
-                            sendto(fd, ptr.baseAddress, data.count, 0, sa, socklen_t(MemoryLayout<sockaddr_in>.size))
-                        }
-                    }
-                }
-                guard sent > 0 else {
-                    if fd >= 0 { close(fd) }
-                    DispatchQueue.main.async { completion([]) }
-                    return
-                }
-
-                var seenLocations = Set<String>()
-                let deadline = Date().addingTimeInterval(self.discoveryTimeoutSeconds)
-                var buf = [UInt8](repeating: 0, count: 4096)
-
-                while Date() < deadline {
-                    let n = recv(fd, &buf, buf.count, 0)
-                    if n <= 0 { break }
-                    let response = String(bytes: buf[..<n], encoding: .utf8) ?? ""
-                    guard let location = self.parseHeader(response, name: "LOCATION"),
-                          !seenLocations.contains(location) else { continue }
-                    seenLocations.insert(location)
-
-                    if let deviceInfo = self.fetchDeviceDescription(locationUrl: location) {
-                        targets.append(deviceInfo)
-                    }
-                }
+            var seenLocations = Set<String>()
+            self.runSsdpScan(seenLocations: &seenLocations) { device in
+                targets.append(device)
             }
 
-            if fd >= 0 { close(fd) }
-
             DispatchQueue.main.async { completion(targets) }
+        }
+    }
+
+    /// Starts a continuous SSDP scan, emitting each newly found renderer as a
+    /// `deviceFound` event on the event sink. Keeps scanning until
+    /// [stopContinuousDiscovery] is called. mDNS/SSDP renderers can take several
+    /// seconds to answer, so re-scanning in a loop catches late responders.
+    func startContinuousDiscovery() {
+        if isDiscovering { return }
+        isDiscovering = true
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
+            var seenLocations = Set<String>()
+            while self.isDiscovering {
+                self.runSsdpScan(seenLocations: &seenLocations) { [weak self] device in
+                    guard let self, self.isDiscovering else { return }
+                    let id = device["id"] ?? ""
+                    if id.isEmpty { return }
+                    DispatchQueue.main.async {
+                        self.eventSink?(
+                            [
+                                "kind": "dlna",
+                                "state": "deviceFound",
+                                "id": id,
+                                "title": device["title"] ?? "DLNA Device",
+                                "subtitle": device["subtitle"] ?? "",
+                            ]
+                        )
+                    }
+                }
+                if self.isDiscovering { Thread.sleep(forTimeInterval: 1.5) }
+            }
+        }
+    }
+
+    func stopContinuousDiscovery() {
+        isDiscovering = false
+    }
+
+    /// Runs a single SSDP M-SEARCH round, invoking [onDevice] for each renderer
+    /// whose LOCATION has not been seen yet (tracked across rounds via
+    /// [seenLocations]).
+    private func runSsdpScan(
+        seenLocations: inout Set<String>,
+        onDevice: ([String: String]) -> Void
+    ) {
+        let fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
+        guard fd >= 0 else { return }
+        defer { close(fd) }
+
+        var yes: Int32 = 1
+        setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, socklen_t(MemoryLayout<Int32>.size))
+
+        var timeout = timeval(tv_sec: Int(self.discoveryTimeoutSeconds), tv_usec: 0)
+        setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
+
+        let searchMessage = [
+            "M-SEARCH * HTTP/1.1",
+            "HOST: \(self.ssdpAddress):\(self.ssdpPort)",
+            "MAN: \"ssdp:discover\"",
+            "MX: 2",
+            "ST: \(self.avTransportURN)",
+            "", "",
+        ].joined(separator: "\r\n")
+
+        guard let data = searchMessage.data(using: .utf8) else { return }
+
+        var addr = sockaddr_in()
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = self.ssdpPort.bigEndian
+        inet_pton(AF_INET, self.ssdpAddress, &addr.sin_addr)
+
+        let sent = data.withUnsafeBytes { ptr in
+            withUnsafePointer(to: &addr) { addrPtr in
+                addrPtr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sa in
+                    sendto(fd, ptr.baseAddress, data.count, 0, sa, socklen_t(MemoryLayout<sockaddr_in>.size))
+                }
+            }
+        }
+        guard sent > 0 else { return }
+
+        let deadline = Date().addingTimeInterval(self.discoveryTimeoutSeconds)
+        var buf = [UInt8](repeating: 0, count: 4096)
+
+        while Date() < deadline {
+            let n = recv(fd, &buf, buf.count, 0)
+            if n <= 0 { break }
+            let response = String(bytes: buf[..<n], encoding: .utf8) ?? ""
+            guard let location = self.parseHeader(response, name: "LOCATION"),
+                  !seenLocations.contains(location) else { continue }
+            seenLocations.insert(location)
+
+            if let deviceInfo = self.fetchDeviceDescription(locationUrl: location) {
+                onDevice(deviceInfo)
+            }
         }
     }
 

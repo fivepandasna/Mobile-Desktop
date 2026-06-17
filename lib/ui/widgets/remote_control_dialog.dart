@@ -7,6 +7,7 @@ import 'package:server_core/server_core.dart';
 
 import '../../data/services/socket_handler.dart';
 import '../../l10n/app_localizations.dart';
+import 'bounded_network_image.dart';
 import 'overlay_sheet.dart';
 
 void showRemoteControlDialog(BuildContext context) {
@@ -34,6 +35,7 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
   Map<String, dynamic>? _selectedSession;
   bool _busy = false;
   double? _seekPosition;
+  double? _volume;
   Timer? _refreshTimer;
   StreamSubscription<ServerWebSocketMessage>? _socketSub;
 
@@ -336,18 +338,27 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
         : null;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Material(
         color: isSelected
-            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
+            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(14),
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           onTap: () =>
               setState(() => _selectedSession = isSelected ? null : session),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isSelected
+                    ? theme.colorScheme.primary.withValues(alpha: 0.6)
+                    : theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+                width: isSelected ? 1.5 : 1,
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -448,152 +459,330 @@ class _RemoteControlSheetState extends State<_RemoteControlSheet> {
     final isMuted = playState?['IsMuted'] as bool? ?? false;
     final positionTicks = (playState?['PositionTicks'] as num?)?.toInt();
     final runtimeTicks = (nowPlaying?['RunTimeTicks'] as num?)?.toInt();
+    final volumeLevel = (playState?['VolumeLevel'] as num?)?.toDouble();
+    final supportsSetVolume = _supportsCommand(session, 'SetVolume');
 
-    String ticksToTime(int ticks) {
-      final duration = Duration(microseconds: ticks ~/ 10);
-      final h = duration.inHours;
-      final m = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
-      final s = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
-      return h > 0 ? '$h:$m:$s' : '$m:$s';
+    if (nowPlaying == null) {
+      return [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 28),
+          child: Center(
+            child: Column(
+              children: [
+                Icon(Icons.tv_off, size: 40, color: theme.colorScheme.outline),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.remoteNothingPlaying,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ];
     }
 
     return [
-      if (nowPlaying != null) ...[
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.fromBorderSide(
-              ThemeRegistry.active.borders.chipBorder,
+      _buildNowPlayingCard(theme, nowPlaying, positionTicks, runtimeTicks),
+      const SizedBox(height: 18),
+      _buildTransportRow(theme, isPaused),
+      const SizedBox(height: 18),
+      _buildVolumeRow(theme, l10n, isMuted, volumeLevel, supportsSetVolume),
+      const SizedBox(height: 14),
+      _buildStopButton(theme, l10n),
+    ];
+  }
+
+  Widget _buildNowPlayingCard(
+    ThemeData theme,
+    Map<String, dynamic> nowPlaying,
+    int? positionTicks,
+    int? runtimeTicks,
+  ) {
+    final title = nowPlaying['Name'] as String? ?? '';
+    final series = nowPlaying['SeriesName'] as String?;
+    final year = (nowPlaying['ProductionYear'] as num?)?.toInt();
+    final subtitle = series ?? (year != null ? '$year' : null);
+    final posterUrl = _posterUrlFor(nowPlaying);
+    final hasSeek =
+        positionTicks != null && runtimeTicks != null && runtimeTicks > 0;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.fromBorderSide(ThemeRegistry.active.borders.chipBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              width: 56,
+              height: 84,
+              child: posterUrl == null
+                  ? _posterPlaceholder(theme)
+                  : BoundedNetworkImage(
+                      imageUrl: posterUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _posterPlaceholder(theme),
+                    ),
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                nowPlaying['Name'] as String? ?? '',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if ((nowPlaying['SeriesName'] as String?) != null)
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  nowPlaying['SeriesName'] as String,
-                  style: theme.textTheme.bodySmall,
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              if (positionTicks != null &&
-                  runtimeTicks != null &&
-                  runtimeTicks > 0) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text(
-                      ticksToTime(positionTicks),
-                      style: theme.textTheme.labelSmall,
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
                     ),
-                    Expanded(
-                      child: Slider(
-                        value: (_seekPosition ?? positionTicks / runtimeTicks)
-                            .clamp(0.0, 1.0),
-                        onChanged: (v) => setState(() => _seekPosition = v),
-                        onChangeEnd: (v) {
-                          final target = (v * runtimeTicks).round();
-                          _seekPosition = null;
-                          _sendPlayState('Seek', seekTicks: target);
-                        },
-                      ),
-                    ),
-                    Text(
-                      ticksToTime(runtimeTicks),
-                      style: theme.textTheme.labelSmall,
-                    ),
-                  ],
-                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                const SizedBox(height: 10),
+                if (hasSeek) _buildSeekBar(theme, positionTicks, runtimeTicks),
               ],
-            ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _posterPlaceholder(ThemeData theme) {
+    return Container(
+      color: theme.colorScheme.surfaceContainerHighest,
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.movie_outlined,
+        color: theme.colorScheme.outline,
+        size: 24,
+      ),
+    );
+  }
+
+  Widget _buildSeekBar(ThemeData theme, int positionTicks, int runtimeTicks) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 3,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+            padding: EdgeInsets.zero,
+          ),
+          child: Slider(
+            value: (_seekPosition ?? positionTicks / runtimeTicks)
+                .clamp(0.0, 1.0),
+            onChanged: (v) => setState(() => _seekPosition = v),
+            onChangeEnd: (v) {
+              final target = (v * runtimeTicks).round();
+              _seekPosition = null;
+              _sendPlayState('Seek', seekTicks: target);
+            },
           ),
         ),
-        const SizedBox(height: 12),
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _ControlButton(
-              icon: Icons.skip_previous,
-              label: l10n.sessionPrev,
-              onTap: () => _sendPlayState('PreviousTrack'),
+            Text(
+              _ticksToTime(positionTicks),
+              style: theme.textTheme.labelSmall,
             ),
-            const SizedBox(width: 8),
-            _ControlButton(
-              icon: Icons.replay_10,
-              label: l10n.sessionRewind,
-              onTap: () => _sendPlayState('Rewind'),
-            ),
-            const SizedBox(width: 8),
-            _ControlButton(
-              icon: isPaused ? Icons.play_arrow : Icons.pause,
-              label: isPaused ? l10n.play : l10n.pause,
-              onTap: () => _sendPlayState('PlayPause'),
-              primary: true,
-            ),
-            const SizedBox(width: 8),
-            _ControlButton(
-              icon: Icons.forward_10,
-              label: l10n.sessionForward,
-              onTap: () => _sendPlayState('FastForward'),
-            ),
-            const SizedBox(width: 8),
-            _ControlButton(
-              icon: Icons.skip_next,
-              label: l10n.sessionNext,
-              onTap: () => _sendPlayState('NextTrack'),
+            Text(
+              _ticksToTime(runtimeTicks),
+              style: theme.textTheme.labelSmall,
             ),
           ],
-        ),
-        const SizedBox(height: 6),
-        Center(
-          child: _ControlButton(
-            icon: Icons.stop,
-            label: l10n.stop,
-            onTap: () => _sendPlayState('Stop'),
-            color: theme.colorScheme.error,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _ControlButton(
-              icon: isMuted ? Icons.volume_off : Icons.volume_up,
-              label: isMuted ? l10n.unmute : l10n.mute,
-              onTap: () => _sendGeneral(isMuted ? 'Unmute' : 'Mute'),
-            ),
-            const SizedBox(width: 8),
-            _ControlButton(
-              icon: Icons.volume_down,
-              label: l10n.sessionVolumeDown,
-              onTap: () => _sendGeneral('VolumeDown'),
-            ),
-            const SizedBox(width: 8),
-            _ControlButton(
-              icon: Icons.volume_up,
-              label: l10n.sessionVolumeUp,
-              onTap: () => _sendGeneral('VolumeUp'),
-            ),
-          ],
-        ),
-      ] else ...[
-        Center(
-          child: Column(
-            children: [
-              Icon(Icons.tv_off, size: 40, color: theme.colorScheme.outline),
-              const SizedBox(height: 8),
-              Text(l10n.remoteNothingPlaying, style: theme.textTheme.bodySmall),
-            ],
-          ),
         ),
       ],
-    ];
+    );
+  }
+
+  Widget _buildTransportRow(ThemeData theme, bool isPaused) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _TransportButton(
+          icon: Icons.skip_previous_rounded,
+          onTap: () => _sendPlayState('PreviousTrack'),
+        ),
+        const SizedBox(width: 18),
+        _TransportButton(
+          icon: Icons.replay_10_rounded,
+          onTap: () => _sendPlayState('Rewind'),
+        ),
+        const SizedBox(width: 18),
+        _PrimaryTransportButton(
+          icon: isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
+          onTap: () => _sendPlayState('PlayPause'),
+        ),
+        const SizedBox(width: 18),
+        _TransportButton(
+          icon: Icons.forward_10_rounded,
+          onTap: () => _sendPlayState('FastForward'),
+        ),
+        const SizedBox(width: 18),
+        _TransportButton(
+          icon: Icons.skip_next_rounded,
+          onTap: () => _sendPlayState('NextTrack'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVolumeRow(
+    ThemeData theme,
+    AppLocalizations l10n,
+    bool isMuted,
+    double? volumeLevel,
+    bool supportsSetVolume,
+  ) {
+    if (!supportsSetVolume) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _ControlButton(
+            icon: isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+            label: isMuted ? l10n.unmute : l10n.mute,
+            onTap: () => _sendGeneral(isMuted ? 'Unmute' : 'Mute'),
+          ),
+          const SizedBox(width: 8),
+          _ControlButton(
+            icon: Icons.volume_down_rounded,
+            label: l10n.sessionVolumeDown,
+            onTap: () => _sendGeneral('VolumeDown'),
+          ),
+          const SizedBox(width: 8),
+          _ControlButton(
+            icon: Icons.volume_up_rounded,
+            label: l10n.sessionVolumeUp,
+            onTap: () => _sendGeneral('VolumeUp'),
+          ),
+        ],
+      );
+    }
+
+    final value = (_volume ?? volumeLevel ?? 100).clamp(0.0, 100.0);
+    final IconData volumeIcon;
+    if (isMuted || value == 0) {
+      volumeIcon = Icons.volume_off_rounded;
+    } else if (value < 50) {
+      volumeIcon = Icons.volume_down_rounded;
+    } else {
+      volumeIcon = Icons.volume_up_rounded;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.fromBorderSide(ThemeRegistry.active.borders.chipBorder),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: Icon(volumeIcon),
+            color: theme.colorScheme.onSurfaceVariant,
+            tooltip: isMuted ? l10n.unmute : l10n.mute,
+            onPressed: () => _sendGeneral(isMuted ? 'Unmute' : 'Mute'),
+          ),
+          Expanded(
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 3,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+              ),
+              child: Slider(
+                min: 0,
+                max: 100,
+                value: value,
+                onChanged: (v) => setState(() => _volume = v),
+                onChangeEnd: (v) {
+                  _volume = null;
+                  _sendGeneral(
+                    'SetVolume',
+                    args: {'Volume': v.round().toString()},
+                  );
+                },
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 36,
+            child: Text(
+              '${value.round()}%',
+              textAlign: TextAlign.end,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStopButton(ThemeData theme, AppLocalizations l10n) {
+    return Center(
+      child: TextButton.icon(
+        onPressed: () => _sendPlayState('Stop'),
+        icon: const Icon(Icons.stop_rounded, size: 18),
+        label: Text(l10n.stop),
+        style: TextButton.styleFrom(
+          foregroundColor: theme.colorScheme.error,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: theme.colorScheme.error.withValues(alpha: 0.4),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _ticksToTime(int ticks) {
+    final duration = Duration(microseconds: ticks ~/ 10);
+    final h = duration.inHours;
+    final m = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return h > 0 ? '$h:$m:$s' : '$m:$s';
+  }
+
+  bool _supportsCommand(Map<String, dynamic> session, String command) {
+    final commands = session['SupportedCommands'];
+    return commands is List && commands.whereType<String>().contains(command);
+  }
+
+  String? _posterUrlFor(Map<String, dynamic> nowPlaying) {
+    final id = nowPlaying['Id']?.toString();
+    if (id == null || id.isEmpty) return null;
+    return GetIt.instance<MediaServerClient>().imageApi.getPrimaryImageUrl(
+      id,
+      maxHeight: 300,
+    );
   }
 
   Widget _platformIcon(String client, ThemeData theme) {
@@ -624,23 +813,17 @@ class _ControlButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  final bool primary;
-  final Color? color;
 
   const _ControlButton({
     required this.icon,
     required this.label,
     required this.onTap,
-    this.primary = false,
-    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fg =
-        color ??
-        (primary ? theme.colorScheme.primary : theme.colorScheme.onSurface);
+    final fg = theme.colorScheme.onSurface;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -649,10 +832,54 @@ class _ControlButton extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: primary ? 36 : 28, color: fg),
+            Icon(icon, size: 28, color: fg),
             const SizedBox(height: 2),
             Text(label, style: theme.textTheme.labelSmall?.copyWith(color: fg)),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TransportButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _TransportButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkResponse(
+      onTap: onTap,
+      radius: 28,
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: Icon(icon, size: 28, color: theme.colorScheme.onSurface),
+      ),
+    );
+  }
+}
+
+class _PrimaryTransportButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _PrimaryTransportButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.primary,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Icon(icon, size: 32, color: theme.colorScheme.onPrimary),
         ),
       ),
     );

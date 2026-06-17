@@ -61,6 +61,7 @@ class MainActivity : AudioServiceActivity() {
     private var audioCapsSink: EventChannel.EventSink? = null
     private var audioDeviceCallback: AudioDeviceCallback? = null
     private var castStatusListener: SessionManagerListener<CastSession>? = null
+    private var castDiscoveryCallback: MediaRouter.Callback? = null
     private var dlnaChannel: MethodChannel? = null
     private var dlnaEventsChannel: EventChannel? = null
     private var dlnaController: DlnaController? = null
@@ -275,6 +276,14 @@ class MainActivity : AudioServiceActivity() {
                 "discoverGoogleCastTargets" -> {
                     result.success(discoverGoogleCastTargets())
                 }
+                "startGoogleCastDiscovery" -> {
+                    startGoogleCastDiscovery()
+                    result.success(null)
+                }
+                "stopGoogleCastDiscovery" -> {
+                    stopGoogleCastDiscovery()
+                    result.success(null)
+                }
                 "startGoogleCastSession" -> {
                     val args = call.arguments as? Map<*, *> ?: emptyMap<String, Any>()
                     startGoogleCastSession(args, result)
@@ -383,6 +392,14 @@ class MainActivity : AudioServiceActivity() {
             }
             when (call.method) {
                 "discoverDlnaTargets" -> ctrl.discoverTargets(result)
+                "startDlnaDiscovery" -> {
+                    ctrl.startContinuousDiscovery()
+                    result.success(null)
+                }
+                "stopDlnaDiscovery" -> {
+                    ctrl.stopContinuousDiscovery()
+                    result.success(null)
+                }
                 "playToDlnaDevice" -> {
                     val args = call.arguments as? Map<*, *> ?: emptyMap<String, Any>()
                     ctrl.playToDevice(args, result)
@@ -586,6 +603,7 @@ class MainActivity : AudioServiceActivity() {
             sessionManager?.removeSessionManagerListener(listener, CastSession::class.java)
         }
         unregisterCastMediaCallback()
+        stopGoogleCastDiscovery()
         try { unregisterReceiver(pipReceiver) } catch (_: Exception) {}
         try { unregisterReceiver(screenReceiver) } catch (_: Exception) {}
         castChannel?.setMethodCallHandler(null)
@@ -633,6 +651,65 @@ class MainActivity : AudioServiceActivity() {
                 "subtitle" to (route.description?.toString() ?: "Google Cast"),
             )
         }
+    }
+
+    private fun castRouteSelector(): MediaRouteSelector =
+        MediaRouteSelector.Builder()
+            .addControlCategory(
+                CastMediaControlIntent.categoryForCast(
+                    CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID,
+                ),
+            )
+            .build()
+
+    // MediaRouter only actively scans for Cast devices while a callback with an
+    // active-scan flag is registered; reading routes without one returns a stale
+    // (often empty) list. Register an active-scan callback while the picker is
+    // open and emit each matching route as a `deviceFound` event.
+    private fun startGoogleCastDiscovery() {
+        runOnUiThread {
+            val mediaRouter = MediaRouter.getInstance(this)
+            val selector = castRouteSelector()
+            if (castDiscoveryCallback == null) {
+                val callback = object : MediaRouter.Callback() {
+                    override fun onRouteAdded(router: MediaRouter, route: MediaRouter.RouteInfo) {
+                        emitCastRouteFound(route, selector)
+                    }
+
+                    override fun onRouteChanged(router: MediaRouter, route: MediaRouter.RouteInfo) {
+                        emitCastRouteFound(route, selector)
+                    }
+                }
+                castDiscoveryCallback = callback
+                mediaRouter.addCallback(
+                    selector,
+                    callback,
+                    MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN,
+                )
+            }
+            mediaRouter.routes.forEach { emitCastRouteFound(it, selector) }
+        }
+    }
+
+    private fun stopGoogleCastDiscovery() {
+        runOnUiThread {
+            val callback = castDiscoveryCallback ?: return@runOnUiThread
+            MediaRouter.getInstance(this).removeCallback(callback)
+            castDiscoveryCallback = null
+        }
+    }
+
+    private fun emitCastRouteFound(route: MediaRouter.RouteInfo, selector: MediaRouteSelector) {
+        if (!route.isEnabled || !route.matchesSelector(selector)) return
+        castEventsSink?.success(
+            mapOf(
+                "kind" to "googleCast",
+                "state" to "deviceFound",
+                "id" to route.id,
+                "title" to route.name,
+                "subtitle" to (route.description?.toString() ?: "Google Cast"),
+            ),
+        )
     }
 
     private fun startGoogleCastSession(args: Map<*, *>, result: MethodChannel.Result) {

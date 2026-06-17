@@ -62,6 +62,7 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
   private let castDiscoveryDelaySeconds: TimeInterval = 1.5
   private let castSessionStartTimeoutSeconds: TimeInterval = 15
   private var hasConfiguredGoogleCast = false
+  private var isCastDiscoveryActive = false
   private var pendingCastRequest: PendingCastRequest?
   private var pendingCastTimeoutWorkItem: DispatchWorkItem?
   private let castEventStreamHandler = NativeCastEventStreamHandler()
@@ -284,6 +285,12 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
         self.dlnaController.discoverTargets { targets in
           result(targets)
         }
+      case "startDlnaDiscovery":
+        self.dlnaController.startContinuousDiscovery()
+        result(nil)
+      case "stopDlnaDiscovery":
+        self.dlnaController.stopContinuousDiscovery()
+        result(nil)
       case "playToDlnaDevice":
         guard let args = call.arguments as? [String: Any],
               let targetId = args["targetId"] as? String,
@@ -453,6 +460,12 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
       switch call.method {
       case "discoverGoogleCastTargets":
         self.discoverGoogleCastTargets(result: result)
+      case "startGoogleCastDiscovery":
+        self.startGoogleCastDiscovery()
+        result(nil)
+      case "stopGoogleCastDiscovery":
+        self.stopGoogleCastDiscovery()
+        result(nil)
       case "startGoogleCastSession":
         guard let args = call.arguments as? [String: Any],
               let targetId = args["targetId"] as? String,
@@ -706,6 +719,53 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
 
         result(targets)
       }
+    }
+  }
+
+  private func startGoogleCastDiscovery() {
+    DispatchQueue.main.async {
+      self.configureGoogleCast()
+      let discoveryManager = GCKCastContext.sharedInstance().discoveryManager
+      if !self.isCastDiscoveryActive {
+        discoveryManager.add(self)
+        self.isCastDiscoveryActive = true
+      }
+      discoveryManager.startDiscovery()
+      self.emitDiscoveredGoogleCastDevices()
+    }
+  }
+
+  private func stopGoogleCastDiscovery() {
+    DispatchQueue.main.async {
+      let discoveryManager = GCKCastContext.sharedInstance().discoveryManager
+      if self.isCastDiscoveryActive {
+        discoveryManager.remove(self)
+        self.isCastDiscoveryActive = false
+      }
+      // Only stop the scan when no session is active; an active session relies
+      // on discovery staying alive.
+      if self.currentCastSession() == nil {
+        discoveryManager.stopDiscovery()
+      }
+    }
+  }
+
+  fileprivate func emitDiscoveredGoogleCastDevices() {
+    let discoveryManager = GCKCastContext.sharedInstance().discoveryManager
+    let deviceCount = Int(discoveryManager.deviceCount)
+    for index in 0..<deviceCount {
+      let device = discoveryManager.device(at: UInt(index))
+      let friendlyName = device.friendlyName ?? ""
+      let title = friendlyName.isEmpty ? "Google Cast" : friendlyName
+      castEventSink?(
+        [
+          "kind": "googleCast",
+          "state": "deviceFound",
+          "id": device.deviceID,
+          "title": title,
+          "subtitle": device.modelName ?? "",
+        ]
+      )
     }
   }
 
@@ -1092,5 +1152,11 @@ private final class NativeAirPlayEventStreamHandler: NSObject, FlutterStreamHand
 extension AppDelegate: GCKRemoteMediaClientListener {
   func remoteMediaClient(_ client: GCKRemoteMediaClient, didUpdate mediaStatus: GCKMediaStatus?) {
     emitCurrentGoogleCastStatus(from: client)
+  }
+}
+
+extension AppDelegate: GCKDiscoveryManagerListener {
+  func didUpdateDeviceList() {
+    emitDiscoveredGoogleCastDevices()
   }
 }

@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:logger/logger.dart';
 import 'package:playback_core/playback_core.dart';
 import 'package:playback_emby/playback_emby.dart';
 import 'package:playback_jellyfin/playback_jellyfin.dart';
@@ -15,6 +16,8 @@ import 'native_cast_channel.dart';
 class GoogleCastProvider implements CastProvider, CastTransportControls {
   final NativeCastChannel _native;
   final MediaServerClientFactory _clientFactory;
+
+  static final Logger _logger = Logger();
 
   const GoogleCastProvider(this._native, this._clientFactory);
 
@@ -51,7 +54,8 @@ class GoogleCastProvider implements CastProvider, CastTransportControls {
 
     try {
       return await _native.discoverGoogleCastTargets();
-    } catch (_) {
+    } catch (e, st) {
+      _logger.w('Google Cast discovery failed', error: e, stackTrace: st);
       return const [];
     }
   }

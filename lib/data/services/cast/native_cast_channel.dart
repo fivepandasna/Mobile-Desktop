@@ -44,6 +44,24 @@ class NativeCastChannel {
         .toList();
   }
 
+  /// Starts a continuous Google Cast (mDNS) scan. Newly discovered devices are
+  /// emitted on [googleCastEventStream] as `{state: 'deviceFound', ...}` events.
+  Future<void> startGoogleCastDiscovery() async {
+    if (!_supported) {
+      return;
+    }
+    await _channel.invokeMethod<void>('startGoogleCastDiscovery');
+  }
+
+  /// Stops the continuous Google Cast scan started by
+  /// [startGoogleCastDiscovery].
+  Future<void> stopGoogleCastDiscovery() async {
+    if (!_supported) {
+      return;
+    }
+    await _channel.invokeMethod<void>('stopGoogleCastDiscovery');
+  }
+
   Future<void> startGoogleCastSession({
     required String targetId,
     required String streamUrl,

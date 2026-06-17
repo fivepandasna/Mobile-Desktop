@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:logger/logger.dart';
 
 import '../../models/aggregated_item.dart';
 import 'cast_provider.dart';
@@ -12,6 +13,10 @@ import 'native_dlna_channel.dart';
 
 class CastService {
   final List<CastProvider> _providers;
+  final NativeCastChannel? _nativeCast;
+  final NativeDlnaChannel? _nativeDlna;
+  void Function(CastTarget)? _discoverySink;
+  static final Logger _logger = Logger();
   final List<StreamSubscription<Map<String, dynamic>>> _nativeEventSubscriptions = [];
   final ValueNotifier<CastTargetKind?> activeKindNotifier = ValueNotifier(null);
   final ValueNotifier<CastTarget?> activeTargetNotifier = ValueNotifier(null);
@@ -25,12 +30,14 @@ class CastService {
     NativeCastChannel? nativeCast,
     NativeDlnaChannel? nativeDlna,
     NativeAirPlayChannel? nativeAirPlay,
-  }) {
+  })  : _nativeCast = nativeCast,
+        _nativeDlna = nativeDlna {
     if (nativeCast != null) {
       _nativeEventSubscriptions.add(
         nativeCast.googleCastEventStream().listen(
           (e) => _handleNativeEvent(e, 'googleCast', CastTargetKind.googleCast),
-          onError: (_) {},
+          onError: (e, st) =>
+              _logger.w('Google Cast event stream error', error: e, stackTrace: st),
         ),
       );
     }
@@ -38,7 +45,8 @@ class CastService {
       _nativeEventSubscriptions.add(
         nativeDlna.dlnaEventStream().listen(
           (e) => _handleNativeEvent(e, 'dlna', CastTargetKind.dlna),
-          onError: (_) {},
+          onError: (e, st) =>
+              _logger.w('DLNA event stream error', error: e, stackTrace: st),
         ),
       );
     }
@@ -46,7 +54,8 @@ class CastService {
       _nativeEventSubscriptions.add(
         nativeAirPlay.airPlayEventStream().listen(
           (e) => _handleNativeEvent(e, 'airPlay', CastTargetKind.airPlay),
-          onError: (_) {},
+          onError: (e, st) =>
+              _logger.w('AirPlay event stream error', error: e, stackTrace: st),
         ),
       );
     }
@@ -79,6 +88,8 @@ class CastService {
       case 'playing' || 'paused' || 'buffering' || 'idle':
         remoteStateNotifier.value = state;
         remotePositionNotifier.value = (event['positionTicks'] as int?) ?? 0;
+      case 'deviceFound':
+        _discoverySink?.call(_targetFromEvent(event, castKind));
     }
   }
 
@@ -96,28 +107,68 @@ class CastService {
     activeKindNotifier.value = kind;
   }
 
+  /// Streams cast targets as they are found, keeping the native scan running
+  /// until the listener cancels. A single one-shot scan returns before mDNS
+  /// (Cast) and SSDP (DLNA) renderers have answered, so discovery must stay
+  /// open: this emits an initial snapshot from every provider, then forwards
+  /// `deviceFound` events (via [_handleNativeEvent]) for as long as the picker
+  /// is listening.
   Stream<CastTarget> discoverTargetsStreamed(AggregatedItem item) {
-    final controller = StreamController<CastTarget>();
-    int pending = _providers.length;
-    if (pending == 0) {
-      controller.close();
-      return controller.stream;
+    late final StreamController<CastTarget> controller;
+    final seen = <String>{};
+
+    void emit(CastTarget target) {
+      if (target.id.isEmpty) return;
+      final key = '${target.kind.name}:${target.id}';
+      if (seen.add(key) && !controller.isClosed) {
+        controller.add(target);
+      }
     }
-    for (final provider in _providers) {
-      provider.discoverTargets(item).then((targets) {
-        for (final t in targets) {
-          if (!controller.isClosed) controller.add(t);
-        }
-      }).catchError((_) {}).whenComplete(() {
-        pending--;
-        if (pending == 0 && !controller.isClosed) controller.close();
-      });
+
+    void start() {
+      _discoverySink = emit;
+      _nativeCast?.startGoogleCastDiscovery().catchError(
+            (e, st) => _logger.w('Failed to start Google Cast discovery',
+                error: e, stackTrace: st),
+          );
+      _nativeDlna?.startDlnaDiscovery().catchError(
+            (e, st) =>
+                _logger.w('Failed to start DLNA discovery', error: e, stackTrace: st),
+          );
+
+      for (final provider in _providers) {
+        provider.discoverTargets(item).then((targets) {
+          targets.forEach(emit);
+        }).catchError((e, st) {
+          _logger.w('Cast provider snapshot discovery failed',
+              error: e, stackTrace: st);
+        });
+      }
     }
+
+    void stop() {
+      if (identical(_discoverySink, emit)) _discoverySink = null;
+      _nativeCast?.stopGoogleCastDiscovery().catchError(
+            (e, st) => _logger.w('Failed to stop Google Cast discovery',
+                error: e, stackTrace: st),
+          );
+      _nativeDlna?.stopDlnaDiscovery().catchError(
+            (e, st) =>
+                _logger.w('Failed to stop DLNA discovery', error: e, stackTrace: st),
+          );
+    }
+
+    controller = StreamController<CastTarget>(onListen: start, onCancel: stop);
     return controller.stream;
   }
 
-  Future<List<CastTarget>> discoverTargets(AggregatedItem item) async {
-    return discoverTargetsStreamed(item).toList();
+  CastTarget _targetFromEvent(Map<String, dynamic> event, CastTargetKind kind) {
+    return CastTarget(
+      id: event['id']?.toString() ?? '',
+      kind: kind,
+      title: event['title']?.toString() ?? '',
+      subtitle: event['subtitle']?.toString() ?? '',
+    );
   }
 
   Future<void> playToTarget(
