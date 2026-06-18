@@ -1,5 +1,4 @@
 import 'theme_spec.dart';
-import 'themes/glass_theme_spec.dart';
 import 'themes/moonfin_theme_spec.dart';
 import 'themes/neon_pulse_theme_spec.dart';
 
@@ -16,7 +15,6 @@ class ThemeRegistry {
   static const Map<String, ThemeSpec> _builtIns = {
     moonfinId: moonfinThemeSpec,
     neonPulseId: neonPulseThemeSpec,
-    glassId: glassThemeSpec,
   };
 
   static final Map<String, ThemeSpec> _custom = {};
