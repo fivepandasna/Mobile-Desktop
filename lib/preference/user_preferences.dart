@@ -245,6 +245,37 @@ class UserPreferences extends ChangeNotifier {
     'pref_audio_sort_option',
     'pref_person_page_sort_option',
     'pref_person_page_group_items',
+    'enable_imdb_external_lists',
+    'imdb_top_250_movies_enabled',
+    'imdb_top_250_tv_shows_enabled',
+    'imdb_most_popular_movies_enabled',
+    'imdb_most_popular_tv_shows_enabled',
+    'imdb_lowest_rated_movies_enabled',
+    'imdb_top_english_movies_enabled',
+    'tmdb_popular_movies_enabled',
+    'tmdb_top_rated_movies_enabled',
+    'tmdb_now_playing_movies_enabled',
+    'tmdb_upcoming_movies_enabled',
+    'tmdb_popular_tv_enabled',
+    'tmdb_top_rated_tv_enabled',
+    'tmdb_airing_today_tv_enabled',
+    'tmdb_on_the_air_tv_enabled',
+    'tmdb_trending_movie_daily_enabled',
+    'tmdb_trending_movie_weekly_enabled',
+    'tmdb_trending_tv_daily_enabled',
+    'tmdb_trending_tv_weekly_enabled',
+    'tmdb_trending_all_weekly_enabled',
+    'enable_radarr_calendar',
+    'enable_sonarr_calendar',
+    'radarr_calendar_show_cinema',
+    'radarr_calendar_show_digital',
+    'radarr_calendar_show_physical',
+    'radarr_calendar_show_date',
+    'sonarr_calendar_show_date',
+    'sonarr_calendar_show_episode_info',
+    'last_radarr_calendar_fetch_time',
+    'last_sonarr_calendar_fetch_time',
+    'merge_radarr_sonarr_calendars',
   };
 
   bool _isScopedPreference<T>(Preference<T> pref) {
@@ -1409,6 +1440,161 @@ class UserPreferences extends ChangeNotifier {
   static final homeSectionsJson = Preference(
     key: 'home_sections_config',
     defaultValue: '',
+  );
+
+  static final enableImdbExternalLists = Preference(
+    key: 'enable_imdb_external_lists',
+    defaultValue: false,
+  );
+
+  static final imdbTop250MoviesEnabled = Preference(
+    key: 'imdb_top_250_movies_enabled',
+    defaultValue: false,
+  );
+
+  static final imdbTop250TvShowsEnabled = Preference(
+    key: 'imdb_top_250_tv_shows_enabled',
+    defaultValue: false,
+  );
+
+  static final imdbMostPopularMoviesEnabled = Preference(
+    key: 'imdb_most_popular_movies_enabled',
+    defaultValue: false,
+  );
+
+  static final imdbMostPopularTvShowsEnabled = Preference(
+    key: 'imdb_most_popular_tv_shows_enabled',
+    defaultValue: false,
+  );
+
+  static final imdbLowestRatedMoviesEnabled = Preference(
+    key: 'imdb_lowest_rated_movies_enabled',
+    defaultValue: false,
+  );
+
+  static final imdbTopEnglishMoviesEnabled = Preference(
+    key: 'imdb_top_english_movies_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbPopularMoviesEnabled = Preference(
+    key: 'tmdb_popular_movies_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTopRatedMoviesEnabled = Preference(
+    key: 'tmdb_top_rated_movies_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbNowPlayingMoviesEnabled = Preference(
+    key: 'tmdb_now_playing_movies_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbUpcomingMoviesEnabled = Preference(
+    key: 'tmdb_upcoming_movies_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbPopularTvEnabled = Preference(
+    key: 'tmdb_popular_tv_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTopRatedTvEnabled = Preference(
+    key: 'tmdb_top_rated_tv_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbAiringTodayTvEnabled = Preference(
+    key: 'tmdb_airing_today_tv_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbOnTheAirTvEnabled = Preference(
+    key: 'tmdb_on_the_air_tv_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTrendingMovieDailyEnabled = Preference(
+    key: 'tmdb_trending_movie_daily_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTrendingMovieWeeklyEnabled = Preference(
+    key: 'tmdb_trending_movie_weekly_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTrendingTvDailyEnabled = Preference(
+    key: 'tmdb_trending_tv_daily_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTrendingTvWeeklyEnabled = Preference(
+    key: 'tmdb_trending_tv_weekly_enabled',
+    defaultValue: false,
+  );
+
+  static final tmdbTrendingAllWeeklyEnabled = Preference(
+    key: 'tmdb_trending_all_weekly_enabled',
+    defaultValue: false,
+  );
+
+  static final enableRadarrCalendar = Preference(
+    key: 'enable_radarr_calendar',
+    defaultValue: false,
+  );
+
+  static final enableSonarrCalendar = Preference(
+    key: 'enable_sonarr_calendar',
+    defaultValue: false,
+  );
+
+  static final radarrCalendarShowCinema = Preference(
+    key: 'radarr_calendar_show_cinema',
+    defaultValue: true,
+  );
+
+  static final radarrCalendarShowDigital = Preference(
+    key: 'radarr_calendar_show_digital',
+    defaultValue: true,
+  );
+
+  static final radarrCalendarShowPhysical = Preference(
+    key: 'radarr_calendar_show_physical',
+    defaultValue: true,
+  );
+
+  static final radarrCalendarShowDate = Preference(
+    key: 'radarr_calendar_show_date',
+    defaultValue: true,
+  );
+
+  static final sonarrCalendarShowDate = Preference(
+    key: 'sonarr_calendar_show_date',
+    defaultValue: true,
+  );
+
+  static final sonarrCalendarShowEpisodeInfo = Preference(
+    key: 'sonarr_calendar_show_episode_info',
+    defaultValue: true,
+  );
+
+  static final lastRadarrCalendarFetchTime = Preference(
+    key: 'last_radarr_calendar_fetch_time',
+    defaultValue: 0,
+  );
+
+  static final lastSonarrCalendarFetchTime = Preference(
+    key: 'last_sonarr_calendar_fetch_time',
+    defaultValue: 0,
+  );
+
+  static final mergeRadarrSonarrCalendars = Preference(
+    key: 'merge_radarr_sonarr_calendars',
+    defaultValue: false,
   );
 
   List<HomeSectionConfig> get homeSectionsConfig {
