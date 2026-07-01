@@ -130,6 +130,7 @@ class _AppearanceThemeScreenState extends State<AppearanceThemeScreen> {
       ThemeRegistry.moonfinId => l10n.themeMoonfin,
       ThemeRegistry.neonPulseId => l10n.themeNeonPulse,
       ThemeRegistry.glassId => l10n.themeGlass,
+      ThemeRegistry.eightbitHeroId => l10n.theme8BitHero,
       _ => spec.displayName,
     };
   }
@@ -139,6 +140,7 @@ class _AppearanceThemeScreenState extends State<AppearanceThemeScreen> {
       ThemeRegistry.moonfinId => l10n.themeMoonfinSubtitle,
       ThemeRegistry.neonPulseId => l10n.themeNeonPulseSubtitle,
       ThemeRegistry.glassId => l10n.themeGlassSubtitle,
+      ThemeRegistry.eightbitHeroId => l10n.theme8BitHeroSubtitle,
       _ => spec.description,
     };
   }
@@ -147,7 +149,8 @@ class _AppearanceThemeScreenState extends State<AppearanceThemeScreen> {
     if (id == ThemeRegistry.moonfinId) return 0;
     if (id == ThemeRegistry.neonPulseId) return 1;
     if (id == ThemeRegistry.glassId) return 2;
-    return 3;
+    if (id == ThemeRegistry.eightbitHeroId) return 3;
+    return 4;
   }
 }
 
@@ -214,7 +217,7 @@ class _ThemePreviewCardState extends State<_ThemePreviewCard> {
       focusNode: widget.focusNode,
       autofocus:
           PlatformDetection.isTV && widget.themeId == ThemeRegistry.moonfinId,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: AppRadius.circular(18),
       onFocusChange: (f) {
         setState(() => _focused = f);
       },
@@ -225,7 +228,7 @@ class _ThemePreviewCardState extends State<_ThemePreviewCard> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: AppRadius.circular(18),
           border: Border.fromBorderSide(borderSide),
           boxShadow: shadow,
         ),
@@ -253,7 +256,7 @@ class _ThemePreviewCardState extends State<_ThemePreviewCard> {
             ] else
               const SizedBox(height: 10),
             ClipRRect(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: AppRadius.circular(14),
               child: SizedBox(
                 height: 92,
                 child: Stack(
@@ -271,7 +274,7 @@ class _ThemePreviewCardState extends State<_ThemePreviewCard> {
                         margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                         decoration: BoxDecoration(
                           color: AppColorScheme.scrim.withValues(alpha: 0.28),
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: AppRadius.circular(999),
                           border: Border.fromBorderSide(
                             ThemeRegistry.active.borders.chipBorder.copyWith(
                               color: widget.stripes.last.withValues(alpha: 0.8),

@@ -1718,7 +1718,7 @@ class _AddEditCustomRowDialogState extends State<_AddEditCustomRowDialog> {
                              filled: true,
                              fillColor: hasFocus ? AppColorScheme.buttonFocused : Colors.black26,
                              border: OutlineInputBorder(
-                               borderRadius: BorderRadius.circular(8),
+                               borderRadius: AppRadius.circular(8),
                                borderSide: BorderSide(
                                  color: hasFocus
                                      ? AppColorScheme.accent.withValues(alpha: 0.72)
@@ -1727,7 +1727,7 @@ class _AddEditCustomRowDialogState extends State<_AddEditCustomRowDialog> {
                                ),
                              ),
                              enabledBorder: OutlineInputBorder(
-                               borderRadius: BorderRadius.circular(8),
+                               borderRadius: AppRadius.circular(8),
                                borderSide: BorderSide(
                                  color: hasFocus
                                      ? AppColorScheme.accent.withValues(alpha: 0.72)
@@ -1736,7 +1736,7 @@ class _AddEditCustomRowDialogState extends State<_AddEditCustomRowDialog> {
                                ),
                              ),
                              focusedBorder: OutlineInputBorder(
-                               borderRadius: BorderRadius.circular(8),
+                               borderRadius: AppRadius.circular(8),
                                borderSide: BorderSide(
                                  color: AppColorScheme.accent.withValues(alpha: 0.72),
                                  width: 1.5,
@@ -1783,7 +1783,7 @@ class _AddEditCustomRowDialogState extends State<_AddEditCustomRowDialog> {
                                  filled: true,
                                  fillColor: hasFocus ? AppColorScheme.buttonFocused : Colors.black26,
                                  border: OutlineInputBorder(
-                                   borderRadius: BorderRadius.circular(8),
+                                   borderRadius: AppRadius.circular(8),
                                    borderSide: BorderSide(
                                      color: hasFocus
                                          ? AppColorScheme.accent.withValues(alpha: 0.72)
@@ -1792,7 +1792,7 @@ class _AddEditCustomRowDialogState extends State<_AddEditCustomRowDialog> {
                                    ),
                                  ),
                                  enabledBorder: OutlineInputBorder(
-                                   borderRadius: BorderRadius.circular(8),
+                                   borderRadius: AppRadius.circular(8),
                                    borderSide: BorderSide(
                                      color: hasFocus
                                          ? AppColorScheme.accent.withValues(alpha: 0.72)
@@ -1801,7 +1801,7 @@ class _AddEditCustomRowDialogState extends State<_AddEditCustomRowDialog> {
                                    ),
                                  ),
                                  focusedBorder: OutlineInputBorder(
-                                   borderRadius: BorderRadius.circular(8),
+                                   borderRadius: AppRadius.circular(8),
                                    borderSide: BorderSide(
                                      color: AppColorScheme.accent.withValues(alpha: 0.72),
                                      width: 1.5,
@@ -1920,7 +1920,7 @@ class _AddEditCustomRowDialogState extends State<_AddEditCustomRowDialog> {
                              filled: true,
                              fillColor: hasFocus ? AppColorScheme.buttonFocused : Colors.black26,
                              border: OutlineInputBorder(
-                               borderRadius: BorderRadius.circular(8),
+                               borderRadius: AppRadius.circular(8),
                                borderSide: BorderSide(
                                  color: hasFocus
                                      ? AppColorScheme.accent.withValues(alpha: 0.72)
@@ -1929,7 +1929,7 @@ class _AddEditCustomRowDialogState extends State<_AddEditCustomRowDialog> {
                                ),
                              ),
                              enabledBorder: OutlineInputBorder(
-                               borderRadius: BorderRadius.circular(8),
+                               borderRadius: AppRadius.circular(8),
                                borderSide: BorderSide(
                                  color: hasFocus
                                      ? AppColorScheme.accent.withValues(alpha: 0.72)
@@ -1938,7 +1938,7 @@ class _AddEditCustomRowDialogState extends State<_AddEditCustomRowDialog> {
                                ),
                              ),
                              focusedBorder: OutlineInputBorder(
-                               borderRadius: BorderRadius.circular(8),
+                               borderRadius: AppRadius.circular(8),
                                borderSide: BorderSide(
                                  color: AppColorScheme.accent.withValues(alpha: 0.72),
                                  width: 1.5,
@@ -1992,7 +1992,7 @@ class _AddEditCustomRowDialogState extends State<_AddEditCustomRowDialog> {
                                filled: true,
                                fillColor: hasFocus ? AppColorScheme.buttonFocused : Colors.black26,
                                border: OutlineInputBorder(
-                                 borderRadius: BorderRadius.circular(8),
+                                 borderRadius: AppRadius.circular(8),
                                  borderSide: BorderSide(
                                    color: hasFocus
                                        ? AppColorScheme.accent.withValues(alpha: 0.72)
@@ -2001,7 +2001,7 @@ class _AddEditCustomRowDialogState extends State<_AddEditCustomRowDialog> {
                                  ),
                                ),
                                enabledBorder: OutlineInputBorder(
-                                 borderRadius: BorderRadius.circular(8),
+                                 borderRadius: AppRadius.circular(8),
                                  borderSide: BorderSide(
                                    color: hasFocus
                                        ? AppColorScheme.accent.withValues(alpha: 0.72)
@@ -2010,7 +2010,7 @@ class _AddEditCustomRowDialogState extends State<_AddEditCustomRowDialog> {
                                  ),
                                ),
                                focusedBorder: OutlineInputBorder(
-                                 borderRadius: BorderRadius.circular(8),
+                                 borderRadius: AppRadius.circular(8),
                                  borderSide: BorderSide(
                                    color: AppColorScheme.accent.withValues(alpha: 0.72),
                                    width: 1.5,

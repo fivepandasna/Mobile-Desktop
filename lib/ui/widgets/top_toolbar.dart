@@ -1033,12 +1033,12 @@ class _TopToolbarState extends State<TopToolbar> {
       );
     }
     return ClipRRect(
-      borderRadius: BorderRadius.circular(_kPillRadius),
+      borderRadius: AppRadius.circular(_kPillRadius),
       child: Container(
         padding: EdgeInsets.zero,
         decoration: BoxDecoration(
           color: _toolbarSurfaceColor(),
-          borderRadius: BorderRadius.circular(_kPillRadius),
+          borderRadius: AppRadius.circular(_kPillRadius),
           border: isNeon
               ? Border.fromBorderSide(
                   ThemeRegistry.active.borders.chipBorder.copyWith(
@@ -1457,7 +1457,7 @@ class _ToolbarLibrariesTriggerButtonState
           ),
           decoration: BoxDecoration(
             color: bgColor,
-            borderRadius: BorderRadius.circular(36),
+            borderRadius: AppRadius.circular(36),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1560,7 +1560,7 @@ class _ToolbarLibraryLabelButtonState
           decoration: _focused
               ? BoxDecoration(
                   color: bgColor,
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius: AppRadius.circular(22),
                 )
               : null,
           child: Text(
@@ -1721,7 +1721,7 @@ class _LibrariesDropdownState extends State<_LibrariesDropdown> {
         child: Material(
           color: Colors.transparent,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.circular(12),
             child: kIsWeb
                 ? _dropdownContent(maxMenuHeight)
                 : BackdropFilter(
@@ -1765,7 +1765,7 @@ class _LibrariesDropdownState extends State<_LibrariesDropdown> {
       ),
       decoration: BoxDecoration(
         color: widget.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.5),
@@ -2053,7 +2053,7 @@ class _TopMusicBarState extends State<TopMusicBar> {
     if (AppColorScheme.isGlass) {
       return Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: AppRadius.circular(24),
           border: border,
         ),
         child: GlassSurface(
@@ -2071,7 +2071,7 @@ class _TopMusicBarState extends State<TopMusicBar> {
         ).withValues(
           alpha: GetIt.instance<UserPreferences>().get(UserPreferences.navbarOpacity) / 100.0,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: AppRadius.circular(24),
         border: border,
       ),
       child: child,
@@ -2106,7 +2106,7 @@ class _TopMusicBarState extends State<TopMusicBar> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: AppRadius.circular(6),
                   child: SizedBox(
                     width: 32,
                     height: 32,

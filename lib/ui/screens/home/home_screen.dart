@@ -4962,7 +4962,7 @@ class _PreviewCardShell extends StatelessWidget {
               height: width / aspectRatio,
               child: IgnorePointer(
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.circular(8),
                   child: ColoredBox(
                     color: AppColorScheme.background,
                     child: previewSurface,
@@ -4980,7 +4980,7 @@ class _PreviewCardShell extends StatelessWidget {
                 child: Container(
                   height: width / aspectRatio,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: AppRadius.circular(8),
                     border: Border.fromBorderSide(
                       ThemeRegistry.active.borders.focusBorder.copyWith(
                         color: focusColor,

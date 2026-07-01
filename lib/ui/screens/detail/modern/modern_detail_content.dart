@@ -1834,14 +1834,14 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                   width: cardWidth,
                   height: cardHeight,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppRadius.circular(12),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.15),
                       width: 1,
                     ),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppRadius.circular(12),
                     child: imageUrl != null
                         ? CachedNetworkImage(
                             imageUrl: imageUrl,
@@ -2185,7 +2185,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.circular(8),
             border: Border.all(color: Colors.white10),
           ),
           child: Column(
@@ -2782,7 +2782,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                           color: focused
                               ? Colors.white12
                               : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: AppRadius.circular(8),
                         ),
                         child: Row(
                           children: [
@@ -2979,7 +2979,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
         width: 180,
         height: 180,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.circular(12),
           border: Border.all(
             color: const Color(0xFFE8DCCA).withValues(alpha: 0.8),
             width: 2.0,
@@ -2993,7 +2993,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: AppRadius.circular(10),
           child: coverUrl != null
               ? CachedNetworkImage(
                   imageUrl: coverUrl,
@@ -3068,7 +3068,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: AppRadius.circular(4),
                         border: focused
                             ? Border.fromBorderSide(
                                 ThemeRegistry.active.borders.focusBorder.copyWith(
@@ -3249,7 +3249,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: AppColorScheme.accent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: AppRadius.circular(4),
                           border: Border.all(
                             color: AppColorScheme.accent.withValues(alpha: 0.4),
                             width: 1,
@@ -3289,7 +3289,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColorScheme.accent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: AppRadius.circular(4),
                         border: Border.all(
                           color: AppColorScheme.accent.withValues(alpha: 0.4),
                           width: 1,
@@ -3917,7 +3917,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: AppColorScheme.accent.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: AppRadius.circular(4),
                             border: Border.all(
                               color: AppColorScheme.accent.withValues(alpha: 0.4),
                               width: 1,
@@ -3954,7 +3954,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: AppColorScheme.accent.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: AppRadius.circular(4),
                             border: Border.all(
                               color: AppColorScheme.accent.withValues(alpha: 0.4),
                               width: 1,
@@ -4128,7 +4128,7 @@ class _DetailsContainerState extends State<_DetailsContainer> with FocusStateMix
         duration: const Duration(milliseconds: 150),
         constraints: const BoxConstraints(maxHeight: 400),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.circular(12),
           border: Border.all(
             color: showFocusBorder
                 ? (isNeon ? AppColorScheme.accent : focusColor)

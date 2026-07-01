@@ -568,6 +568,18 @@ abstract class AppLocalizations {
   /// **'Liquid-glass styling with a drifting gradient backdrop, frosted surfaces, and Apple-blue accent'**
   String get themeGlassSubtitle;
 
+  /// Display name for the 8-bit Hero theme
+  ///
+  /// In en, this message translates to:
+  /// **'8-bit Hero'**
+  String get theme8BitHero;
+
+  /// Preview description for the 8-bit Hero theme
+  ///
+  /// In en, this message translates to:
+  /// **'Retro pixel-art styling with a chunky palette, blocky borders, hard drop-shadows, and a pixel font'**
+  String get theme8BitHeroSubtitle;
+
   /// Subtitle on the Emby Connect sign-in screen
   ///
   /// In en, this message translates to:

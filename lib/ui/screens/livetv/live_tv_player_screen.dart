@@ -997,7 +997,7 @@ class _LiveTvPlayerScreenState extends State<LiveTvPlayerScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: AppColorScheme.accent,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: AppRadius.circular(4),
                 ),
                 child: Text(
                   channel.number!,
@@ -1193,7 +1193,7 @@ class _LiveTvPlayerScreenState extends State<LiveTvPlayerScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: AppRadius.circular(2),
                   child: LinearProgressIndicator(
                     value: progress,
                     backgroundColor: Colors.white24,

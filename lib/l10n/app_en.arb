@@ -260,6 +260,14 @@
   "@themeGlassSubtitle": {
     "description": "Preview description for the Glass theme"
   },
+  "theme8BitHero": "8-bit Hero",
+  "@theme8BitHero": {
+    "description": "Display name for the 8-bit Hero theme"
+  },
+  "theme8BitHeroSubtitle": "Retro pixel-art styling with a chunky palette, blocky borders, hard drop-shadows, and a pixel font",
+  "@theme8BitHeroSubtitle": {
+    "description": "Preview description for the 8-bit Hero theme"
+  },
   "embyConnectSignInSubtitle": "Sign in with your Emby Connect account",
   "@embyConnectSignInSubtitle": {
     "description": "Subtitle on the Emby Connect sign-in screen"

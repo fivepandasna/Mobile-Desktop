@@ -1525,7 +1525,7 @@ class _MediaBarState extends State<MediaBar>
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: AppColorScheme.scrim.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.circular(12),
             border: Border.fromBorderSide(
               ThemeRegistry.active.borders.cardBorder,
             ),
@@ -2656,7 +2656,7 @@ class _SlideInfo extends StatelessWidget {
           ? null
           : BoxDecoration(
               color: overlayColor.withValues(alpha: cardAlpha.clamp(0.0, 1.0)),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: AppRadius.circular(16),
               border: Border.fromBorderSide(
                 ThemeRegistry.active.borders.cardBorder,
               ),
@@ -2727,7 +2727,7 @@ class _SlideInfo extends StatelessWidget {
               child: infoCard,
             )
           : ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: AppRadius.circular(16),
               child: kIsWeb
                   ? infoCard
                   : BackdropFilter(
@@ -2813,7 +2813,7 @@ class _MetadataRow extends StatelessWidget {
             color: ThemeRegistry.active.borders.chipBorder.color,
           ),
         ),
-        borderRadius: BorderRadius.circular(3),
+        borderRadius: AppRadius.circular(3),
       ),
       child: Text(
         label,
@@ -2846,7 +2846,7 @@ class _IndicatorDots extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: overlayColor.withValues(alpha: overlayOpacity * 0.6),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.circular(12),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -3009,7 +3009,7 @@ class _MakdActionButtons extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: AppColorScheme.buttonFocused,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: AppRadius.circular(8),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

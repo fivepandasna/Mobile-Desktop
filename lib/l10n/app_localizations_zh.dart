@@ -196,6 +196,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get themeGlassSubtitle => '液态玻璃风格，带流动渐变背景、磨砂表面和 Apple 蓝强调色';
 
   @override
+  String get theme8BitHero => '8-bit Hero';
+
+  @override
+  String get theme8BitHeroSubtitle =>
+      'Retro pixel-art styling with a chunky palette, blocky borders, hard drop-shadows, and a pixel font';
+
+  @override
   String get embyConnectSignInSubtitle => '使用你的 Emby Connect 账号登录';
 
   @override

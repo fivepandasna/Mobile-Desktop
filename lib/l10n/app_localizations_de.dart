@@ -201,6 +201,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Liquid-Glass-Stil mit fließendem Übergang und Apple-mäßig blauem Akzent';
 
   @override
+  String get theme8BitHero => '8-bit Hero';
+
+  @override
+  String get theme8BitHeroSubtitle =>
+      'Retro pixel-art styling with a chunky palette, blocky borders, hard drop-shadows, and a pixel font';
+
+  @override
   String get embyConnectSignInSubtitle =>
       'Melde dich mit deinem Emby-Connect-Konto an';
 

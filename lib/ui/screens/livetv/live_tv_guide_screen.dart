@@ -695,7 +695,7 @@ class _LiveTvGuideScreenState extends State<LiveTvGuideScreen> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.circular(12),
         border: Border.fromBorderSide(ThemeRegistry.active.borders.cardBorder),
       ),
       child: Row(
@@ -1330,7 +1330,7 @@ class _GuidePillButtonState extends State<_GuidePillButton> {
       onFocusChange: (focused) {
         if (_focused != focused) setState(() => _focused = focused);
       },
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: AppRadius.circular(20),
       builder: (_) => AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
@@ -1338,7 +1338,7 @@ class _GuidePillButtonState extends State<_GuidePillButton> {
           color: active
               ? AppColorScheme.accent.withValues(alpha: _focused ? 1.0 : 0.7)
               : Colors.white.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: AppRadius.circular(20),
         ),
         child: _buildChild(active),
       ),

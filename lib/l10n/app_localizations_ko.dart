@@ -198,6 +198,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get themeGlassSubtitle => '';
 
   @override
+  String get theme8BitHero => '8-bit Hero';
+
+  @override
+  String get theme8BitHeroSubtitle =>
+      'Retro pixel-art styling with a chunky palette, blocky borders, hard drop-shadows, and a pixel font';
+
+  @override
   String get embyConnectSignInSubtitle => 'Emby Connect 계정으로 로그인하세요';
 
   @override

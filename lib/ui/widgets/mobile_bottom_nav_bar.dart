@@ -459,7 +459,7 @@ class _MobileBottomNavBarState extends State<MobileBottomNavBar> {
         height: 4,
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(2),
+          borderRadius: AppRadius.circular(2),
         ),
       ),
     );
@@ -578,7 +578,7 @@ class _MobileBottomNavBarState extends State<MobileBottomNavBar> {
                   color: action.isActive
                       ? accent.withValues(alpha: 0.16)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: AppRadius.circular(16),
                 ),
                 alignment: Alignment.center,
                 child: _icon(action, color: color),
@@ -643,7 +643,7 @@ class _MobileBottomNavBarState extends State<MobileBottomNavBar> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: _kBarHorizontalInset),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(_kBarCornerRadius),
+        borderRadius: AppRadius.circular(_kBarCornerRadius),
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: barColor,

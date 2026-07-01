@@ -201,6 +201,13 @@ class AppLocalizationsCa extends AppLocalizations {
       'Estil Liquid Glass amb un fons de gradient en moviment, superfícies esmerilades i accent blau Apple';
 
   @override
+  String get theme8BitHero => '8-bit Hero';
+
+  @override
+  String get theme8BitHeroSubtitle =>
+      'Retro pixel-art styling with a chunky palette, blocky borders, hard drop-shadows, and a pixel font';
+
+  @override
   String get embyConnectSignInSubtitle =>
       'Inicieu la sessió amb el vostre compte Emby Connect';
 

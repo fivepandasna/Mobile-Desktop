@@ -81,7 +81,7 @@ BoxDecoration _homeSectionTileDecoration(
     color: focused
         ? AppColorScheme.onSurface
         : colorScheme.surfaceContainerLow.withValues(alpha: 0.82),
-    borderRadius: BorderRadius.circular(_kHomeSectionTileRadius),
+    borderRadius: AppRadius.circular(_kHomeSectionTileRadius),
     border: Border.fromBorderSide(
       (focused ? borderTokens.focusBorder : borderTokens.cardBorder).copyWith(
         color: focused
@@ -1553,7 +1553,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceContainerLow.withValues(alpha: 0.82),
-                  borderRadius: BorderRadius.circular(_kHomeSectionTileRadius),
+                  borderRadius: AppRadius.circular(_kHomeSectionTileRadius),
                   border: Border.all(
                     color: const Color(0xFF00F0FF), // Neon cyan border
                     width: 1.5,
@@ -1707,7 +1707,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: Colors.red.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: AppRadius.circular(4),
                           border: Border.all(
                             color: Colors.red.withValues(alpha: 0.5),
                             width: 0.8,
@@ -2062,7 +2062,7 @@ class _HomeSectionTileState extends State<_HomeSectionTile> {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.red.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: AppRadius.circular(4),
                         border: Border.all(
                           color: Colors.red.withValues(alpha: 0.5),
                           width: 0.8,

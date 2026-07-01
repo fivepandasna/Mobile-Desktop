@@ -501,8 +501,8 @@ class _CardImage extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: isCircular
-                        ? BorderRadius.circular(radius + 3.5)
-                        : borders.cardRadius + BorderRadius.circular(3.5),
+                        ? AppRadius.circular(radius + 3.5)
+                        : borders.cardRadius + AppRadius.circular(3.5),
                     boxShadow: borders.focusGlow,
                   ),
                 ),
@@ -510,7 +510,7 @@ class _CardImage extends StatelessWidget {
             ),
           ClipRRect(
             borderRadius: isCircular
-                ? BorderRadius.circular(radius)
+                ? AppRadius.circular(radius)
                 : borders.cardRadius,
             child: Stack(
               fit: StackFit.expand,
@@ -573,7 +573,7 @@ class _CardImage extends StatelessWidget {
                     right: 6,
                     bottom: 6,
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
+                      borderRadius: AppRadius.circular(3),
                       child: LinearProgressIndicator(
                         value: playedPercentage! / 100,
                         minHeight: 6,
@@ -599,8 +599,8 @@ class _CardImage extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: isCircular
-                        ? BorderRadius.circular(radius + 3.5)
-                        : borders.cardRadius + BorderRadius.circular(3.5),
+                        ? AppRadius.circular(radius + 3.5)
+                        : borders.cardRadius + AppRadius.circular(3.5),
                     border: Border.fromBorderSide(
                       borders.focusBorder.copyWith(
                         color: borderColor,
@@ -650,7 +650,7 @@ class _CardImage extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: badgeColor.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: AppRadius.circular(4),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -753,7 +753,7 @@ class _CardImage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
         decoration: BoxDecoration(
           color: AppColorScheme.badgeUnplayed,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: AppRadius.circular(8),
         ),
         child: Text(
           '$unplayedCount',

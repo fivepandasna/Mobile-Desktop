@@ -85,7 +85,7 @@ class EpgFilterRail extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: AppRadius.circular(13),
         border: (!apple && !selected)
             ? Border.all(color: AppColorScheme.onSurface.withValues(alpha: 0.12))
             : null,

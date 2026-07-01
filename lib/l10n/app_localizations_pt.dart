@@ -200,6 +200,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get themeGlassSubtitle => '';
 
   @override
+  String get theme8BitHero => '8-bit Hero';
+
+  @override
+  String get theme8BitHeroSubtitle =>
+      'Retro pixel-art styling with a chunky palette, blocky borders, hard drop-shadows, and a pixel font';
+
+  @override
   String get embyConnectSignInSubtitle => 'Entre com sua conta Emby Connect';
 
   @override

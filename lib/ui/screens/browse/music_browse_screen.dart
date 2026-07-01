@@ -503,7 +503,7 @@ class _ViewButtonState extends State<_ViewButton> with FocusStateMixin {
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
                 color: AppColorScheme.onSurface.withAlpha(focused ? 51 : 20),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: AppRadius.circular(8),
                 border: showFocusBorder
                     ? Border.fromBorderSide(
                         ThemeRegistry.active.borders.focusBorder.copyWith(
@@ -767,7 +767,7 @@ class _MusicSquareCardState extends State<_MusicSquareCard>
                             child: IgnorePointer(
                               child: Container(
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(9.5),
+                                  borderRadius: AppRadius.circular(9.5),
                                   boxShadow: [
                                     BoxShadow(
                                       color: AppColorScheme.accent.withAlpha(150),
@@ -780,7 +780,7 @@ class _MusicSquareCardState extends State<_MusicSquareCard>
                             ),
                           ),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: AppRadius.circular(6),
                           child: Container(
                             width: _cardSize,
                             height: _cardSize,
@@ -808,7 +808,7 @@ class _MusicSquareCardState extends State<_MusicSquareCard>
                             child: IgnorePointer(
                               child: Container(
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(9.5),
+                                  borderRadius: AppRadius.circular(9.5),
                                   border: Border.fromBorderSide(
                                     activeTheme.borders.focusBorder.copyWith(
                                       color: focusColor,
@@ -915,7 +915,7 @@ class _MusicRowVisibilityDialogState extends State<_MusicRowVisibilityDialog> {
     return Dialog(
       backgroundColor: surfaceColor,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.circular(20),
         side: ThemeRegistry.active.borders.chipBorder.copyWith(
           color: onSurface.withValues(alpha: 0.18),
         ),
@@ -1134,7 +1134,7 @@ class _DialogCheckboxTileState extends State<_DialogCheckboxTile> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: _focused ? onSurface.withAlpha(36) : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.circular(8),
             border: _focused
                 ? Border.fromBorderSide(
                     ThemeRegistry.active.borders.focusBorder.copyWith(
@@ -1151,7 +1151,7 @@ class _DialogCheckboxTileState extends State<_DialogCheckboxTile> {
                 height: 20,
                 decoration: BoxDecoration(
                   shape: widget.isRadio ? BoxShape.circle : BoxShape.rectangle,
-                  borderRadius: widget.isRadio ? null : BorderRadius.circular(4),
+                  borderRadius: widget.isRadio ? null : AppRadius.circular(4),
                   border: Border.fromBorderSide(
                     ThemeRegistry.active.borders.chipBorder.copyWith(
                       color: widget.checked ? accent : onSurface.withAlpha(128),

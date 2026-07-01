@@ -200,6 +200,13 @@ class AppLocalizationsMl extends AppLocalizations {
   String get themeGlassSubtitle => '';
 
   @override
+  String get theme8BitHero => '8-bit Hero';
+
+  @override
+  String get theme8BitHeroSubtitle =>
+      'Retro pixel-art styling with a chunky palette, blocky borders, hard drop-shadows, and a pixel font';
+
+  @override
   String get embyConnectSignInSubtitle =>
       'നിങ്ങളുടെ Emby കണക്റ്റ് അക്കൗണ്ട് ഉപയോഗിച്ച് സൈൻ ഇൻ ചെയ്യുക';
 
