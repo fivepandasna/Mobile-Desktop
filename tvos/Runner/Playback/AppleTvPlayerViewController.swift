@@ -83,6 +83,11 @@ final class AppleTvPlayerViewController: UIViewController {
 
     private var scrubTargetMs: Int?
     private var scrubCommitTimer: Timer?
+    private var scrubHoldTimer: Timer?
+    private var scrubHoldForward = false
+    private var scrubHoldStart: TimeInterval = 0
+    private var panScrubEngaged = false
+    private var panScrubLastTranslationX: CGFloat = 0
 
     private struct TrickplayData {
         let urls: [String]
@@ -1141,16 +1146,23 @@ final class AppleTvPlayerViewController: UIViewController {
         updateTimer = nil
         scrubCommitTimer?.invalidate()
         scrubCommitTimer = nil
+        scrubHoldTimer?.invalidate()
+        scrubHoldTimer = nil
         player.stop()
         onExit?()
     }
 
     private func setupSwipeGestures() {
-        for direction in [UISwipeGestureRecognizer.Direction.up, .down, .left, .right] {
+        for direction in [UISwipeGestureRecognizer.Direction.up, .down] {
             let swipe = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe(_:)))
             swipe.direction = direction
             view.addGestureRecognizer(swipe)
         }
+        // Drag on the remote touch surface to scrub continuously; horizontal
+        // travel maps to timeline time, replacing the old left/right swipe steps.
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(handleScrubPan(_:)))
+        pan.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.indirect.rawValue)]
+        view.addGestureRecognizer(pan)
     }
 
     @objc private func handleSwipe(_ recognizer: UISwipeGestureRecognizer) {
@@ -1166,12 +1178,47 @@ final class AppleTvPlayerViewController: UIViewController {
             focusedZone = .buttons
             updateFocusHighlight()
             showOsd()
-        case .left:
-            handleHorizontal(forward: false)
-            showOsd()
-        case .right:
-            handleHorizontal(forward: true)
-            showOsd()
+        default:
+            break
+        }
+    }
+
+    @objc private func handleScrubPan(_ recognizer: UIPanGestureRecognizer) {
+        guard presentedViewController == nil, !nextUpVisible, !isLive else { return }
+        switch recognizer.state {
+        case .began:
+            panScrubEngaged = false
+            panScrubLastTranslationX = 0
+        case .changed:
+            let t = recognizer.translation(in: view)
+            if !panScrubEngaged {
+                // Engage only once horizontal travel clearly dominates, so an
+                // up/down swipe still switches focus zones instead of scrubbing.
+                guard abs(t.x) > 24, abs(t.x) > abs(t.y) else { return }
+                panScrubEngaged = true
+                focusedZone = .scrubber
+                updateFocusHighlight()
+                showOsd()
+                panScrubLastTranslationX = t.x
+                return
+            }
+            let dx = t.x - panScrubLastTranslationX
+            panScrubLastTranslationX = t.x
+            let width = max(1, view.bounds.width)
+            let durationMs = max(1, Int(player.duration * 1000))
+            // A full-width sweep covers the larger of 90s or 1/12 of the runtime,
+            // so short clips stay fine-grained and long movies still move quickly.
+            let sweepMs = max(90_000, durationMs / 12)
+            let boost = 1 + min(3, abs(recognizer.velocity(in: view).x) / 1500)
+            let deltaMs = Int(dx / width * CGFloat(sweepMs) * boost)
+            if deltaMs != 0 {
+                adjustScrub(byMs: deltaMs)
+            }
+        case .ended, .cancelled, .failed:
+            if panScrubEngaged {
+                commitScrub()
+            }
+            panScrubEngaged = false
         default:
             break
         }
@@ -1228,10 +1275,12 @@ final class AppleTvPlayerViewController: UIViewController {
                 return
             case .leftArrow:
                 handleHorizontal(forward: false)
+                if focusedZone == .scrubber { beginScrubHold(forward: false) }
                 showOsd()
                 return
             case .rightArrow:
                 handleHorizontal(forward: true)
+                if focusedZone == .scrubber { beginScrubHold(forward: true) }
                 showOsd()
                 return
             default:
@@ -1239,6 +1288,46 @@ final class AppleTvPlayerViewController: UIViewController {
             }
         }
         super.pressesBegan(presses, with: event)
+    }
+
+    override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        endScrubHold()
+        super.pressesEnded(presses, with: event)
+    }
+
+    override func pressesCancelled(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        endScrubHold()
+        super.pressesCancelled(presses, with: event)
+    }
+
+    // Hold the D-pad left/right edge to scrub continuously (for users who click
+    // the ring instead of swiping); steps accelerate the longer it is held.
+    private func beginScrubHold(forward: Bool) {
+        guard !isLive else { return }
+        scrubHoldTimer?.invalidate()
+        scrubHoldForward = forward
+        scrubHoldStart = ProcessInfo.processInfo.systemUptime
+        scrubHoldTimer = Timer.scheduledTimer(withTimeInterval: 0.08, repeats: true) {
+            [weak self] _ in
+            Task { @MainActor in self?.tickScrubHold() }
+        }
+    }
+
+    private func tickScrubHold() {
+        let held = ProcessInfo.processInfo.systemUptime - scrubHoldStart
+        guard held >= 0.4 else { return }
+        let base = Double(scrubHoldForward ? skipForwardMs : skipBackMs)
+        let accel = min(6.0, 1.0 + held * 1.5)
+        let deltaMs = Int(base * 0.25 * accel) * (scrubHoldForward ? 1 : -1)
+        adjustScrub(byMs: deltaMs)
+        showOsd()
+    }
+
+    private func endScrubHold() {
+        guard scrubHoldTimer != nil else { return }
+        scrubHoldTimer?.invalidate()
+        scrubHoldTimer = nil
+        if scrubTargetMs != nil { commitScrub() }
     }
 
     private func handleSelect() {
@@ -1454,6 +1543,8 @@ final class AppleTvPlayerViewController: UIViewController {
     }
 
     private func cancelScrub() {
+        scrubHoldTimer?.invalidate()
+        scrubHoldTimer = nil
         scrubCommitTimer?.invalidate()
         scrubCommitTimer = nil
         scrubTargetMs = nil
