@@ -324,6 +324,11 @@ class _TopToolbarState extends State<TopToolbar> {
   }
 
   void _restoreFocusBelowToolbar() {
+    final playBtnNode = NavigationLayout.focusDetailsPlayButtonNotifier.value;
+    if (playBtnNode != null && playBtnNode.context != null && playBtnNode.canRequestFocus) {
+      playBtnNode.requestFocus();
+      return;
+    }
     final focusContent = NavigationLayout.focusContentFromNavbarNotifier.value;
     if (focusContent != null && widget.activeRoute == Destinations.home) {
       focusContent();
@@ -545,7 +550,8 @@ class _TopToolbarState extends State<TopToolbar> {
                     }
                   }
 
-                  if (widget.activeRoute != Destinations.home) {
+                  if (widget.activeRoute != Destinations.home &&
+                      NavigationLayout.focusDetailsPlayButtonNotifier.value == null) {
                     final success =
                         primary.focusInDirection(TraversalDirection.down);
                     if (success) {
@@ -2044,22 +2050,11 @@ class _TopMusicBarState extends State<TopMusicBar> {
             color: AppColorScheme.onSurface.withValues(alpha: 0.15),
             width: 1.0,
           );
-    final boxShadow = isNeon
-        ? const [
-            BoxShadow(
-              color: Color(0x3300F0FF), // cyan glow!
-              blurRadius: 8,
-              spreadRadius: 1,
-            )
-          ]
-        : null;
-
     if (AppColorScheme.isGlass) {
       return Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           border: border,
-          boxShadow: boxShadow,
         ),
         child: GlassSurface(
           cornerRadius: 24,
@@ -2078,7 +2073,6 @@ class _TopMusicBarState extends State<TopMusicBar> {
         ),
         borderRadius: BorderRadius.circular(24),
         border: border,
-        boxShadow: boxShadow,
       ),
       child: child,
     );

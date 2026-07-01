@@ -2880,7 +2880,7 @@ class _ContentRowsState extends State<_ContentRows>
       UserPreferences.enableAdditionalRatings,
     );
     final hasAdditionalRatingsPadding = hasAdditionalRatings ? 8.0 : 0.0;
-    final heightBudget = 136.0 + hasAdditionalRatingsPadding;
+    final heightBudget = 165.0 + hasAdditionalRatingsPadding;
     return heightBudget;
   }
 

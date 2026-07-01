@@ -540,6 +540,48 @@ class PluginSyncService extends ChangeNotifier {
     } catch (_) {}
   }
 
+  Future<List<String>?> fetchCustomCollectionOrder(
+    MediaServerClient client,
+    String collectionId,
+  ) async {
+    if (!_pluginAvailable) return null;
+    final headers = _authHeaders(client);
+    if (headers == null) return null;
+
+    try {
+      final response = await _dio.get(
+        '${client.baseUrl}/Moonfin/Collections/$collectionId/Order',
+        options: Options(headers: headers),
+      );
+      if (response.statusCode == 200 && response.data is List) {
+        return List<String>.from(response.data as List);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<bool> saveCustomCollectionOrder(
+    MediaServerClient client,
+    String collectionId,
+    List<String> itemIds,
+  ) async {
+    if (!_pluginAvailable) return false;
+    final headers = _authHeaders(client);
+    if (headers == null) return false;
+
+    try {
+      final response = await _dio.post(
+        '${client.baseUrl}/Moonfin/Collections/$collectionId/Order',
+        data: itemIds,
+        options: Options(
+          headers: {...headers, 'Content-Type': 'application/json'},
+        ),
+      );
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (_) {}
+    return false;
+  }
+
   Future<bool> pullSettingsForProfile(
     MediaServerClient client, {
     required String profile,

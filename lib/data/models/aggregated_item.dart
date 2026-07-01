@@ -74,6 +74,10 @@ class AggregatedItem {
   String? get logoImageTag =>
       (rawData['ImageTags'] as Map?)?['Logo'] as String?;
 
+  // Series logo is delivered as the parent logo; servers send no SeriesLogoImageTag.
+  String? get seriesLogoImageTag =>
+      rawData['ParentLogoImageTag'] as String?;
+
   Map? get _userData => rawData['UserData'] as Map?;
 
   double? get playedPercentage =>

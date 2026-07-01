@@ -14,6 +14,7 @@ import 'package:server_core/server_core.dart';
 import '../../../data/models/aggregated_item.dart';
 import '../../../data/repositories/item_mutation_repository.dart';
 import '../../../data/repositories/mdblist_repository.dart';
+import '../../../data/repositories/tmdb_repository.dart';
 import '../../../data/services/background_service.dart';
 import '../../../data/services/download_service.dart';
 import '../../../data/models/download_quality.dart';
@@ -25,6 +26,7 @@ import '../../../data/services/book_reader_service.dart';
 import '../../../data/services/theme_music_service.dart';
 import '../../../data/viewmodels/item_detail_view_model.dart';
 import '../../../data/services/plugin_sync_service.dart';
+import '../../navigation/route_lifecycle_observer.dart';
 import 'modern/modern_detail_content.dart';
 import '../../../data/repositories/seerr_repository.dart';
 import '../../../data/services/seerr/seerr_api_models.dart';
@@ -52,7 +54,6 @@ import '../../widgets/seerr_icons.dart';
 import '../../widgets/focus/context_menu_sheet.dart';
 import '../../widgets/focus/focusable_button.dart';
 import '../../widgets/focus/request_initial_focus.dart';
-import '../../widgets/focus/step_scroll.dart';
 import '../../widgets/overlay_sheet.dart';
 import '../../widgets/playback/player_loading_overlay.dart';
 import '../../../playback/offline_playback_launcher.dart';
@@ -149,7 +150,7 @@ class ItemDetailScreen extends StatefulWidget {
 }
 
 class _ItemDetailScreenState extends State<ItemDetailScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RouteAware {
   late final ItemDetailViewModel _viewModel;
   final _backgroundService = GetIt.instance<BackgroundService>();
   final _themeMusicService = GetIt.instance<ThemeMusicService>();
@@ -158,12 +159,15 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
   StreamSubscription<String?>? _backgroundSub;
   bool _themeMusicStarted = false;
   String? _selectedMediaSourceId;
+  bool _showNavbar = true;
+  bool _actionsExpanded = false;
   Timer? _focusedBackdropDebounce;
   String? _lastFocusedBackdropItemId;
   String? _lastDetailBackdropItemId;
   final Map<String, String> _focusedPrimaryBackdropUrlCache =
       <String, String>{};
   FocusNode? _initialContentFocusNode;
+  ModalRoute<dynamic>? _observedRoute;
 
   FocusNode _ensureInitialFocusNode() => _initialContentFocusNode ??= FocusNode(
     debugLabel: 'detailInitialContent',
@@ -185,6 +189,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
       client: client,
       mutations: GetIt.instance<ItemMutationRepository>(),
       mdbListRepository: GetIt.instance<MdbListRepository>(),
+      tmdbRepository: GetIt.instance<TmdbRepository>(),
     );
     _viewModel.addListener(_onChanged);
     _prefs.addListener(_onPrefsChanged);
@@ -193,10 +198,46 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
 
     _backdropUrl = _backgroundService.currentUrl;
     _backgroundSub = _backgroundService.backgroundStream.listen((url) {
-      if (mounted) {
+      // Ignore null: a child screen clearing the shared service on its way out
+      // must not blank this screen's backdrop after it has been restored.
+      if (mounted && url != null) {
         setState(() => _backdropUrl = url);
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route == null || route == _observedRoute) return;
+    if (_observedRoute != null) {
+      routeLifecycleObserver.unsubscribe(this);
+    }
+    _observedRoute = route;
+    routeLifecycleObserver.subscribe(this, route);
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    final item = _viewModel.item;
+    if (item != null) {
+      _backgroundService.setBackground(item, context: BlurContext.details);
+      final nextUrl = _backgroundService.currentUrl;
+      // Keep the last good backdrop if the service has none to give (e.g. after
+      // returning from a child with no backdrop that cleared the shared service).
+      if (nextUrl != null && nextUrl != _backdropUrl) {
+        setState(() => _backdropUrl = nextUrl);
+      }
+    }
+    // A pushed child screen (e.g. a similar item) clears the shared play-button
+    // notifier on its way out; reclaim it so focus restoration finds this screen.
+    if (PlatformDetection.isTV && _initialContentFocusNode != null) {
+      NavigationLayout.focusDetailsPlayButtonNotifier.value =
+          _initialContentFocusNode;
+    }
+    _resumeThemeMusicIfEligible();
   }
 
   @override
@@ -218,11 +259,17 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
 
   @override
   void dispose() {
+    if (_observedRoute != null) {
+      routeLifecycleObserver.unsubscribe(this);
+      _observedRoute = null;
+    }
     WidgetsBinding.instance.removeObserver(this);
     _themeMusicService.unregisterDetailScreen(this);
     _backgroundSub?.cancel();
     _focusedBackdropDebounce?.cancel();
-    _backgroundService.clearBackgrounds();
+    if (_backgroundService.currentUrl == _backdropUrl) {
+      _backgroundService.clearBackgrounds();
+    }
     _viewModel.removeListener(_onChanged);
     _prefs.removeListener(_onPrefsChanged);
     try {
@@ -238,12 +285,26 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
     setState(() {});
     final item = _viewModel.item;
     if (item != null) {
-      if (_lastDetailBackdropItemId != item.id) {
+      bool needInitialBackdrop = _lastDetailBackdropItemId != item.id;
+      if (item.type == 'Playlist' &&
+          _viewModel.tracks.isNotEmpty &&
+          _lastFocusedBackdropItemId == null) {
+        needInitialBackdrop = true;
+      }
+
+      if (needInitialBackdrop) {
         _lastDetailBackdropItemId = item.id;
         _focusedPrimaryBackdropUrlCache.clear();
-        _lastFocusedBackdropItemId = null;
-        _backgroundService.setBackground(item, context: BlurContext.details);
+
+        final target = (item.type == 'Playlist' && _viewModel.tracks.isNotEmpty)
+            ? _viewModel.tracks.first
+            : item;
+        _backgroundService.setBackground(target, context: BlurContext.details);
         _backdropUrl = _backgroundService.currentUrl;
+
+        if (item.type == 'Playlist' && _viewModel.tracks.isNotEmpty) {
+          _onBackdropItemFocused(_viewModel.tracks.first);
+        }
 
         if (item.mediaSources.isNotEmpty) {
           _selectedMediaSourceId = item.mediaSources.first['Id']?.toString();
@@ -266,6 +327,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
     if (_lastFocusedBackdropItemId == itemId) return;
     _lastFocusedBackdropItemId = itemId;
     _focusedBackdropDebounce?.cancel();
+
     _focusedBackdropDebounce = Timer(const Duration(milliseconds: 80), () {
       if (!mounted || _lastFocusedBackdropItemId != itemId) return;
 
@@ -324,41 +386,64 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
     final type = _viewModel.item?.type;
     final useTargetNode = type != null && type != 'Photo';
     final node = useTargetNode ? _ensureInitialFocusNode() : null;
+    final lastCollapse = ExpandableBiography.lastCollapseTime;
+    final now = DateTime.now();
+    final wasCollapsedRecently = lastCollapse != null &&
+        now.difference(lastCollapse) < const Duration(milliseconds: 350);
+
+    // Albums/playlists hide the chrome on TV/desktop (their split hero owns the
+    // top area); on mobile they need the back arrow like every other screen.
     final isAlbumOrPlaylist = type == 'MusicAlbum' || type == 'Playlist';
-    final showNavigationChrome =
-        _viewModel.state == ItemDetailState.ready && !isAlbumOrPlaylist;
+    final showNavigationChrome = _viewModel.state == ItemDetailState.ready &&
+        _showNavbar &&
+        (!isAlbumOrPlaylist || _isCompact(context));
+
     Widget body = NavigationLayout(
       showBackButton: true,
       showNavigationChrome: showNavigationChrome,
       child: _buildBody(context),
     );
-    if (isAlbumOrPlaylist && !PlatformDetection.isTV) {
-      body = Stack(
-        children: [
-          Positioned.fill(child: body),
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: IconButton(
-                  icon: const AdaptiveIcon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                  onPressed: () => Navigator.of(context).maybePop(),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
+
+    body = PopScope(
+      canPop: !wasCollapsedRecently,
+      child: body,
+    );
     return RequestInitialFocus(
       targetNode: node,
       child: Scaffold(backgroundColor: Colors.black, body: body),
     );
+  }
+
+  Future<void> _playFromChapter(
+    BuildContext context,
+    AggregatedItem item,
+    Duration startPosition,
+    String? mediaSourceId,
+  ) async {
+    final manager = GetIt.instance<PlaybackManager>();
+    final forceTranscode = await _shouldForceTranscodeForDolbyVisionQueue(
+      context,
+      [item],
+      mediaSourceId: mediaSourceId,
+    );
+    if (!context.mounted) return;
+    final started = await _runWithDolbyVisionStartupFallbackPrompt(
+      context,
+      manager,
+      () => manager.playItems(
+        [item],
+        startPosition: startPosition,
+        mediaSourceId: mediaSourceId,
+        enableDirectPlay: !forceTranscode,
+        enableDirectStream: !forceTranscode,
+      ),
+    );
+    if (!started || !context.mounted) return;
+
+    final destination = manager.playbackDeferredToExternalPlayer
+        ? Destinations.externalPlayer
+        : Destinations.videoPlayer;
+    unawaited(context.push(destination));
   }
 
   Widget _buildBody(BuildContext context) {
@@ -398,9 +483,19 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                 backdropUrl: _backdropUrl,
                 selectedMediaSourceId: _selectedMediaSourceId,
                 initialFocusNode: _ensureInitialFocusNode(),
-                onSelectedMediaSourceChanged: (id) =>
-                    setState(() => _selectedMediaSourceId = id),
+                onSelectedMediaSourceChanged: (id) {
+                  setState(() => _selectedMediaSourceId = id);
+                  _viewModel.load(mediaSourceId: id);
+                },
+                onBackdropItemFocused: _onBackdropItemFocused,
                 autoPlay: widget.autoPlay,
+                onPlayFromChapter: (position) => unawaited(
+                  _playFromChapter(context, _viewModel.item!, position, _selectedMediaSourceId),
+                ),
+                onToggleNavbar: (show) => setState(() => _showNavbar = show),
+                actionsExpanded: _actionsExpanded,
+                onActionsExpandedChanged: (val) => setState(() => _actionsExpanded = val),
+                onCollapseBiography: () => setState(() {}),
               )
             : _DetailContent(
                 viewModel: _viewModel,
@@ -408,8 +503,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen>
                 backdropUrl: _backdropUrl,
                 selectedMediaSourceId: _selectedMediaSourceId,
                 initialFocusNode: _ensureInitialFocusNode(),
-                onSelectedMediaSourceChanged: (id) =>
-                    setState(() => _selectedMediaSourceId = id),
+                onSelectedMediaSourceChanged: (id) {
+                  setState(() => _selectedMediaSourceId = id);
+                  _viewModel.load(mediaSourceId: id);
+                },
                 onBackdropItemFocused: _onBackdropItemFocused,
                 autoPlay: widget.autoPlay,
               ),
@@ -588,7 +685,7 @@ class _DetailContentState extends State<_DetailContent> {
       return true;
     }
     return target.context
-            ?.findAncestorWidgetOfExactType<_ExpandableBiography>() !=
+            ?.findAncestorWidgetOfExactType<ExpandableBiography>() !=
         null;
   }
 
@@ -902,7 +999,7 @@ class _DetailContentState extends State<_DetailContent> {
 
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
     final focusColor = Color(prefs.get(UserPreferences.focusColor).colorValue);
-    final profileBorderColor = isNeon ? const Color(0xFFFF2E92) : focusColor;
+    final profileBorderColor = isNeon ? AppColorScheme.accent : focusColor;
 
     const avatarRadius = 80.0;
     final avatar = Container(
@@ -954,7 +1051,7 @@ class _DetailContentState extends State<_DetailContent> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-          _PersonDatesVertical(item: item),
+          PersonDatesVertical(item: item),
           if (item.productionLocations.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
@@ -1096,6 +1193,7 @@ class _DetailContentState extends State<_DetailContent> {
                         _requestSectionFocus(targetNode);
                       },
                       onArrowLeft: () => _tryFocusSidebar(),
+                      onCollapseBiography: () => setState(() {}),
                     ),
                   ),
                 SliverPadding(
@@ -1399,6 +1497,7 @@ class _DetailContentState extends State<_DetailContent> {
               ? () => _requestSectionFocus(similarFocusNode)
               : null,
           onArrowLeft: () => _tryFocusSidebar(),
+          onCollapse: () => setState(() {}),
           style: const TextStyle(
             color: Color(0xFFD7E8F6),
             fontSize: 14,
@@ -1845,6 +1944,7 @@ class _DetailContentState extends State<_DetailContent> {
               episode: ep,
               imageApi: viewModel.imageApi,
               onChanged: () => viewModel.load(),
+              isActive: viewModel.nextUp?.id == ep.id,
             ),
           ),
         ),
@@ -2364,12 +2464,12 @@ class _DetailContentState extends State<_DetailContent> {
 
     return [
       if (!useSplit) ...[
-        _PersonHeader(item: item, imageApi: viewModel.imageApi),
+        PersonHeader(item: item, imageApi: viewModel.imageApi),
         const SizedBox(height: 12),
       ],
       if (hasBio) ...[
         const SizedBox(height: 24),
-        _ExpandableBiography(
+        ExpandableBiography(
           text: item.overview!,
           toggleFocusNode: firstFocus,
           upTarget: null,
@@ -2380,6 +2480,7 @@ class _DetailContentState extends State<_DetailContent> {
           onArrowLeft: () {
             _tryFocusSidebar();
           },
+          onCollapse: () => setState(() {}),
         ),
       ],
       const SizedBox(height: 24),
@@ -2494,7 +2595,7 @@ class _DetailContentState extends State<_DetailContent> {
         const SizedBox(height: 32),
         HorizontalScrollSection(
           title: l10n.movies,
-          builder: (_, ctrl) => _FilmographyRow(
+          builder: (_, ctrl) => FilmographyRow(
             items: movies,
             imageApi: viewModel.imageApi,
             prefs: prefs,
@@ -2522,7 +2623,7 @@ class _DetailContentState extends State<_DetailContent> {
         const SizedBox(height: 32),
         HorizontalScrollSection(
           title: l10n.series,
-          builder: (_, ctrl) => _FilmographyRow(
+          builder: (_, ctrl) => FilmographyRow(
             items: series,
             imageApi: viewModel.imageApi,
             prefs: prefs,
@@ -2549,7 +2650,7 @@ class _DetailContentState extends State<_DetailContent> {
         const SizedBox(height: 32),
         HorizontalScrollSection(
           title: l10n.guestAppearances,
-          builder: (_, ctrl) => _FilmographyRow(
+          builder: (_, ctrl) => FilmographyRow(
             items: guestAppearances,
             imageApi: viewModel.imageApi,
             prefs: prefs,
@@ -2572,7 +2673,7 @@ class _DetailContentState extends State<_DetailContent> {
         const SizedBox(height: 32),
         HorizontalScrollSection(
           title: l10n.musicVideos,
-          builder: (_, ctrl) => _FilmographyRow(
+          builder: (_, ctrl) => FilmographyRow(
             items: musicVideos,
             imageApi: viewModel.imageApi,
             prefs: prefs,
@@ -2600,7 +2701,7 @@ class _DetailContentState extends State<_DetailContent> {
         const SizedBox(height: 32),
         HorizontalScrollSection(
           title: l10n.crewContributionsSeerr,
-          builder: (_, ctrl) => _SeerrCrewCreditsRow(
+          builder: (_, ctrl) => SeerrCrewCreditsRow(
             items: seerrCrewCredits,
             prefs: prefs,
             scrollController: _trackSectionScrollController(
@@ -2627,7 +2728,7 @@ class _DetailContentState extends State<_DetailContent> {
         const SizedBox(height: 32),
         HorizontalScrollSection(
           title: l10n.appearancesSeerr,
-          builder: (_, ctrl) => _SeerrAppearancesRow(
+          builder: (_, ctrl) => SeerrAppearancesRow(
             items: seerrAppearances,
             prefs: prefs,
             scrollController: _trackSectionScrollController(
@@ -2699,6 +2800,7 @@ class _DetailContentState extends State<_DetailContent> {
               ? () => _requestSectionFocus(albumsFocusNode ?? similarFocusNode)
               : null,
           onArrowLeft: () => _tryFocusSidebar(),
+          onCollapse: () => setState(() {}),
         ),
       ],
       if (viewModel.albums.isNotEmpty) ...[
@@ -3315,6 +3417,7 @@ class _HeaderSection extends StatelessWidget {
   final VoidCallback? onArrowUp;
   final VoidCallback? onArrowDown;
   final VoidCallback? onArrowLeft;
+  final VoidCallback? onCollapseBiography;
 
   const _HeaderSection({
     required this.viewModel,
@@ -3324,6 +3427,7 @@ class _HeaderSection extends StatelessWidget {
     this.onArrowUp,
     this.onArrowDown,
     this.onArrowLeft,
+    this.onCollapseBiography,
   });
 
   @override
@@ -3465,6 +3569,7 @@ class _HeaderSection extends StatelessWidget {
             onArrowUp: onArrowUp,
             onArrowDown: onArrowDown,
             onArrowLeft: onArrowLeft,
+            onCollapse: onCollapseBiography,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: ThemeRegistry.active.id == ThemeRegistry.neonPulseId
                   ? AppColorScheme.onSurface
@@ -4102,6 +4207,11 @@ class DetailActionButtons extends StatefulWidget {
   /// When false the pill is content-width and sits inline with the secondary
   /// circular buttons (landscape).
   final bool fullWidthPrimary;
+  final FocusNode? actionRowRightFocusNode;
+  final FocusNode? extraFirstFocusNode;
+  final ValueChanged<bool>? onFocusExtra;
+  final bool? actionsExpanded;
+  final ValueChanged<bool>? onActionsExpandedChanged;
 
   const DetailActionButtons({
     required this.viewModel,
@@ -4117,6 +4227,11 @@ class DetailActionButtons extends StatefulWidget {
     this.onArrowRightAtEnd,
     this.modernStyle = false,
     this.fullWidthPrimary = false,
+    this.actionRowRightFocusNode,
+    this.extraFirstFocusNode,
+    this.onFocusExtra,
+    this.actionsExpanded,
+    this.onActionsExpandedChanged,
   });
 
   @override
@@ -4470,7 +4585,10 @@ class _BookAuthorDetailScreenState extends State<_BookAuthorDetailScreen> {
                     const SizedBox(height: 8),
                     if (data.biography != null &&
                         data.biography!.trim().isNotEmpty)
-                      _ExpandableBiography(text: data.biography!)
+                      ExpandableBiography(
+                        text: data.biography!,
+                        onCollapse: () => setState(() {}),
+                      )
                     else
                       Text(
                         AppLocalizations.of(context).noBiographyAvailable,
@@ -4855,7 +4973,15 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
   set _selectedSubtitleIndex(int? value) =>
       viewModel.selectedSubtitleIndex = value;
 
-  bool _expanded = false;
+  bool _localExpanded = false;
+  bool get _expanded => widget.actionsExpanded ?? _localExpanded;
+  set _expanded(bool val) {
+    if (widget.onActionsExpandedChanged != null) {
+      widget.onActionsExpandedChanged!(val);
+    } else {
+      setState(() => _localExpanded = val);
+    }
+  }
   bool _playLaunchInFlight = false;
   bool _autoPlayTriggered = false;
   DownloadedItem? _offlineRow;
@@ -4871,6 +4997,77 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
   final FocusNode _overflowFirstExtraFocusNode = FocusNode(
     debugLabel: 'detail_overflow_first_extra',
   );
+  final List<FocusNode> _primaryFocusNodes = [];
+  final List<FocusNode> _extraFocusNodes = [];
+
+  FocusNode _primaryFocusNode(int index) {
+    if (index == 0) return _tvPlayFocusNode;
+    final listIndex = index - 1;
+    while (_primaryFocusNodes.length <= listIndex) {
+      _primaryFocusNodes.add(FocusNode(debugLabel: 'primary_btn_${_primaryFocusNodes.length + 1}'));
+    }
+    return _primaryFocusNodes[listIndex];
+  }
+
+  /// Returns the focus node for extra-row button [index], matching the same
+  /// logic used when assigning focus nodes during build so index 0 always
+  /// resolves to [widget.extraFirstFocusNode] when provided.
+  FocusNode _extraFocusNode(int index) {
+    if (index == 0 && widget.extraFirstFocusNode != null) {
+      return widget.extraFirstFocusNode!;
+    }
+    while (_extraFocusNodes.length <= index) {
+      _extraFocusNodes.add(FocusNode(debugLabel: 'extra_btn_${_extraFocusNodes.length}'));
+    }
+    return _extraFocusNodes[index];
+  }
+
+  void _focusSecondRowButton(int index, int extraCount) {
+    if (extraCount <= 0) return;
+    final targetIndex = index.clamp(0, extraCount - 1);
+    _extraFocusNode(targetIndex).requestFocus();
+  }
+
+  /// Resolves the focus node for primary-row button [index] in a full (non-
+  /// overflow) row, where the last slot shares the right-edge node.
+  FocusNode _primaryNodeAt(int index, int count) {
+    if (index == 0) return widget.tvPlayFocusNode ?? _primaryFocusNode(0);
+    if (index == count - 1) {
+      return widget.actionRowRightFocusNode ?? _primaryFocusNode(index);
+    }
+    return _primaryFocusNode(index);
+  }
+
+  /// Resolves the focus node for primary-row button [index] in an overflow row,
+  /// where the More button owns the right-edge node separately.
+  FocusNode _primaryNodePlain(int index) => index == 0
+      ? (widget.tvPlayFocusNode ?? _primaryFocusNode(0))
+      : _primaryFocusNode(index);
+
+  /// Focuses the nearest mounted button along [nodeAt], scanning from [from] by
+  /// [step]. Skips slots that currently render nothing (unattached focus node),
+  /// e.g. the hidden delete-download action, so the d-pad chain is never
+  /// stranded on an invisible button.
+  bool _focusAdjacent(
+    FocusNode Function(int) nodeAt,
+    int from,
+    int step,
+    int count,
+  ) {
+    for (var i = from; i >= 0 && i < count; i += step) {
+      final node = nodeAt(i);
+      if (node.context != null) {
+        node.requestFocus();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _focusFirstRowButton(int index, int primaryCount) {
+    final targetIndex = index.clamp(0, primaryCount - 1);
+    _primaryFocusNode(targetIndex).requestFocus();
+  }
   String? _tvPlayFocusAppliedForItemId;
   bool _rowHasFocus = false;
 
@@ -4901,6 +5098,12 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     _localTvPlayFocusNode.dispose();
     _overflowMoreFocusNode.dispose();
     _overflowFirstExtraFocusNode.dispose();
+    for (final node in _primaryFocusNodes) {
+      node.dispose();
+    }
+    for (final node in _extraFocusNodes) {
+      node.dispose();
+    }
     super.dispose();
   }
 
@@ -4934,6 +5137,61 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           suppressAutoScrollToTop ?? button.suppressAutoScrollToTop,
       isPrimary: button.isPrimary,
     );
+  }
+
+  /// Applies the row's per-slot focus node and arrow wiring to any action
+  /// widget, including the download/delete wrappers that are not themselves
+  /// _DetailActionButtons (without this they never join the d-pad chain).
+  Widget _wireButton(
+    Widget button, {
+    VoidCallback? onFocused,
+    VoidCallback? onArrowUp,
+    VoidCallback? onArrowDown,
+    VoidCallback? onArrowLeft,
+    VoidCallback? onArrowRight,
+    FocusNode? focusNode,
+    bool? autofocus,
+    bool? suppressAutoScrollToTop,
+  }) {
+    if (button is _DetailActionButton) {
+      return _copyActionButton(
+        button,
+        onFocused: onFocused,
+        onArrowUp: onArrowUp,
+        onArrowDown: onArrowDown,
+        onArrowLeft: onArrowLeft,
+        onArrowRight: onArrowRight,
+        focusNode: focusNode,
+        autofocus: autofocus,
+        suppressAutoScrollToTop: suppressAutoScrollToTop,
+      );
+    }
+    if (button is _DownloadButton) {
+      return _DownloadButton(
+        item: button.item,
+        viewModel: button.viewModel,
+        focusNode: focusNode,
+        onFocused: onFocused,
+        onArrowUp: onArrowUp,
+        onArrowDown: onArrowDown,
+        onArrowLeft: onArrowLeft,
+        onArrowRight: onArrowRight,
+        suppressAutoScrollToTop: suppressAutoScrollToTop ?? false,
+      );
+    }
+    if (button is _DeleteDownloadButton) {
+      return _DeleteDownloadButton(
+        item: button.item,
+        focusNode: focusNode,
+        onFocused: onFocused,
+        onArrowUp: onArrowUp,
+        onArrowDown: onArrowDown,
+        onArrowLeft: onArrowLeft,
+        onArrowRight: onArrowRight,
+        suppressAutoScrollToTop: suppressAutoScrollToTop ?? false,
+      );
+    }
+    return button;
   }
 
   bool _tryFocusSidebar() {
@@ -4985,7 +5243,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     if (target.canRequestFocus) {
       target.requestFocus();
       if (target.context
-              ?.findAncestorWidgetOfExactType<_ExpandableBiography>() !=
+              ?.findAncestorWidgetOfExactType<ExpandableBiography>() !=
           null) {
         return;
       }
@@ -5009,16 +5267,18 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
   }
 
   void _focusUpTarget() {
-    _focusTarget(widget.upTarget);
-  }
-
-  void _focusFirstExpandedOverflowButton(BuildContext context) {
-    if (_overflowFirstExtraFocusNode.context != null &&
-        _overflowFirstExtraFocusNode.canRequestFocus) {
-      _overflowFirstExtraFocusNode.requestFocus();
-      return;
+    final upTarget = widget.upTarget;
+    if (upTarget != null && upTarget.context != null && upTarget.canRequestFocus) {
+      upTarget.requestFocus();
+    } else if (NavigationLayout.focusNavbarNotifier.value != null) {
+      final isAlbumOrPlaylist = widget.viewModel.item?.type == 'MusicAlbum' ||
+          widget.viewModel.item?.type == 'Playlist';
+      if (!isAlbumOrPlaylist) {
+        NavigationLayout.focusNavbarNotifier.value?.call();
+      }
+    } else {
+      _focusTarget(widget.upTarget);
     }
-    FocusScope.of(context).nextFocus();
   }
 
   void _ensureOverflowButtonVisible(BuildContext context) {
@@ -5070,11 +5330,15 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       return maxTVButtons > 2 ? maxTVButtons : 2;
     }
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final compact = !_useDesktopDetailLayout(context);
+    final compact = (widget.modernStyle && _isCompact(context)) ||
+        !_useDesktopDetailLayout(context);
     final desktopScale = _desktopUiScale();
-    final buttonWidth = compact ? 80.0 : 108.0 * desktopScale;
-    const spacing = 8.0;
-    const horizontalPadding = 64.0;
+    // On mobile, secondary buttons are labelled vertical tiles 66 wide; the
+    // spacing and content padding below mirror the real layout exactly so the
+    // row packs as many tiles as physically fit before the rest fold into More.
+    final buttonWidth = compact ? 66.0 : 108.0 * desktopScale;
+    final spacing = compact ? 4.0 : 8.0 * desktopScale;
+    final horizontalPadding = compact ? 40.0 : 64.0;
 
     final availableWidth = screenWidth - horizontalPadding;
     final maxButtons = ((availableWidth + spacing) / (buttonWidth + spacing))
@@ -5169,6 +5433,20 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
   })
   _computeWatchState(AggregatedItem item) {
     final isSeries = item.type == 'Series';
+    final isContainer = item.type == 'Series' ||
+                        item.type == 'Season' ||
+                        item.type == 'BoxSet' ||
+                        item.type == 'MusicAlbum';
+    if (!isContainer) {
+      final hasProgress = (item.playedPercentage ?? 0) > 0 ||
+                          (item.playbackPosition?.inMilliseconds ?? 0) > 0;
+      return (
+        isFullyWatched: item.isPlayed,
+        isFullyUnwatched: !item.isPlayed && !hasProgress,
+        isPartiallyWatched: hasProgress,
+        hasProgress: hasProgress,
+      );
+    }
     final totalEpisodes = isSeries
         ? (item.recursiveItemCount ?? 0)
         : (item.childCount ?? item.recursiveItemCount ?? 0);
@@ -5232,9 +5510,87 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     _showSubtitleSelector(context, item, subtitleStreams, audioStreams);
   }
 
+  bool _isManagementButton(_DetailActionButton button) {
+    return button.icon == Icons.check_circle ||
+           button.icon == Icons.check_circle_outline ||
+           button.icon == Icons.favorite ||
+           button.icon == Icons.playlist_add ||
+           button.icon == Icons.delete_outline ||
+           button.icon == Icons.movie_outlined;
+  }
+
+  bool _isSeasonManagementButton(_DetailActionButton button) {
+    return button.icon == Icons.check_circle ||
+           button.icon == Icons.check_circle_outline ||
+           button.icon == Icons.favorite ||
+           button.icon == Icons.playlist_add ||
+           button.icon == Icons.settings;
+  }
+
+  bool _isSeriesManagementButton(_DetailActionButton button) {
+    return button.icon == Icons.check_circle ||
+           button.icon == Icons.check_circle_outline ||
+           button.icon == Icons.favorite ||
+           button.icon == Icons.playlist_add ||
+           button.icon == Icons.settings ||
+           button.icon == Icons.movie_outlined;
+  }
+
   @override
   Widget build(BuildContext context) {
     final item = viewModel.item!;
+    final l10n = AppLocalizations.of(context);
+
+    if (item.type == 'Person') {
+      final normalizedPrimaryButtons = [
+        _DetailActionButton(
+          label: item.isFavorite ? l10n.favorited : l10n.favorite,
+          icon: Icons.favorite,
+          isPrimary: true,
+          focusNode: widget.tvPlayFocusNode ?? _primaryFocusNode(0),
+          autofocus: PlatformDetection.isTV,
+          onPressed: viewModel.toggleFavorite,
+          isActive: item.isFavorite,
+          activeColor: const Color(0xFFFF4757),
+          onArrowUp: NavigationLayout.focusNavbarNotifier.value != null || widget.upTarget != null ? _focusUpTarget : null,
+          onArrowDown: widget.downTarget != null ? _focusDownTarget : null,
+          onArrowLeft: _focusSidebar,
+          onArrowRight: () {
+            _primaryFocusNode(1).requestFocus();
+          },
+        ),
+        _DetailActionButton(
+          label: l10n.display,
+          icon: Icons.tune,
+          focusNode: _primaryFocusNode(1),
+          onPressed: () {
+            showFocusRestoringDialog(
+              context: context,
+              useRootNavigator: false,
+              builder: (_) => PersonDisplaySettingsDialog(prefs: GetIt.instance<UserPreferences>()),
+            );
+          },
+          onArrowUp: NavigationLayout.focusNavbarNotifier.value != null || widget.upTarget != null ? _focusUpTarget : null,
+          onArrowDown: widget.downTarget != null ? _focusDownTarget : null,
+          onArrowLeft: () {
+            (widget.tvPlayFocusNode ?? _primaryFocusNode(0)).requestFocus();
+          },
+          onArrowRight: widget.onArrowRightAtEnd ?? () {},
+        ),
+      ];
+
+      return Align(
+        alignment: widget.modernStyle ? Alignment.centerLeft : Alignment.center,
+        child: Wrap(
+          spacing: widget.modernStyle ? 12.0 : 8.0,
+          runSpacing: 12.0,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          alignment: widget.modernStyle ? WrapAlignment.start : WrapAlignment.center,
+          children: normalizedPrimaryButtons,
+        ),
+      );
+    }
+
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
     final isPhoto = item.type == 'Photo';
     final isBook = _isReadableBookItem(item);
@@ -5246,6 +5602,8 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         item.type == 'AudioBook' ||
         mediaType == 'Audio';
     final isVideo = !isPhoto && !isBook && !isAudio;
+    final isPlayableVideo = item.type == 'Movie' || item.type == 'Episode' || item.type == 'Video' || item.type == 'MusicVideo';
+    final isPlayableMedia = isPlayableVideo || item.type == 'Audio' || item.type == 'AudioBook';
     final ws = _computeWatchState(item);
     final isFullyWatched = ws.isFullyWatched;
     final isFullyUnwatched = ws.isFullyUnwatched;
@@ -5271,25 +5629,28 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       boxSetAllWatched = false;
       boxSetAllUnwatched = false;
     }
+    final isSeason = item.type == 'Season';
+    bool seasonAllWatched = false;
+    bool seasonAllUnwatched = false;
+    AggregatedItem? seasonNextUpEp;
+    if (isSeason && viewModel.episodes.isNotEmpty) {
+      seasonAllWatched = viewModel.episodes.every((e) => e.isPlayed);
+      seasonAllUnwatched = viewModel.episodes.every((e) => !e.isPlayed && (e.playedPercentage == null || e.playedPercentage == 0));
+      if (!seasonAllWatched && !seasonAllUnwatched) {
+        try {
+          seasonNextUpEp = viewModel.episodes.firstWhere((e) => !e.isPlayed);
+        } catch (_) {}
+      }
+    }
     final selectedSource = selectedMediaSourceForItem(
       item,
       widget.selectedMediaSourceId,
     );
     final mediaStreams = _mediaStreamsForItem(item, selectedSource);
-    final audioStreams = mediaStreams
-        .where((s) => s['Type'] == 'Audio')
-        .toList();
     final subtitleStreams = mediaStreams
         .where((s) => s['Type'] == 'Subtitle')
         .toList();
-    final canDownloadRemoteSubtitles = _canDownloadRemoteSubtitles(item);
-    final showSubtitleButton =
-        subtitleStreams.isNotEmpty || canDownloadRemoteSubtitles;
-    final subtitleButtonIcon =
-        subtitleStreams.isEmpty && canDownloadRemoteSubtitles
-        ? Icons.download_rounded
-        : Icons.subtitles;
-    final l10n = AppLocalizations.of(context);
+
     final canShowDownloadActions =
         _isDownloadable(item.type) &&
         _canUserDownload() &&
@@ -5300,8 +5661,18 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       playButtonLabel = l10n.view;
     } else if (isBook) {
       playButtonLabel = hasProgress ? l10n.resumeReading : l10n.read;
+    } else if (isSeason) {
+      if (seasonAllWatched) {
+        playButtonLabel = l10n.replay;
+      } else if (seasonAllUnwatched) {
+        playButtonLabel = l10n.play;
+      } else {
+        playButtonLabel = l10n.resume;
+      }
     } else if (isSeries) {
-      if (isFullyWatched || isFullyUnwatched) {
+      if (isFullyWatched) {
+        playButtonLabel = l10n.replay;
+      } else if (isFullyUnwatched) {
         playButtonLabel = l10n.play;
       } else {
         final nextUp = viewModel.nextUp;
@@ -5311,16 +5682,14 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           if (s != null && e != null) {
             if (s == 1 && e == 1) {
               playButtonLabel = l10n.play;
-            } else if (_isCompact(context)) {
-              playButtonLabel = 'S${s}E$e';
             } else {
-              playButtonLabel = 'Resume from S$s:E$e';
+              playButtonLabel = l10n.resume;
             }
           } else {
-            playButtonLabel = 'Resume';
+            playButtonLabel = l10n.resume;
           }
         } else {
-          playButtonLabel = 'Resume';
+          playButtonLabel = l10n.resume;
         }
       }
     } else if (isBoxSet) {
@@ -5328,9 +5697,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           ? l10n.play
           : l10n.resume;
     } else if (hasProgress) {
-      playButtonLabel = l10n.resumeFrom(
-        _formatResumePosition(item.playbackPosition),
-      );
+      playButtonLabel = l10n.resumeFrom(_formatResumePosition(item.playbackPosition));
     } else {
       playButtonLabel = l10n.play;
     }
@@ -5348,13 +5715,24 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             : Icons.play_arrow,
         focusNode: _tvPlayFocusNode,
         autofocus: PlatformDetection.isTV,
-        onPressed: () => _play(
-          context,
-          item,
-          resume: isBoxSet
-              ? (!boxSetAllWatched && !boxSetAllUnwatched)
-              : (!isPhoto && hasProgress),
-        ),
+        onPressed: () {
+          if (isSeason && viewModel.episodes.isNotEmpty) {
+            final targetEp = seasonNextUpEp ?? viewModel.episodes[0];
+            _play(
+              context,
+              targetEp,
+              resume: seasonNextUpEp != null,
+            );
+          } else {
+            _play(
+              context,
+              item,
+              resume: isBoxSet
+                  ? (!boxSetAllWatched && !boxSetAllUnwatched)
+                  : (!isPhoto && hasProgress),
+            );
+          }
+        },
         onLongPress: isVideo
             ? () => _showAdvancedPlaybackMenu(context, item)
             : null,
@@ -5365,9 +5743,9 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           icon: Icons.shuffle_rounded,
           onPressed: () => _shuffle(context, item),
         ),
-      if (isBoxSet
+      if (item.type == 'Series' || (isBoxSet
           ? !(boxSetAllWatched || boxSetAllUnwatched)
-          : (hasProgress && !isPhoto))
+          : (hasProgress && !isPhoto)))
         _DetailActionButton(
           label: isBook ? l10n.startOver : l10n.restart,
           icon: Icons.restart_alt,
@@ -5402,19 +5780,30 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           isActive: true,
           activeColor: const Color(0xFF4CAF50),
         ),
-      if (audioStreams.length > 1)
+      if (isPlayableVideo) ...[
         _DetailActionButton(
           label: l10n.audio,
           icon: Icons.audiotrack,
           onPressed: () => _openAudioSelector(context, item),
         ),
-      if (showSubtitleButton)
         _DetailActionButton(
           label: l10n.subtitles,
-          icon: subtitleButtonIcon,
-          onPressed: () => _openSubtitleSelector(context, item),
+          icon: Icons.subtitles,
+          onPressed: () {
+            if (subtitleStreams.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.noSubtitlesFound),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            } else {
+              _openSubtitleSelector(context, item);
+            }
+          },
         ),
-      if (item.mediaSources.length > 1)
+      ],
+      if (isPlayableMedia && item.mediaSources.length > 1)
         _DetailActionButton(
           label: l10n.version,
           icon: Icons.video_file,
@@ -5428,7 +5817,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           icon: Icons.cast,
           onPressed: () => _castToDevice(context, item),
         ),
-      if (_hasTrailer(item))
+      if (item.type == 'Series' || _hasTrailer(item))
         _DetailActionButton(
           label: l10n.trailer,
           icon: Icons.movie_outlined,
@@ -5471,17 +5860,6 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       if (canShowDownloadActions)
         _DownloadButton(item: item, viewModel: viewModel),
       if (canShowDownloadActions) _DeleteDownloadButton(item: item),
-      if (item.type == 'BoxSet'
-          ? (GetIt.instance<UserRepository>().currentUser?.isAdministrator ??
-                false)
-          : item.canDelete)
-        _DetailActionButton(
-          label: l10n.delete,
-          icon: Icons.delete_outline,
-          onPressed: () => _confirmDeleteItem(context, item),
-          isActive: true,
-          activeColor: const Color(0xFFD32F2F),
-        ),
       if (item.type == 'Episode' && item.seriesId != null)
         _DetailActionButton(
           label: l10n.goToSeries,
@@ -5490,15 +5868,14 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             Destinations.item(item.seriesId!, serverId: item.serverId),
           ),
         ),
-      if ((GetIt.instance<UserRepository>().currentUser?.isAdministrator ??
-              false) &&
-          GetIt.instance<MediaServerClient>().serverType ==
-              ServerType.jellyfin &&
-          !PlatformDetection.isTV)
+      if ((GetIt.instance<UserRepository>().currentUser?.isAdministrator ?? false) &&
+          GetIt.instance<MediaServerClient>().serverType == ServerType.jellyfin)
         _DetailActionButton(
-          label: l10n.editMetadata,
-          icon: Icons.edit_note,
-          onPressed: () => context.push(Destinations.adminMetadata(item.id)),
+          label: l10n.admin,
+          icon: Icons.settings,
+          onPressed: () => _showAdminDialog(context, item),
+          isActive: true,
+          activeColor: const Color(0xFFD32F2F),
         ),
     ];
 
@@ -5532,33 +5909,108 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       }).toList();
     }
 
-    final compact = !_useDesktopDetailLayout(context);
+    final compact = (widget.modernStyle && _isCompact(context)) ||
+        !_useDesktopDetailLayout(context);
     final desktopScale = _desktopUiScale();
-    final buttonSpacing = compact ? 8.0 : 10.0 * desktopScale;
-    final buttonRunSpacing = compact ? 12.0 : 14.0 * desktopScale;
+    final buttonSpacing = compact ? 4.0 : 8.0 * desktopScale;
+    final buttonRunSpacing = compact ? 10.0 : 12.0 * desktopScale;
     final maxVisible = _calculateMaxVisibleButtons(context);
-    final needsOverflow =
-        (compact ||
-            PlatformDetection.isTV ||
-            widget.maxVisibleButtonsOverride != null) &&
-        allButtons.length > maxVisible;
+
+    final List<Widget> primaryButtons;
+    final List<Widget> extraButtons;
+    final bool needsOverflow;
+
+    final bool isTvShow = item.type == 'Series' || item.type == 'Season';
+    final bool isTvSeries = item.type == 'Series';
+    final bool isTvSeason = item.type == 'Season';
+    // Series uses the two-column (inline-Play) layout on TV/desktop, but on the
+    // modern mobile layout it should match movies: full-width primary + overflow.
+    final bool isModernMobile = widget.modernStyle && _isCompact(context);
+    // Series/Season keep the two-column inline-Play layout on TV/desktop; on the
+    // compact (mobile) layout every type uses the full-width primary + overflow.
+    final bool isTwoColumnLayout = !isModernMobile && isTvShow;
+
+    if (isTwoColumnLayout) {
+      final List<Widget> prim = [];
+      final List<Widget> ext = [];
+      for (final btn in allButtons) {
+        if (btn is _DetailActionButton) {
+          final isManagement = isTvSeries
+              ? _isSeriesManagementButton(btn)
+              : (isTvSeason ? _isSeasonManagementButton(btn) : _isManagementButton(btn));
+          if (isManagement) {
+            ext.add(btn);
+          } else {
+            prim.add(btn);
+          }
+        } else {
+          prim.add(btn);
+        }
+      }
+      primaryButtons = prim;
+      extraButtons = ext;
+      needsOverflow = extraButtons.isNotEmpty;
+    } else {
+      // On mobile the full-width primary sits on its own row, so it does not
+      // occupy a slot in the secondary row: exclude it from the count and split.
+      final int secondaryCount =
+          isModernMobile ? allButtons.length - 1 : allButtons.length;
+      final int visibleCount = isModernMobile ? maxVisible : maxVisible - 1;
+      needsOverflow =
+          (compact ||
+              PlatformDetection.isTV ||
+              widget.maxVisibleButtonsOverride != null) &&
+          secondaryCount > maxVisible;
+      if (needsOverflow) {
+        primaryButtons = allButtons.take(visibleCount).toList();
+        extraButtons = allButtons.skip(visibleCount).toList();
+      } else {
+        primaryButtons = allButtons;
+        extraButtons = const [];
+      }
+    }
 
     final Widget rowContent;
     if (!needsOverflow) {
       final normalizedButtons = allButtons.asMap().entries.map((entry) {
         final index = entry.key;
         final button = entry.value;
-        if (button is! _DetailActionButton) return button;
-        return _copyActionButton(
+        final existingUp =
+            button is _DetailActionButton ? button.onArrowUp : null;
+        final fNode = index == 0 ? (widget.tvPlayFocusNode ?? _primaryFocusNode(0)) : _primaryFocusNode(index);
+        return _wireButton(
           button,
+          focusNode: index == allButtons.length - 1
+              ? (widget.actionRowRightFocusNode ?? fNode)
+              : fNode,
           onArrowUp:
-              button.onArrowUp ??
-              (widget.upTarget != null ? _focusUpTarget : null),
-          onArrowLeft: index == 0 ? _focusSidebar : null,
+              existingUp ??
+              (NavigationLayout.focusNavbarNotifier.value != null || widget.upTarget != null ? _focusUpTarget : null),
+          onArrowLeft: index == 0
+              ? _focusSidebar
+              : () {
+                  if (!_focusAdjacent(
+                    (i) => _primaryNodeAt(i, allButtons.length),
+                    index - 1,
+                    -1,
+                    allButtons.length,
+                  )) {
+                    _focusSidebar();
+                  }
+                },
           onArrowDown: widget.downTarget != null ? _focusDownTarget : null,
           onArrowRight: index == allButtons.length - 1
               ? (widget.onArrowRightAtEnd ?? () {})
-              : null,
+              : () {
+                  if (!_focusAdjacent(
+                    (i) => _primaryNodeAt(i, allButtons.length),
+                    index + 1,
+                    1,
+                    allButtons.length,
+                  )) {
+                    (widget.onArrowRightAtEnd ?? () {})();
+                  }
+                },
         );
       }).toList();
       rowContent = Align(
@@ -5575,87 +6027,256 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         ),
       );
     } else {
-      final primaryButtons = allButtons.take(maxVisible - 1).toList();
-      final extraButtons = allButtons.skip(maxVisible - 1).toList();
-      final normalizedPrimaryButtons = primaryButtons.asMap().entries.map((
-        entry,
-      ) {
+      final normalizedPrimaryButtons = primaryButtons.asMap().entries.map((entry) {
         final index = entry.key;
         final button = entry.value;
-        if (button is! _DetailActionButton) return button;
-        return _copyActionButton(
+        final existingUp =
+            button is _DetailActionButton ? button.onArrowUp : null;
+        final fNode = index == 0 ? (widget.tvPlayFocusNode ?? _primaryFocusNode(0)) : _primaryFocusNode(index);
+        return _wireButton(
           button,
-          onArrowUp: button.onArrowUp ?? _focusUpTarget,
-          onArrowLeft: index == 0 ? _focusSidebar : null,
-          onArrowDown: _expanded
-              ? () => _focusFirstExpandedOverflowButton(context)
+          focusNode: fNode,
+          onFocused: () => widget.onFocusExtra?.call(false),
+          onArrowUp: existingUp ?? (NavigationLayout.focusNavbarNotifier.value != null || widget.upTarget != null ? _focusUpTarget : null),
+          onArrowLeft: index == 0
+              ? _focusSidebar
+              : () {
+                  if (!_focusAdjacent(
+                    _primaryNodePlain,
+                    index - 1,
+                    -1,
+                    primaryButtons.length,
+                  )) {
+                    _focusSidebar();
+                  }
+                },
+          onArrowRight: () {
+            // Skip any unmounted slot (e.g. hidden delete-download) and fall
+            // through to the More button so it is always reachable.
+            if (!_focusAdjacent(
+              _primaryNodePlain,
+              index + 1,
+              1,
+              primaryButtons.length,
+            )) {
+              (widget.actionRowRightFocusNode ?? _overflowMoreFocusNode)
+                  .requestFocus();
+            }
+          },
+          onArrowDown: isTvShow
+              ? (_expanded
+                  ? () => _focusSecondRowButton(index, extraButtons.length)
+                  : (widget.downTarget != null ? _focusDownTarget : null))
               : (widget.downTarget != null ? _focusDownTarget : null),
         );
       }).toList();
+
       final normalizedExtraButtons = extraButtons.asMap().entries.map((entry) {
         final index = entry.key;
         final button = entry.value;
-        if (button is! _DetailActionButton) return button;
-        return _copyActionButton(
+        final fNode = (index == 0 && widget.extraFirstFocusNode != null)
+            ? widget.extraFirstFocusNode!
+            : (() {
+                while (_extraFocusNodes.length <= index) {
+                  _extraFocusNodes.add(FocusNode(debugLabel: 'extra_btn_${_extraFocusNodes.length}'));
+                }
+                return _extraFocusNodes[index];
+              })();
+        return _wireButton(
           button,
-          focusNode: index == 0 ? _overflowFirstExtraFocusNode : null,
-          onFocused: () => _ensureOverflowButtonVisible(context),
-          onArrowUp: () {
-            if (_overflowMoreFocusNode.context != null &&
-                _overflowMoreFocusNode.canRequestFocus) {
-              _overflowMoreFocusNode.requestFocus();
+          focusNode: fNode,
+          onFocused: () {
+            _ensureOverflowButtonVisible(context);
+            widget.onFocusExtra?.call(true);
+          },
+          onArrowUp: isTvShow
+              ? () {
+                  // For both Series and Season: last extra button (Admin) goes up to More button
+                  // All other extra buttons navigate up to the corresponding primary button
+                  if (index == extraButtons.length - 1) {
+                    (widget.actionRowRightFocusNode ?? _overflowMoreFocusNode).requestFocus();
+                  } else {
+                    _focusFirstRowButton(index, primaryButtons.length);
+                  }
+                }
+              : (NavigationLayout.focusNavbarNotifier.value != null || widget.upTarget != null ? _focusUpTarget : null),
+          onArrowDown: widget.downTarget != null ? _focusDownTarget : null,
+          onArrowLeft: index == 0
+              ? _focusSidebar
+              : () {
+                  if (!_focusAdjacent(
+                    _extraFocusNode,
+                    index - 1,
+                    -1,
+                    extraButtons.length,
+                  )) {
+                    _focusSidebar();
+                  }
+                },
+          onArrowRight: () {
+            if (!_focusAdjacent(
+              _extraFocusNode,
+              index + 1,
+              1,
+              extraButtons.length,
+            )) {
+              (widget.onArrowRightAtEnd ?? () {})();
             }
           },
-          onArrowDown: widget.downTarget != null ? _focusDownTarget : null,
-          onArrowLeft: index == 0 ? _focusSidebar : null,
-          onArrowRight: index == extraButtons.length - 1
-              ? (widget.onArrowRightAtEnd ?? () {})
-              : null,
           suppressAutoScrollToTop: true,
         );
       }).toList();
+
       final moreButton = _DetailActionButton(
         label: _expanded ? l10n.less : l10n.more,
         icon: _expanded ? Icons.expand_less : Icons.expand_more,
-        focusNode: _overflowMoreFocusNode,
-        onArrowUp: _focusUpTarget,
-        onArrowDown: _expanded
-            ? () => _focusFirstExpandedOverflowButton(context)
-            : null,
+        focusNode: widget.actionRowRightFocusNode ?? _overflowMoreFocusNode,
+        onFocused: () => widget.onFocusExtra?.call(false),
+        onArrowUp: NavigationLayout.focusNavbarNotifier.value != null || widget.upTarget != null ? _focusUpTarget : null,
+        onArrowDown: isTvShow && _expanded && extraButtons.isNotEmpty
+            ? () {
+                _extraFocusNode(extraButtons.length - 1).requestFocus();
+              }
+            : (widget.downTarget != null ? _focusDownTarget : null),
+        onArrowLeft: () {
+          // Scan back from the last primary slot, skipping any unmounted button
+          // (e.g. hidden delete-download) so More can always return to the row.
+          _focusAdjacent(
+            _primaryNodePlain,
+            primaryButtons.length - 1,
+            -1,
+            primaryButtons.length,
+          );
+        },
         onArrowRight: widget.onArrowRightAtEnd ?? () {},
         onPressed: () => setState(() => _expanded = !_expanded),
       );
-      final wrapAlignment =
-          widget.modernStyle ? WrapAlignment.start : WrapAlignment.center;
-      rowContent = Align(
-        alignment:
-            widget.modernStyle ? Alignment.centerLeft : Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: widget.modernStyle
-              ? CrossAxisAlignment.start
-              : CrossAxisAlignment.center,
-          children: [
-            Wrap(
-              spacing: buttonSpacing,
-              runSpacing: buttonRunSpacing,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              alignment: wrapAlignment,
-              children: [...normalizedPrimaryButtons, moreButton],
+
+      if (widget.modernStyle) {
+        if (isTwoColumnLayout) {
+          // Build a Row so the play pill (first button) can grow via Flexible
+          // to fill available space — avoids text truncation for long labels.
+          final pillButton = normalizedPrimaryButtons.isNotEmpty
+              ? normalizedPrimaryButtons.first
+              : null;
+          final circleButtons = normalizedPrimaryButtons.skip(1).toList();
+
+          Widget primaryRow = Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (pillButton != null)
+                Flexible(fit: FlexFit.loose, child: pillButton),
+              for (final btn in circleButtons) ...[SizedBox(width: buttonSpacing), btn],
+              SizedBox(width: buttonSpacing),
+              moreButton,
+            ],
+          );
+
+          if (_expanded) {
+            rowContent = Align(
+              alignment: Alignment.centerLeft,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  primaryRow,
+                  Padding(
+                    padding: EdgeInsets.only(top: buttonRunSpacing),
+                    child: Wrap(
+                      spacing: buttonSpacing,
+                      runSpacing: buttonRunSpacing,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      alignment: WrapAlignment.start,
+                      children: normalizedExtraButtons,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            rowContent = Align(
+              alignment: Alignment.centerLeft,
+              child: primaryRow,
+            );
+          }
+        } else {
+          // Primary row keeps the More/Less button pinned at its end; the extra
+          // buttons reveal in a second wrap below, so More/Less never moves.
+          rowContent = Align(
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Wrap(
+                  spacing: buttonSpacing,
+                  runSpacing: buttonRunSpacing,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  // On mobile the collapsed row is full (overflow is active), so
+                  // justify the tiles edge to edge with the full-width Play pill
+                  // above instead of piling leftover space on the right.
+                  alignment: compact
+                      ? WrapAlignment.spaceBetween
+                      : WrapAlignment.start,
+                  children: [...normalizedPrimaryButtons, moreButton],
+                ),
+                if (_expanded) ...[
+                  SizedBox(height: buttonRunSpacing),
+                  // Force full width so spaceBetween has room to justify; unlike
+                  // the collapsed row it has no full-width Play pill to stretch it.
+                  SizedBox(
+                    width: double.infinity,
+                    child: Wrap(
+                      spacing: buttonSpacing,
+                      runSpacing: buttonRunSpacing,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      // Match the collapsed row: justify the revealed tiles edge
+                      // to edge on mobile instead of piling space on the right.
+                      alignment: compact
+                          ? WrapAlignment.spaceBetween
+                          : WrapAlignment.start,
+                      children: normalizedExtraButtons,
+                    ),
+                  ),
+                ],
+              ],
             ),
-            if (_expanded) ...[
-              SizedBox(height: buttonRunSpacing),
+          );
+        }
+      } else {
+        final wrapAlignment =
+            widget.modernStyle ? WrapAlignment.start : WrapAlignment.center;
+        rowContent = Align(
+          alignment:
+              widget.modernStyle ? Alignment.centerLeft : Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: widget.modernStyle
+                ? CrossAxisAlignment.start
+                : CrossAxisAlignment.center,
+            children: [
               Wrap(
                 spacing: buttonSpacing,
                 runSpacing: buttonRunSpacing,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 alignment: wrapAlignment,
-                children: normalizedExtraButtons,
+                children: [...normalizedPrimaryButtons, moreButton],
               ),
+              if (_expanded) ...[
+                SizedBox(height: buttonRunSpacing),
+                Wrap(
+                  spacing: buttonSpacing,
+                  runSpacing: buttonRunSpacing,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: wrapAlignment,
+                  children: normalizedExtraButtons,
+                ),
+              ],
             ],
-          ],
-        ),
-      );
+          ),
+        );
+      }
     }
 
     return Focus(
@@ -5688,6 +6309,140 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     final m = position.inMinutes.remainder(60);
     if (h > 0) return '${h}h ${m}m';
     return '${m}m';
+  }
+
+  void _showAdminDialog(BuildContext context, AggregatedItem item) {
+    final l10n = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1E1E24),
+          title: Text(
+            l10n.adminControls,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Focus(
+                onKeyEvent: (_, event) {
+                  if (isActivateKey(event)) {
+                    Navigator.of(context).pop();
+                    ChangeArtworkDialog.show(context, item: item).then((changed) {
+                      if (changed == true) {
+                        viewModel.load();
+                      }
+                    });
+                    return KeyEventResult.handled;
+                  }
+                  return KeyEventResult.ignored;
+                },
+                child: Builder(
+                  builder: (context) {
+                    final hasFocus = Focus.of(context).hasFocus;
+                    return InkWell(
+                      onTap: () async {
+                        Navigator.of(context).pop();
+                        final changed = await ChangeArtworkDialog.show(context, item: item);
+                        if (changed == true) {
+                          viewModel.load();
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: hasFocus ? Colors.white12 : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.image, color: Colors.white70),
+                            const SizedBox(width: 12),
+                            Text(l10n.changeArtwork, style: const TextStyle(color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              if (!PlatformDetection.isTV)
+                Focus(
+                  onKeyEvent: (_, event) {
+                    if (isActivateKey(event)) {
+                      Navigator.of(context).pop();
+                      context.push(Destinations.adminMetadata(item.id));
+                      return KeyEventResult.handled;
+                    }
+                    return KeyEventResult.ignored;
+                  },
+                  child: Builder(
+                    builder: (context) {
+                      final hasFocus = Focus.of(context).hasFocus;
+                      return InkWell(
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          context.push(Destinations.adminMetadata(item.id));
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: hasFocus ? Colors.white12 : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.edit_note, color: Colors.white70),
+                              const SizedBox(width: 12),
+                              Text(l10n.editMetadata, style: const TextStyle(color: Colors.white)),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              Focus(
+                onKeyEvent: (_, event) {
+                  if (isActivateKey(event)) {
+                    Navigator.of(context).pop();
+                    _confirmDeleteItem(context, item);
+                    return KeyEventResult.handled;
+                  }
+                  return KeyEventResult.ignored;
+                },
+                child: Builder(
+                  builder: (context) {
+                    final hasFocus = Focus.of(context).hasFocus;
+                    return InkWell(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        _confirmDeleteItem(context, item);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: hasFocus ? Colors.white12 : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.delete_forever, color: Colors.redAccent),
+                            const SizedBox(width: 12),
+                            Text(l10n.delete, style: const TextStyle(color: Colors.redAccent)),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _confirmDeleteItem(
@@ -7936,8 +8691,25 @@ bool _canUserDownload() {
 class _DownloadButton extends StatefulWidget {
   final AggregatedItem item;
   final ItemDetailViewModel viewModel;
+  final FocusNode? focusNode;
+  final VoidCallback? onFocused;
+  final VoidCallback? onArrowUp;
+  final VoidCallback? onArrowDown;
+  final VoidCallback? onArrowLeft;
+  final VoidCallback? onArrowRight;
+  final bool suppressAutoScrollToTop;
 
-  const _DownloadButton({required this.item, required this.viewModel});
+  const _DownloadButton({
+    required this.item,
+    required this.viewModel,
+    this.focusNode,
+    this.onFocused,
+    this.onArrowUp,
+    this.onArrowDown,
+    this.onArrowLeft,
+    this.onArrowRight,
+    this.suppressAutoScrollToTop = false,
+  });
 
   @override
   State<_DownloadButton> createState() => _DownloadButtonState();
@@ -8100,13 +8872,38 @@ class _DownloadButtonState extends State<_DownloadButton> {
         final downloadError = progress?.error;
         final isBatch = downloadService.isBatchDownloading;
 
+        // Forward the focus node and arrow wiring the action row assigns to this
+        // slot so the button is reachable by d-pad in every download state.
+        _DetailActionButton wire({
+          required String label,
+          required IconData icon,
+          required VoidCallback onPressed,
+          bool isActive = false,
+          Color? activeColor,
+        }) {
+          return _DetailActionButton(
+            label: label,
+            icon: icon,
+            onPressed: onPressed,
+            isActive: isActive,
+            activeColor: activeColor,
+            focusNode: widget.focusNode,
+            onFocused: widget.onFocused,
+            onArrowUp: widget.onArrowUp,
+            onArrowDown: widget.onArrowDown,
+            onArrowLeft: widget.onArrowLeft,
+            onArrowRight: widget.onArrowRight,
+            suppressAutoScrollToTop: widget.suppressAutoScrollToTop,
+          );
+        }
+
         if (progress != null &&
             !progress.isComplete &&
             progress.error == null) {
           final label = progress.progress >= 0
               ? '${(progress.progress * 100).toInt()}%'
               : '${(progress.bytesReceived / 1048576).toStringAsFixed(1)} MB';
-          return _DetailActionButton(
+          return wire(
             label: label,
             icon: Icons.close,
             onPressed: () => downloadService.cancelDownload(item.id),
@@ -8127,7 +8924,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
               break;
             }
           }
-          return _DetailActionButton(
+          return wire(
             label: '${done + 1}/$total${pct.isNotEmpty ? ' · $pct' : ''}',
             icon: Icons.close,
             onPressed: () => downloadService.cancelAll(),
@@ -8137,7 +8934,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
         }
 
         if (_isOffline || (progress != null && progress.isComplete)) {
-          return _DetailActionButton(
+          return wire(
             label: AppLocalizations.of(context).downloaded,
             icon: Icons.download_done,
             isActive: true,
@@ -8147,7 +8944,7 @@ class _DownloadButtonState extends State<_DownloadButton> {
         }
 
         if (downloadError != null) {
-          return _DetailActionButton(
+          return wire(
             label: AppLocalizations.of(context).retry,
             icon: Icons.error_outline,
             isActive: true,
@@ -8163,10 +8960,8 @@ class _DownloadButtonState extends State<_DownloadButton> {
           );
         }
 
-        return _DetailActionButton(
-          label: isMulti
-              ? AppLocalizations.of(context).downloadAll
-              : AppLocalizations.of(context).download,
+        return wire(
+          label: AppLocalizations.of(context).download,
           icon: Icons.download,
           onPressed: () => _showQualityPicker(context, downloadService),
         );
@@ -8313,8 +9108,24 @@ class _DownloadButtonState extends State<_DownloadButton> {
 
 class _DeleteDownloadButton extends StatefulWidget {
   final AggregatedItem item;
+  final FocusNode? focusNode;
+  final VoidCallback? onFocused;
+  final VoidCallback? onArrowUp;
+  final VoidCallback? onArrowDown;
+  final VoidCallback? onArrowLeft;
+  final VoidCallback? onArrowRight;
+  final bool suppressAutoScrollToTop;
 
-  const _DeleteDownloadButton({required this.item});
+  const _DeleteDownloadButton({
+    required this.item,
+    this.focusNode,
+    this.onFocused,
+    this.onArrowUp,
+    this.onArrowDown,
+    this.onArrowLeft,
+    this.onArrowRight,
+    this.suppressAutoScrollToTop = false,
+  });
 
   @override
   State<_DeleteDownloadButton> createState() => _DeleteDownloadButtonState();
@@ -8364,6 +9175,13 @@ class _DeleteDownloadButtonState extends State<_DeleteDownloadButton> {
       onPressed: () => _confirmDelete(context),
       isActive: true,
       activeColor: const Color(0xFFFF4757),
+      focusNode: widget.focusNode,
+      onFocused: widget.onFocused,
+      onArrowUp: widget.onArrowUp,
+      onArrowDown: widget.onArrowDown,
+      onArrowLeft: widget.onArrowLeft,
+      onArrowRight: widget.onArrowRight,
+      suppressAutoScrollToTop: widget.suppressAutoScrollToTop,
     );
   }
 
@@ -8491,54 +9309,203 @@ class _DetailActionButtonState extends State<_DetailActionButton>
     required bool showHighlight,
     required Color focusColor,
     required Color iconColor,
+    required Color labelColor,
   }) {
+    final isExpanded = showHighlight;
+    final hasNewline = widget.label.contains('\n');
+    final double height = widget.isPrimary
+        ? (isMobile ? (hasNewline ? 56.0 : 50.0) : (hasNewline ? 64.0 : 54.0))
+        : (isMobile ? 48.0 : 52.0);
+
     if (widget.isPrimary) {
-      const fg = Color(0xFF101417);
+      final fg = showHighlight ? AppColorScheme.onButtonFocused : Colors.white;
+      final heartColor = (widget.icon == Icons.favorite && widget.isActive) ? const Color(0xFFE50914) : fg;
       // Portrait spans the primary Play full width (circular secondary actions
       // wrap beneath); landscape keeps it content-width, inline with them.
       final fullWidth = context
               .findAncestorWidgetOfExactType<DetailActionButtons>()
               ?.fullWidthPrimary ??
           false;
-      // NOTE: only set `alignment` when full-width. A Container with an
-      // alignment expands to fill the parent's bounded width, which would make
-      // the pill stretch even in landscape.
-      final pill = Container(
-        height: isMobile ? 50 : 54,
-        alignment: fullWidth ? Alignment.center : null,
-        padding: const EdgeInsets.symmetric(horizontal: 22),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          border: showHighlight
-              ? Border.all(color: focusColor, width: 3)
-              : null,
-        ),
-        child: Row(
+
+      // When expanded (focused): use ConstrainedBox with a minWidth floor
+      // so the pill always has enough room for labels like "Resume S12:E24".
+      // Flexible in the parent Row lets the pill grow beyond the minimum.
+      final Widget pill;
+      if (isExpanded || fullWidth) {
+        final pillInner = Container(
+          height: height,
+          width: fullWidth ? double.infinity : null,
+          padding: EdgeInsets.only(
+            left: fullWidth ? 10 : 10,
+            right: fullWidth ? 10 : 14,
+          ),
+          alignment: fullWidth ? Alignment.center : null,
+          decoration: BoxDecoration(
+            color: showHighlight
+                ? AppColorScheme.buttonFocused
+                : Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(height / 2),
+            border: Border.all(
+              color: showHighlight ? focusColor : Colors.transparent,
+              width: 3,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AdaptiveIcon(widget.icon ?? Icons.play_arrow, color: heartColor, size: 24),
+              const SizedBox(width: 2),
+                widget.label.contains('\n')
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.label.split('\n')[0],
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  color: fg,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  height: 1.1,
+                                ),
+                          ),
+                          Text(
+                            widget.label.split('\n')[1],
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  color: fg.withValues(alpha: 0.8),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  height: 1.1,
+                                ),
+                          ),
+                        ],
+                      )
+                    : Text(
+                        widget.label,
+                        maxLines: 1,
+                        softWrap: false,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: fg,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              height: 1.1,
+                            ),
+                      ),
+              ],
+            ),
+        );
+        // Landscape: wrap with a minWidth so text always has room.
+        // Flexible in the parent Row allows growing beyond minWidth.
+        pill = fullWidth
+            ? pillInner
+            : ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 200),
+                child: pillInner,
+              );
+      } else {
+        // Collapsed: animate from/to a circle
+        pill = AnimatedSize(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          child: SizedBox.square(
+            dimension: height,
+            child: Container(
+              height: height,
+              width: height,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(height / 2),
+                border: Border.all(
+                  color: Colors.transparent,
+                  width: 3,
+                ),
+              ),
+              child: Center(
+                child: AdaptiveIcon(widget.icon ?? Icons.play_arrow, color: Colors.white, size: 24),
+              ),
+            ),
+          ),
+        );
+      }
+      return fullWidth ? SizedBox(width: double.infinity, child: pill) : pill;
+    }
+
+    if (isMobile) {
+      // Vertical tile: circular icon with its label always shown underneath.
+      final iconWidget = widget.iconBuilder != null
+          ? widget.iconBuilder!(36, iconColor)
+          : AdaptiveIcon(
+              widget.icon!,
+              color: (widget.icon == Icons.favorite && widget.isActive)
+                  ? const Color(0xFFE50914)
+                  : iconColor,
+              size: 24,
+            );
+      return SizedBox(
+        width: 66,
+        child: Column(
           mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AdaptiveIcon(widget.icon ?? Icons.play_arrow, color: fg, size: 24),
-            const SizedBox(width: 10),
-            Text(
-              widget.label,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: fg,
-                    fontWeight: FontWeight.w600,
-                  ),
+            Container(
+              width: height,
+              height: height,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: showHighlight
+                    ? AppColorScheme.buttonFocused
+                    : (widget.isActive
+                        ? (widget.activeColor ?? AppColorScheme.accent)
+                            .withValues(alpha: 0.18)
+                        : Colors.white.withValues(alpha: 0.06)),
+                border: Border.all(
+                  color: showHighlight
+                      ? focusColor
+                      : AppColorScheme.onSurface.withValues(alpha: 0.35),
+                  width: showHighlight ? 2.5 : 1.5,
+                ),
+              ),
+              child: Center(child: iconWidget),
+            ),
+            const SizedBox(height: 6),
+            // Shrink long labels (e.g. "Unwatched") to fit the tile on one line
+            // instead of wrapping a lone letter into the row below.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                widget.label,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: labelColor,
+                      fontWeight: FontWeight.w600,
+                      height: 1.1,
+                    ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                softWrap: false,
+              ),
             ),
           ],
         ),
       );
-      return fullWidth ? SizedBox(width: double.infinity, child: pill) : pill;
     }
 
-    final diameter = isMobile ? 48.0 : 52.0;
-    final circle = Container(
-      width: diameter,
-      height: diameter,
+    final double minWidth = height;
+    final double maxWidth = isExpanded ? 200.0 : height;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
+      height: height,
+      constraints: BoxConstraints(
+        minWidth: minWidth,
+        maxWidth: maxWidth,
+      ),
+      padding: EdgeInsets.only(
+        left: isExpanded ? 6 : 0,
+        right: isExpanded ? 16 : 0,
+      ),
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        borderRadius: BorderRadius.circular(height / 2),
         color: showHighlight
             ? AppColorScheme.buttonFocused
             : (widget.isActive
@@ -8552,29 +9519,44 @@ class _DetailActionButtonState extends State<_DetailActionButton>
           width: showHighlight ? 2.5 : 1.5,
         ),
       ),
-      child: widget.iconBuilder != null
-          ? widget.iconBuilder!(24, iconColor)
-          : AdaptiveIcon(widget.icon!, color: iconColor, size: 24),
-    );
-    if (!isMobile) return circle;
-    return SizedBox(
-      width: 76,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          circle,
-          const SizedBox(height: 6),
-          Text(
-            widget.label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColorScheme.onSurface.withValues(alpha: 0.85),
-                  fontWeight: FontWeight.w600,
-                ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const NeverScrollableScrollPhysics(),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: height - 4, // keep icon centered when collapsed
+              child: Center(
+                child: widget.iconBuilder != null
+                    ? widget.iconBuilder!(36, iconColor)
+                    : AdaptiveIcon(
+                        widget.icon!,
+                        color: (widget.icon == Icons.favorite && widget.isActive)
+                            ? const Color(0xFFE50914)
+                            : iconColor,
+                        size: 24,
+                      ),
+              ),
+            ),
+            if (isExpanded) ...[
+              const SizedBox(width: 6),
+              Text(
+                widget.label,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: labelColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      height: 1.1,
+                    ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -8773,6 +9755,7 @@ class _DetailActionButtonState extends State<_DetailActionButton>
                   showHighlight: showHighlight,
                   focusColor: focusColor,
                   iconColor: iconColor,
+                  labelColor: labelColor,
                 )
               : SizedBox(
                   width: isMobile ? 80 : 108 * desktopScale,
@@ -8869,6 +9852,7 @@ class DetailCastRow extends StatelessWidget {
   final ScrollController? scrollController;
   final FocusNode? firstItemFocusNode;
   final KeyEventResult Function(int index, KeyEvent event)? onItemKeyEvent;
+  final VoidCallback? onNavigateUp;
 
   const DetailCastRow({
     required this.people,
@@ -8877,6 +9861,7 @@ class DetailCastRow extends StatelessWidget {
     this.scrollController,
     this.firstItemFocusNode,
     this.onItemKeyEvent,
+    this.onNavigateUp,
   });
 
   @override
@@ -8887,12 +9872,12 @@ class DetailCastRow extends StatelessWidget {
     final avatarRadius = isMobile ? 35.0 : 45.0 * desktopScale;
 
     return SizedBox(
-      height: isMobile ? 158 : 178 * desktopScale,
+      height: isMobile ? 172 : 196 * desktopScale,
       child: ListView.separated(
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.fromLTRB(4, 10, 4, 4),
+        padding: const EdgeInsets.fromLTRB(4, 12, 4, 12),
         itemCount: people.length,
         separatorBuilder: (_, _) =>
             SizedBox(width: isMobile ? 12 : 16 * desktopScale),
@@ -8920,6 +9905,7 @@ class DetailCastRow extends StatelessWidget {
             imageUrl: imageUrl,
             isMobile: isMobile,
             focusNode: index == 0 ? firstItemFocusNode : null,
+            onNavigateUp: onNavigateUp,
             onKeyEvent: onItemKeyEvent == null
                 ? null
                 : (event) => onItemKeyEvent!(index, event),
@@ -8945,6 +9931,7 @@ class _CastPersonCard extends StatefulWidget {
   final FocusNode? focusNode;
   final KeyEventResult Function(KeyEvent event)? onKeyEvent;
   final VoidCallback? onTap;
+  final VoidCallback? onNavigateUp;
 
   const _CastPersonCard({
     required this.cardWidth,
@@ -8956,6 +9943,7 @@ class _CastPersonCard extends StatefulWidget {
     this.focusNode,
     this.onKeyEvent,
     this.onTap,
+    this.onNavigateUp,
   });
 
   @override
@@ -8985,6 +9973,14 @@ class _CastPersonCardState extends State<_CastPersonCard> with FocusStateMixin {
         focusNode: widget.focusNode,
         onFocusChange: (focused) => setFocused(focused),
         onKeyEvent: (_, event) {
+          final isNavigationEvent =
+              event is KeyDownEvent || event is KeyRepeatEvent;
+          if (isNavigationEvent &&
+              event.logicalKey == LogicalKeyboardKey.arrowUp &&
+              widget.onNavigateUp != null) {
+            widget.onNavigateUp!();
+            return KeyEventResult.handled;
+          }
           final customResult = widget.onKeyEvent?.call(event);
           if (customResult != null && customResult != KeyEventResult.ignored) {
             return customResult;
@@ -9010,16 +10006,14 @@ class _CastPersonCardState extends State<_CastPersonCard> with FocusStateMixin {
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: showFocusBorder
-                          ? Border.fromBorderSide(
-                              ThemeRegistry.active.borders.focusBorder.copyWith(
-                                color: isNeon
-                                    ? AppColorScheme.accent
-                                    : focusColor,
-                                width: 1.5,
-                              ),
-                            )
-                          : null,
+                      border: Border.fromBorderSide(
+                        ThemeRegistry.active.borders.focusBorder.copyWith(
+                          color: showFocusBorder
+                              ? (isNeon ? AppColorScheme.accent : focusColor)
+                              : Colors.transparent,
+                          width: 1.5,
+                        ),
+                      ),
                     ),
                     child: CircleAvatar(
                       radius: widget.avatarRadius,
@@ -9036,7 +10030,7 @@ class _CastPersonCardState extends State<_CastPersonCard> with FocusStateMixin {
                           : null,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     widget.name,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -9058,7 +10052,7 @@ class _CastPersonCardState extends State<_CastPersonCard> with FocusStateMixin {
                         fontSize: widget.isMobile ? 10 : 11,
                       ),
                       textAlign: TextAlign.center,
-                      maxLines: 1,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
                 ],
@@ -9340,6 +10334,50 @@ class _ChapterListCard extends StatefulWidget {
 
 class _ChapterListCardState extends State<_ChapterListCard>
     with FocusStateMixin {
+  String _normalizeTimeString(String s) {
+    s = s.trim();
+    final parts = s.split(':');
+    if (parts.length == 2) {
+      final m = int.tryParse(parts[0]);
+      final sec = parts[1];
+      if (m != null) return '$m:$sec';
+    } else if (parts.length == 3) {
+      final h = int.tryParse(parts[0]);
+      final m = int.tryParse(parts[1]);
+      final sec = parts[2];
+      if (h != null && m != null) {
+        if (h == 0) return '$m:$sec';
+        return '$h:${m.toString().padLeft(2, '0')}:$sec';
+      }
+    }
+    return s;
+  }
+
+  String _cleanChapterDisplay(String rawName, Duration position, String Function(Duration) formatDuration) {
+    final lDuration = formatDuration(position);
+    final normDuration = _normalizeTimeString(lDuration);
+
+    final parts = rawName.split(RegExp(r'\s*-\s*'));
+    final normalizedParts = parts.map(_normalizeTimeString).toList();
+
+    final uniqueParts = <String>[];
+    for (final part in normalizedParts) {
+      if (part.isEmpty) continue;
+      if (!uniqueParts.contains(part)) {
+        uniqueParts.add(part);
+      }
+    }
+
+    if (uniqueParts.isNotEmpty && uniqueParts.last == normDuration) {
+      uniqueParts.removeLast();
+    }
+
+    if (uniqueParts.isEmpty) {
+      return normDuration;
+    }
+    return '${uniqueParts.join(' - ')} - $normDuration';
+  }
+
   @override
   Widget build(BuildContext context) {
     final focusColor = Color(
@@ -9421,7 +10459,7 @@ class _ChapterListCardState extends State<_ChapterListCard>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${widget.chapterName} - ${widget.formatDuration(widget.position)}',
+                  _cleanChapterDisplay(widget.chapterName, widget.position, widget.formatDuration),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -9998,32 +11036,32 @@ class _OverviewText extends StatelessWidget {
   final TextStyle? style;
   final TextAlign? textAlign;
   final FocusNode? focusNode;
-  final FocusNode? upTarget;
   final VoidCallback? onArrowUp;
   final VoidCallback? onArrowDown;
   final VoidCallback? onArrowLeft;
+  final VoidCallback? onCollapse;
 
   const _OverviewText({
     required this.text,
     this.style,
     this.textAlign,
     this.focusNode,
-    this.upTarget,
     this.onArrowUp,
     this.onArrowDown,
     this.onArrowLeft,
+    this.onCollapse,
   });
 
   @override
   Widget build(BuildContext context) {
     final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
-    return _ExpandableBiography(
+    return ExpandableBiography(
       text: text,
       toggleFocusNode: focusNode,
-      upTarget: upTarget,
       onArrowUp: onArrowUp,
       onArrowDown: onArrowDown,
       onArrowLeft: onArrowLeft,
+      onCollapse: onCollapse,
       style:
           style ??
           Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -10617,11 +11655,18 @@ class DetailEpisodeCard extends StatefulWidget {
   final AggregatedItem episode;
   final ImageApi imageApi;
   final VoidCallback? onChanged;
+  final FocusNode? focusNode;
+  final FocusOnKeyEventCallback? onKeyEvent;
+
+  final bool isActive;
 
   const DetailEpisodeCard({
     required this.episode,
     required this.imageApi,
     this.onChanged,
+    this.focusNode,
+    this.onKeyEvent,
+    this.isActive = false,
   });
 
   @override
@@ -10669,8 +11714,13 @@ class DetailEpisodeCardState extends State<DetailEpisodeCard> with FocusStateMix
       onEnter: (_) => setHovered(true),
       onExit: (_) => setHovered(false),
       child: Focus(
+        focusNode: widget.focusNode,
         onFocusChange: (focused) => setFocused(focused),
-        onKeyEvent: (_, event) {
+        onKeyEvent: (node, event) {
+          if (widget.onKeyEvent != null) {
+            final res = widget.onKeyEvent!(node, event);
+            if (res != KeyEventResult.ignored) return res;
+          }
           final handlerResult = _selectKeyHandler.handleKeyEvent(
             event,
             onTap: () => context.push(
@@ -10706,10 +11756,19 @@ class DetailEpisodeCardState extends State<DetailEpisodeCard> with FocusStateMix
                           width: 1.5,
                         ),
                       )
-                    : null,
+                    : (widget.isActive
+                        ? Border.fromBorderSide(
+                            ThemeRegistry.active.borders.focusBorder.copyWith(
+                              color: isNeon ? const Color(0xFF00FFFF) : Colors.cyan.withValues(alpha: 0.7),
+                              width: 1.5,
+                            ),
+                          )
+                        : null),
               ),
-              clipBehavior: Clip.antiAlias,
-              child: Row(
+              clipBehavior: Clip.none,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Row(
                 children: [
                   SizedBox(
                     width: isMobile ? 160.0 : 196.0 * desktopScale,
@@ -10828,17 +11887,18 @@ class DetailEpisodeCardState extends State<DetailEpisodeCard> with FocusStateMix
               ),
             ),
           ),
+          ),
         ),
       ),
     );
   }
 }
 
-class _PersonHeader extends StatelessWidget {
+class PersonHeader extends StatelessWidget {
   final AggregatedItem item;
   final ImageApi imageApi;
 
-  const _PersonHeader({required this.item, required this.imageApi});
+  const PersonHeader({required this.item, required this.imageApi});
 
   @override
   Widget build(BuildContext context) {
@@ -10890,7 +11950,7 @@ class _PersonHeader extends StatelessWidget {
           textAlign: isMobile ? TextAlign.center : TextAlign.start,
         ),
         const SizedBox(height: 8),
-        _PersonDates(item: item),
+        PersonDates(item: item),
         if (item.productionLocations.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 4),
@@ -10921,10 +11981,10 @@ class _PersonHeader extends StatelessWidget {
   }
 }
 
-class _PersonDates extends StatelessWidget {
+class PersonDates extends StatelessWidget {
   final AggregatedItem item;
 
-  const _PersonDates({required this.item});
+  const PersonDates({required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -10981,10 +12041,10 @@ class _PersonDates extends StatelessWidget {
   }
 }
 
-class _PersonDatesVertical extends StatelessWidget {
+class PersonDatesVertical extends StatelessWidget {
   final AggregatedItem item;
 
-  const _PersonDatesVertical({required this.item});
+  const PersonDatesVertical({required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -11051,35 +12111,48 @@ class _PersonDatesVertical extends StatelessWidget {
   }
 }
 
-class _ExpandableBiography extends StatefulWidget {
+class ExpandableBiography extends StatefulWidget {
   final String text;
   final FocusNode? toggleFocusNode;
   final FocusNode? upTarget;
   final VoidCallback? onArrowUp;
   final VoidCallback? onArrowDown;
   final VoidCallback? onArrowLeft;
+  final VoidCallback? onArrowRight;
+  final VoidCallback? onCollapse;
   final TextStyle? style;
   final TextAlign? textAlign;
 
-  const _ExpandableBiography({
+  static DateTime? lastCollapseTime;
+
+  const ExpandableBiography({
     required this.text,
     this.toggleFocusNode,
     this.upTarget,
     this.onArrowUp,
     this.onArrowDown,
     this.onArrowLeft,
+    this.onArrowRight,
+    this.onCollapse,
     this.style,
     this.textAlign,
   });
 
   @override
-  State<_ExpandableBiography> createState() => _ExpandableBiographyState();
+  State<ExpandableBiography> createState() => _ExpandableBiographyState();
 }
 
-class _ExpandableBiographyState extends State<_ExpandableBiography> {
+class _ExpandableBiographyState extends State<ExpandableBiography> {
   bool _expanded = false;
   bool _focused = false;
   static const double _contentHorizontalPadding = 8;
+  final ScrollController _scrollbarController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollbarController.dispose();
+    super.dispose();
+  }
 
   bool _handleUpWithoutToggle() {
     if (widget.onArrowUp != null) {
@@ -11122,16 +12195,44 @@ class _ExpandableBiographyState extends State<_ExpandableBiography> {
     if (maxWidth <= 0) {
       return false;
     }
+    final limit = (GetIt.instance<UserPreferences>()
+                .get(UserPreferences.desktopUiScale)
+                .scaleFactor >=
+            1.2)
+        ? 2
+        : 4;
     final tp = TextPainter(
       text: TextSpan(text: widget.text, style: style),
-      maxLines: 4,
+      maxLines: limit,
       textDirection: TextDirection.ltr,
     )..layout(maxWidth: maxWidth);
     return tp.didExceedMaxLines;
   }
 
-  bool _stepScroll(BuildContext context, {required bool down}) {
-    return stepScrollWithinContextBounds(context, down: down);
+  bool _stepScrollDirect({required bool down}) {
+    if (!_scrollbarController.hasClients) return false;
+    final maxScroll = _scrollbarController.position.maxScrollExtent;
+    final currentScroll = _scrollbarController.offset;
+    if (down) {
+      if (currentScroll < maxScroll) {
+        _scrollbarController.animateTo(
+          (currentScroll + 40.0).clamp(0.0, maxScroll),
+          duration: const Duration(milliseconds: 80),
+          curve: Curves.easeOut,
+        );
+        return true;
+      }
+    } else {
+      if (currentScroll > 0.0) {
+        _scrollbarController.animateTo(
+          (currentScroll - 40.0).clamp(0.0, double.infinity),
+          duration: const Duration(milliseconds: 80),
+          curve: Curves.easeOut,
+        );
+        return true;
+      }
+    }
+    return false;
   }
 
   @override
@@ -11144,6 +12245,12 @@ class _ExpandableBiographyState extends State<_ExpandableBiography> {
           height: 1.5,
         );
     final l10n = AppLocalizations.of(context);
+    final focusColor = Color(
+      GetIt.instance<UserPreferences>()
+          .get(UserPreferences.focusColor)
+          .colorValue,
+    );
+    final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -11164,6 +12271,20 @@ class _ExpandableBiographyState extends State<_ExpandableBiography> {
               return KeyEventResult.ignored;
             }
 
+            final isBackKey = event.logicalKey == LogicalKeyboardKey.escape ||
+                event.logicalKey == LogicalKeyboardKey.goBack ||
+                event.logicalKey == LogicalKeyboardKey.browserBack ||
+                event.logicalKey == LogicalKeyboardKey.gameButtonB ||
+                event.logicalKey == LogicalKeyboardKey.backspace;
+            if (_expanded && isBackKey) {
+              setState(() {
+                _expanded = false;
+              });
+              ExpandableBiography.lastCollapseTime = DateTime.now();
+              widget.onCollapse?.call();
+              return KeyEventResult.handled;
+            }
+
             if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
               if (widget.onArrowLeft != null) {
                 widget.onArrowLeft!();
@@ -11173,6 +12294,10 @@ class _ExpandableBiographyState extends State<_ExpandableBiography> {
             }
 
             if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+              if (widget.onArrowRight != null) {
+                widget.onArrowRight!();
+                return KeyEventResult.handled;
+              }
               return KeyEventResult.handled;
             }
 
@@ -11192,22 +12317,12 @@ class _ExpandableBiographyState extends State<_ExpandableBiography> {
             }
 
             if (_expanded && event.logicalKey == LogicalKeyboardKey.arrowDown) {
-              if (_stepScroll(context, down: true)) {
-                return KeyEventResult.handled;
-              }
-              if (widget.onArrowDown != null) {
-                widget.onArrowDown!();
-                return KeyEventResult.handled;
-              }
-              return KeyEventResult.ignored;
+              _stepScrollDirect(down: true);
+              return KeyEventResult.handled;
             }
             if (_expanded && event.logicalKey == LogicalKeyboardKey.arrowUp) {
-              if (_stepScroll(context, down: false)) {
-                return KeyEventResult.handled;
-              }
-              return _handleUpWithoutToggle()
-                  ? KeyEventResult.handled
-                  : KeyEventResult.ignored;
+              _stepScrollDirect(down: false);
+              return KeyEventResult.handled;
             }
             if (canToggle && isActivateKey(event)) {
               setState(() => _expanded = !_expanded);
@@ -11219,55 +12334,88 @@ class _ExpandableBiographyState extends State<_ExpandableBiography> {
             onTap: canToggle
                 ? () => setState(() => _expanded = !_expanded)
                 : null,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
-              padding: const EdgeInsets.symmetric(
-                horizontal: _contentHorizontalPadding,
-                vertical: 6,
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: _focused
-                    ? Border.fromBorderSide(
-                        ThemeRegistry.active.borders.focusBorder.copyWith(
-                          color: AppColorScheme.accent,
-                          width: 1.5,
+            child: AnimatedSize(
+              alignment: Alignment.topCenter,
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              child: Container(
+                constraints: (canToggle && _expanded)
+                    ? const BoxConstraints(maxHeight: 220.0)
+                    : const BoxConstraints(),
+                padding: canToggle
+                    ? const EdgeInsets.all(12)
+                    : EdgeInsets.zero,
+                decoration: canToggle
+                    ? BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _focused
+                              ? (isNeon ? AppColorScheme.accent : focusColor)
+                              : Colors.white.withValues(alpha: 0.08),
+                          width: _focused ? 1.5 : 1.0,
+                        ),
+                        color: _focused
+                            ? (isNeon
+                                ? AppColorScheme.accent.withValues(alpha: 0.04)
+                                : focusColor.withValues(alpha: 0.04))
+                            : Colors.white.withValues(alpha: 0.02),
+                      )
+                    : const BoxDecoration(),
+                child: _expanded
+                    ? NotificationListener<ScrollNotification>(
+                        onNotification: (notification) => true, // Stop bubbling
+                        child: SingleChildScrollView(
+                          controller: _scrollbarController,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.text,
+                                style: style,
+                                textAlign: widget.textAlign,
+                              ),
+                              if (canToggle) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  l10n.showLess,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColorScheme.accent,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                       )
-                    : null,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AnimatedCrossFade(
-                    firstChild: Text(
-                      widget.text,
-                      style: style,
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: widget.textAlign,
-                    ),
-                    secondChild: Text(
-                      widget.text,
-                      style: style,
-                      textAlign: widget.textAlign,
-                    ),
-                    crossFadeState: _expanded
-                        ? CrossFadeState.showSecond
-                        : CrossFadeState.showFirst,
-                    duration: const Duration(milliseconds: 300),
-                  ),
-                  if (canToggle) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      _expanded ? l10n.showLess : l10n.readMore,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColorScheme.accent,
-                        fontWeight: FontWeight.w600,
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.text,
+                            style: style,
+                            maxLines: (GetIt.instance<UserPreferences>()
+                                        .get(UserPreferences.desktopUiScale)
+                                        .scaleFactor >=
+                                    1.2)
+                                ? 2
+                                : 4,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: widget.textAlign,
+                          ),
+                          if (canToggle) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              l10n.readMore,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColorScheme.accent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                    ),
-                  ],
-                ],
               ),
             ),
           ),
@@ -11277,7 +12425,7 @@ class _ExpandableBiographyState extends State<_ExpandableBiography> {
   }
 }
 
-class _FilmographyRow extends StatelessWidget {
+class FilmographyRow extends StatelessWidget {
   final List<AggregatedItem> items;
   final ImageApi imageApi;
   final UserPreferences prefs;
@@ -11286,7 +12434,7 @@ class _FilmographyRow extends StatelessWidget {
   final KeyEventResult Function(int index, KeyEvent event)? onItemKeyEvent;
   final void Function(AggregatedItem item)? onItemLongPress;
 
-  const _FilmographyRow({
+  const FilmographyRow({
     required this.items,
     required this.imageApi,
     required this.prefs,
@@ -11393,14 +12541,14 @@ class _FilmographyRow extends StatelessWidget {
   }
 }
 
-class _SeerrAppearancesRow extends StatelessWidget {
+class SeerrAppearancesRow extends StatelessWidget {
   final List<SeerrDiscoverItem> items;
   final UserPreferences prefs;
   final ScrollController? scrollController;
   final FocusNode? firstFocusNode;
   final KeyEventResult Function(int index, KeyEvent event)? onItemKeyEvent;
 
-  const _SeerrAppearancesRow({
+  const SeerrAppearancesRow({
     required this.items,
     required this.prefs,
     this.scrollController,
@@ -11476,14 +12624,14 @@ class _SeerrAppearancesRow extends StatelessWidget {
   }
 }
 
-class _SeerrCrewCreditsRow extends StatelessWidget {
+class SeerrCrewCreditsRow extends StatelessWidget {
   final List<SeerrDiscoverItem> items;
   final UserPreferences prefs;
   final ScrollController? scrollController;
   final FocusNode? firstFocusNode;
   final KeyEventResult Function(int index, KeyEvent event)? onItemKeyEvent;
 
-  const _SeerrCrewCreditsRow({
+  const SeerrCrewCreditsRow({
     required this.items,
     required this.prefs,
     this.scrollController,
@@ -11895,7 +13043,7 @@ class _AlbumActions extends StatelessWidget {
       ),
       if (onDownloadAll != null)
         _DetailActionButton(
-          label: l10n.downloadAll,
+          label: l10n.download,
           icon: Icons.download,
           onArrowDown: onPlayDown,
           onPressed: onDownloadAll!,
@@ -12294,8 +13442,13 @@ class _TrackTileState extends State<_TrackTile> with FocusStateMixin {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final runtime = widget.track.runtime;
+    final isAudio = widget.track.type == 'Audio';
     final runtimeText = runtime != null
-        ? '${runtime.inMinutes}:${(runtime.inSeconds % 60).toString().padLeft(2, '0')}'
+        ? (isAudio
+            ? '${runtime.inMinutes}:${(runtime.inSeconds % 60).toString().padLeft(2, '0')}'
+            : (runtime.inHours > 0
+                ? '${runtime.inHours}h ${runtime.inMinutes.remainder(60)}m'
+                : '${runtime.inMinutes}m'))
         : null;
 
     final trackNumber = widget.isPlaylist
@@ -12444,7 +13597,7 @@ class _TrackTileState extends State<_TrackTile> with FocusStateMixin {
                   ? Border.fromBorderSide(
                       ThemeRegistry.active.borders.focusBorder.copyWith(
                         color: activeColor.withValues(alpha: 0.85),
-                        width: 1.25,
+                        width: ThemeRegistry.active.borders.focusBorder.width,
                       ),
                     )
                   : null,
@@ -12495,18 +13648,26 @@ class _TrackTileState extends State<_TrackTile> with FocusStateMixin {
                     ],
                   ),
                 ),
-                if (runtimeText != null)
-                  Padding(
+                () {
+                  final releaseYear = widget.track.productionYear ??
+                      (widget.track.premiereDate != null ? widget.track.premiereDate!.year : null);
+                  final parts = [
+                    if (releaseYear != null) '$releaseYear',
+                    if (runtimeText != null) runtimeText,
+                  ];
+                  if (parts.isEmpty) return const SizedBox.shrink();
+                  return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
-                      runtimeText,
+                      parts.join('  •  '),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: showFocusBorder
                             ? Colors.white.withValues(alpha: 0.82)
                             : Colors.white.withValues(alpha: 0.5),
                       ),
                     ),
-                  ),
+                  );
+                }(),
                 if (PlatformDetection.isTV) ...[
                   if (widget.reorderable) ...[
                     IconButton(
@@ -12944,3 +14105,6 @@ class _PersonDisplaySettingsDialogState
     );
   }
 }
+
+typedef PersonDisplaySettingsDialog = _PersonDisplaySettingsDialog;
+

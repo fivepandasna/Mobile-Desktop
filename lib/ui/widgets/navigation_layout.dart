@@ -51,6 +51,7 @@ class NavigationLayout extends StatefulWidget {
   static final focusContentFromNavbarNotifier = ValueNotifier<VoidCallback?>(
     null,
   );
+  static final focusDetailsPlayButtonNotifier = ValueNotifier<FocusNode?>(null);
 
   const NavigationLayout({
     super.key,
@@ -137,9 +138,6 @@ class _NavigationLayoutState extends State<NavigationLayout> with WidgetsBinding
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.showNavigationChrome) {
-      return widget.child;
-    }
     final layout = switch (_position) {
       NavbarPosition.left => _buildSidebar(),
       NavbarPosition.top => _buildToolbar(),
@@ -162,7 +160,14 @@ class _NavigationLayoutState extends State<NavigationLayout> with WidgetsBinding
             Expanded(child: content),
             const DownloadProgressBar(),
             const BottomMusicBar(),
-            MobileBottomNavBar(activeRoute: widget.activeRoute),
+            AnimatedOpacity(
+              opacity: widget.showNavigationChrome ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 200),
+              child: IgnorePointer(
+                ignoring: !widget.showNavigationChrome,
+                child: MobileBottomNavBar(activeRoute: widget.activeRoute),
+              ),
+            ),
           ],
         ),
         if (widget.showBackButton)
@@ -184,10 +189,17 @@ class _NavigationLayoutState extends State<NavigationLayout> with WidgetsBinding
       skipTraversal: true,
       child: widget.child,
     );
-    final toolbar = TopToolbar(
-      activeRoute: widget.activeRoute,
-      showBackButton: widget.showBackButton,
-      contentFocusNode: _contentFocusNode,
+    final toolbar = AnimatedOpacity(
+      opacity: widget.showNavigationChrome ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      child: IgnorePointer(
+        ignoring: !widget.showNavigationChrome,
+        child: TopToolbar(
+          activeRoute: widget.activeRoute,
+          showBackButton: widget.showBackButton,
+          contentFocusNode: _contentFocusNode,
+        ),
+      ),
     );
     final maxTranslate = TopToolbar.heightFor(context);
     final body = translateWithScroll
@@ -221,13 +233,15 @@ class _NavigationLayoutState extends State<NavigationLayout> with WidgetsBinding
                 ValueListenableBuilder<double>(
                   valueListenable: _toolbarScrollOffset,
                   builder: (_, offset, child) {
-                    final translate = offset.clamp(0.0, maxTranslate);
+                    final translate = widget.showNavigationChrome
+                        ? offset.clamp(0.0, maxTranslate)
+                        : maxTranslate;
                     return Positioned(
                       left: 0,
                       right: 0,
                       top: -translate,
                       child: IgnorePointer(
-                        ignoring: translate >= maxTranslate,
+                        ignoring: !widget.showNavigationChrome || translate >= maxTranslate,
                         child: child!,
                       ),
                     );
@@ -256,10 +270,17 @@ class _NavigationLayoutState extends State<NavigationLayout> with WidgetsBinding
       child: widget.child,
     );
 
-    final sidebar = LeftSidebar(
-      activeRoute: widget.activeRoute,
-      contentFocusNode: _contentFocusNode,
-      showBackButton: widget.showBackButton,
+    final sidebar = AnimatedOpacity(
+      opacity: widget.showNavigationChrome ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      child: IgnorePointer(
+        ignoring: !widget.showNavigationChrome,
+        child: LeftSidebar(
+          activeRoute: widget.activeRoute,
+          contentFocusNode: _contentFocusNode,
+          showBackButton: widget.showBackButton,
+        ),
+      ),
     );
 
     if (PlatformDetection.isTV || (PlatformDetection.isDesktop || (PlatformDetection.isWeb && !PlatformDetection.useMobileUi))) {

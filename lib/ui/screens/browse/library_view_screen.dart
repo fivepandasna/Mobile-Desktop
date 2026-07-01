@@ -144,8 +144,10 @@ class _LibraryViewScreenState extends State<LibraryViewScreen> {
     final watchedBehavior = _prefs.get(
       UserPreferences.watchedIndicatorBehavior,
     );
-    final suppressFocusGlow = ThemeRegistry.active.borders.focusGlow.isNotEmpty;
-    final focusColor = Color(_prefs.get(UserPreferences.focusColor).colorValue);
+    final isNeon = ThemeRegistry.active.id == ThemeRegistry.neonPulseId;
+    final focusColor = isNeon
+        ? ThemeRegistry.active.borders.focusBorder.color
+        : Color(_prefs.get(UserPreferences.focusColor).colorValue);
     final cardExpansion = _prefs.get(UserPreferences.cardFocusExpansion);
     final l10n = AppLocalizations.of(context);
 
@@ -184,7 +186,7 @@ class _LibraryViewScreenState extends State<LibraryViewScreen> {
               itemType: item.type,
               focusColor: focusColor,
               cardFocusExpansion: cardExpansion,
-              suppressFocusGlow: suppressFocusGlow,
+              suppressFocusGlow: isNeon,
               onFocus: () => _onItemFocused(item),
               onHoverStart: () => _onItemFocused(item),
               onHoverEnd: () => _vm.setFocusedItem(null),
