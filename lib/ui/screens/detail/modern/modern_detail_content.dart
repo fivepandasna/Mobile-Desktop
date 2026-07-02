@@ -608,6 +608,14 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     _tabNode(_selectedTab).requestFocus();
   }
 
+  // Moves D-pad focus into the first track of the track list, using the same
+  // focus node the DetailTrackList attaches to that row.
+  void _focusFirstTrack() {
+    if (_vm.tracks.isEmpty) return;
+    final id = _vm.tracks.first.id;
+    _trackFocusNodes.putIfAbsent(id, () => FocusNode()).requestFocus();
+  }
+
   void _onTabBarNavigateDown(int tabIndex) {
     if (_vm.item == null) return;
     if (_selectedTab != tabIndex) {
@@ -653,9 +661,13 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
           _personSeerrCrewCreditsFirstFocusNode.requestFocus();
         } else if (label == l10n.albums || label == l10n.items || label == l10n.appearances) {
           _gridFirstFocusNode.requestFocus();
+        } else if (label == l10n.trackList) {
+          _focusFirstTrack();
         } else if (label == l10n.playlist) {
           if (_vm.item?.type == 'BoxSet' && _vm.playlistItems.isNotEmpty) {
             _collectionSortFocusNode.requestFocus();
+          } else {
+            _focusFirstTrack();
           }
         }
       }
@@ -2983,7 +2995,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
         decoration: BoxDecoration(
           borderRadius: AppRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFFE8DCCA).withValues(alpha: 0.8),
+            color: AppColorScheme.onSurface.withValues(alpha: 0.18),
             width: 2.0,
           ),
           boxShadow: [
