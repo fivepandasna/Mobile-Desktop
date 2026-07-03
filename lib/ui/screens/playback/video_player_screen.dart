@@ -244,6 +244,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   double _verticalDragStartY = 0.0;
   double _verticalDragStartValue = 0.0;
   bool _verticalDragIsVolume = false;
+  bool _verticalDragIgnored = false;
   Offset? _doubleTapDownPosition;
   DateTime? _lastSeekTime;
   bool _showSkipForward = false;
@@ -5235,8 +5236,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
   void _onVerticalDragStart(DragStartDetails details) {
     final screenWidth = MediaQuery.sizeOf(context).width;
-    _verticalDragIsVolume = details.localPosition.dx > screenWidth / 2;
     _verticalDragStartY = details.localPosition.dy;
+    // Ignore drags that begin in the top edge strip so a swipe there pulls
+    // down the system notification shade instead of changing brightness or
+    // volume. Falls back to a fixed strip when the status bar is hidden.
+    final topInset = MediaQuery.paddingOf(context).top;
+    final topDeadZone = topInset > 48.0 ? topInset : 48.0;
+    _verticalDragIgnored = _verticalDragStartY < topDeadZone;
+    if (_verticalDragIgnored) return;
+    _verticalDragIsVolume = details.localPosition.dx > screenWidth / 2;
     if (_verticalDragIsVolume) {
       final baseVolume = PlatformDetection.isMobile
           ? _systemVolume
@@ -5252,6 +5260,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
+    if (_verticalDragIgnored) return;
     final screenHeight = MediaQuery.sizeOf(context).height;
     final deltaY = _verticalDragStartY - details.localPosition.dy;
     final deltaValue = deltaY / (screenHeight * 0.7);
@@ -5296,12 +5305,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   void _onVerticalDragEnd(DragEndDetails details) {
+    if (_verticalDragIgnored) return;
     if (_verticalDragIsVolume && PlatformDetection.isMobile) {
       unawaited(_setMobileSystemVolume(_systemVolume, syncFromSystem: true));
     }
   }
 
   void _onVerticalDragCancel() {
+    if (_verticalDragIgnored) return;
     if (_verticalDragIsVolume && PlatformDetection.isMobile) {
       unawaited(_setMobileSystemVolume(_systemVolume, syncFromSystem: true));
     }
