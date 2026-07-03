@@ -657,11 +657,13 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
 
   Future<void> _saveWindowGeometry() async {
     try {
-      final isFullScreen = await FullscreenHelper.isFullscreen();
+      final prefs = GetIt.instance<UserPreferences>();
+      final isFullScreen = await windowManager.isFullScreen();
+      await prefs.set(UserPreferences.windowFullscreen, isFullScreen);
+      // Keep the last windowed bounds; don't save fullscreen size as the window size.
       if (isFullScreen) return;
       final size = await windowManager.getSize();
       final pos = await windowManager.getPosition();
-      final prefs = GetIt.instance<UserPreferences>();
       await prefs.set(UserPreferences.windowWidth, size.width);
       await prefs.set(UserPreferences.windowHeight, size.height);
       await prefs.set(UserPreferences.windowX, pos.dx);
@@ -681,7 +683,9 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
     if (eventName == 'move' ||
         eventName == 'resize' ||
         eventName == 'moved' ||
-        eventName == 'resized') {
+        eventName == 'resized' ||
+        eventName == 'enter-full-screen' ||
+        eventName == 'leave-full-screen') {
       _scheduleSaveGeometry();
     }
   }
@@ -692,6 +696,8 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
   }
 
   Future<void> _handleWindowClose() async {
+    _geometrySaveTimer?.cancel();
+    await _saveWindowGeometry();
     await AppExit.prepareForExit();
     await windowManager.destroy();
   }

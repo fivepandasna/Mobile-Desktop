@@ -1987,6 +1987,11 @@ class UserPreferences extends ChangeNotifier {
 
   static final windowY = Preference(key: 'window_y', defaultValue: 0.0);
 
+  static final windowFullscreen = Preference(
+    key: 'window_fullscreen',
+    defaultValue: false,
+  );
+
   static final syncPlayAdvancedCorrectionEnabled = Preference(
     key: 'syncplay_advanced_correction_enabled',
     defaultValue: true,
