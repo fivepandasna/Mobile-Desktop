@@ -4212,6 +4212,27 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
+  String adminRemoveDeviceConfirm(String name) {
+    return 'Remove device \'$name\'? The user will need to sign in again on this device.';
+  }
+
+  @override
+  String get adminDeleteAllDevices => 'Delete all devices';
+
+  @override
+  String adminDeleteAllDevicesConfirm(int count) {
+    return 'Remove $count devices? Affected users will need to sign in again. Your current device is not affected.';
+  }
+
+  @override
+  String get adminDevicesDeletedAll => 'Devices removed';
+
+  @override
+  String adminDevicesDeletedPartial(int count) {
+    return 'Removed some devices; $count could not be removed.';
+  }
+
+  @override
   String get adminDevicesLoadFailed => 'โหลดอุปกรณ์ไม่สำเร็จ';
 
   @override

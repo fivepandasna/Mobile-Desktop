@@ -7786,6 +7786,36 @@ abstract class AppLocalizations {
   /// **'Failed to delete device: {error}'**
   String adminDeviceDeleteFailed(String error);
 
+  /// No description provided for @adminRemoveDeviceConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove device \'{name}\'? The user will need to sign in again on this device.'**
+  String adminRemoveDeviceConfirm(String name);
+
+  /// No description provided for @adminDeleteAllDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all devices'**
+  String get adminDeleteAllDevices;
+
+  /// No description provided for @adminDeleteAllDevicesConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {count} devices? Affected users will need to sign in again. Your current device is not affected.'**
+  String adminDeleteAllDevicesConfirm(int count);
+
+  /// No description provided for @adminDevicesDeletedAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices removed'**
+  String get adminDevicesDeletedAll;
+
+  /// No description provided for @adminDevicesDeletedPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed some devices; {count} could not be removed.'**
+  String adminDevicesDeletedPartial(int count);
+
   /// No description provided for @adminDevicesLoadFailed.
   ///
   /// In en, this message translates to:

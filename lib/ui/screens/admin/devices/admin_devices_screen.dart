@@ -85,10 +85,7 @@ class _AdminDevicesScreenState extends ConsumerState<AdminDevicesScreen> {
       context: context,
       builder: (ctx) => AlertDialog.adaptive(
         title: Text(l10n.adminDeleteDevice),
-        content: Text(
-          "Remove device '${device.displayName}'?\n\n"
-          'The user will need to sign in again on this device.',
-        ),
+        content: Text(l10n.adminRemoveDeviceConfirm(device.displayName)),
         actions: [
           adaptiveDialogAction(
             onPressed: () => Navigator.pop(ctx, false),
@@ -121,6 +118,50 @@ class _AdminDevicesScreenState extends ConsumerState<AdminDevicesScreen> {
         );
       }
     }
+  }
+
+  Future<void> _deleteAllDevices(List<DeviceInfoDto> targets) async {
+    final l10n = AppLocalizations.of(context);
+    if (targets.isEmpty) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog.adaptive(
+        title: Text(l10n.adminDeleteAllDevices),
+        content: Text(l10n.adminDeleteAllDevicesConfirm(targets.length)),
+        actions: [
+          adaptiveDialogAction(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    var failed = 0;
+    for (final device in targets) {
+      try {
+        await _api.deleteDevice(device.id);
+      } catch (_) {
+        failed++;
+      }
+    }
+    ref.invalidate(adminDevicesProvider);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(failed == 0
+            ? l10n.adminDevicesDeletedAll
+            : l10n.adminDevicesDeletedPartial(failed)),
+      ),
+    );
   }
 
   Color _lastSeenColor(DateTime? date, ThemeData theme) {
@@ -193,25 +234,45 @@ class _AdminDevicesScreenState extends ConsumerState<AdminDevicesScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (value) => setState(() => _searchQuery = value.trim()),
-                decoration: InputDecoration(
-                  hintText: l10n.adminSearchDevices,
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _searchQuery.isEmpty
-                      ? null
-                      : IconButton(
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() => _searchQuery = '');
-                          },
-                          icon: const Icon(Icons.clear),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) =>
+                          setState(() => _searchQuery = value.trim()),
+                      decoration: InputDecoration(
+                        hintText: l10n.adminSearchDevices,
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchQuery.isEmpty
+                            ? null
+                            : IconButton(
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                                icon: const Icon(Icons.clear),
+                              ),
+                        border: OutlineInputBorder(
+                          borderRadius: AppRadius.circular(12),
                         ),
-                  border: OutlineInputBorder(
-                    borderRadius: AppRadius.circular(12),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.delete_sweep_outlined),
+                    tooltip: l10n.adminDeleteAllDevices,
+                    color: theme.colorScheme.error,
+                    onPressed: () {
+                      final targets = devices
+                          .where((d) => d.id != currentDeviceId)
+                          .toList();
+                      if (targets.isEmpty) return;
+                      _deleteAllDevices(targets);
+                    },
+                  ),
+                ],
               ),
             ),
             if (users.isNotEmpty)
