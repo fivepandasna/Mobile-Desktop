@@ -5743,6 +5743,10 @@ class AppLocalizationsCy extends AppLocalizations {
   }
 
   @override
+  String get adminTunerResetNotSupported =>
+      'This tuner type does not support resetting.';
+
+  @override
   String adminProviderRemoveFailed(String error) {
     return 'Wedi methu dileu darparwr: $error';
   }

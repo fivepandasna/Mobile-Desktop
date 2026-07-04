@@ -5737,6 +5737,10 @@ class AppLocalizationsBe extends AppLocalizations {
   }
 
   @override
+  String get adminTunerResetNotSupported =>
+      'This tuner type does not support resetting.';
+
+  @override
   String adminProviderRemoveFailed(String error) {
     return 'Не ўдалося выдаліць пастаўшчыка: $error';
   }

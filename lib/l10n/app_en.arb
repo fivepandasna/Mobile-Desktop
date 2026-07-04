@@ -6338,6 +6338,7 @@
       "error": {"type": "String"}
     }
   },
+  "adminTunerResetNotSupported": "This tuner type does not support resetting.",
   "adminProviderRemoveFailed": "Failed to remove provider: {error}",
   "@adminProviderRemoveFailed": {
     "placeholders": {

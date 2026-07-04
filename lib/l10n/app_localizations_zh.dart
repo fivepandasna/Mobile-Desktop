@@ -5583,6 +5583,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get adminTunerResetNotSupported =>
+      'This tuner type does not support resetting.';
+
+  @override
   String adminProviderRemoveFailed(String error) {
     return '无法移除提供方：$error';
   }

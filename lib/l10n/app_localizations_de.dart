@@ -5774,6 +5774,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get adminTunerResetNotSupported =>
+      'This tuner type does not support resetting.';
+
+  @override
   String adminProviderRemoveFailed(String error) {
     return 'Anbieter konnte nicht entfernt werden: $error';
   }

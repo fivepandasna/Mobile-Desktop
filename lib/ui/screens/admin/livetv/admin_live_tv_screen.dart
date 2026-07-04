@@ -376,8 +376,12 @@ class _AdminLiveTvScreenState extends State<AdminLiveTvScreen> {
       );
     } catch (e) {
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      final message = e is DioException && e.response?.statusCode == 400
+          ? l10n.adminTunerResetNotSupported
+          : l10n.adminTunerResetFailed(_friendlyError(e));
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).adminTunerResetFailed(_friendlyError(e)))),
+        SnackBar(content: Text(message)),
       );
     }
   }

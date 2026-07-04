@@ -10342,6 +10342,12 @@ abstract class AppLocalizations {
   /// **'Failed to reset tuner: {error}'**
   String adminTunerResetFailed(String error);
 
+  /// No description provided for @adminTunerResetNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This tuner type does not support resetting.'**
+  String get adminTunerResetNotSupported;
+
   /// No description provided for @adminProviderRemoveFailed.
   ///
   /// In en, this message translates to:
