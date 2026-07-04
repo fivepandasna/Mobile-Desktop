@@ -5,29 +5,50 @@ import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:get_it/get_it.dart';
 import 'package:playback_core/playback_core.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:server_core/server_core.dart';
 
 import '../data/models/aggregated_item.dart';
+import '../data/services/audiobook_resume_service.dart';
 import '../data/services/media_server_client_factory.dart';
 import '../util/platform_detection.dart';
 import '../preference/user_preferences.dart';
+import 'headless_session_bootstrap.dart';
+import 'last_playback_session_store.dart';
+import 'media_browse_service.dart';
 
 class MoonfinAudioHandler extends BaseAudioHandler
     with QueueHandler, SeekHandler {
   final PlaybackManager _manager;
   final MediaServerClientFactory _clientFactory;
+  final MediaBrowseService _browse;
+  final LastPlaybackSessionStore _lastSessionStore;
 
   final List<StreamSubscription> _subs = [];
+  final Map<String, BehaviorSubject<Map<String, dynamic>>> _childrenSubjects =
+      {};
 
   DateTime? _lastPositionPush;
+  DateTime? _lastSessionPersist;
 
   // iOS claim/release state for the in-app player's `.playback` session.
   // Android claims at startup; desktop/tvOS never run this handler.
   bool _iosSessionConfigured = false;
   bool _iosSessionActive = false;
 
-  MoonfinAudioHandler(this._manager, this._clientFactory) {
+  MoonfinAudioHandler(
+    this._manager,
+    this._clientFactory,
+    this._browse,
+    this._lastSessionStore,
+  ) {
     _bindStreams();
+  }
+
+  // stop() cancels _subs; car/lock-screen commands can arrive afterwards, so
+  // re-bind before acting on them.
+  void _ensureBound() {
+    if (_subs.isEmpty) _bindStreams();
   }
 
   void _bindStreams() {
@@ -52,6 +73,7 @@ class MoonfinAudioHandler extends BaseAudioHandler
         }
         _lastPositionPush = now;
         _pushPlaybackState();
+        _maybePersistSession();
       }),
       s.durationStream.listen((_) => _pushMediaItemForCurrentTrack()),
       q.queueChangedStream.listen((_) {
@@ -59,8 +81,53 @@ class MoonfinAudioHandler extends BaseAudioHandler
         _pushMediaItemForCurrentTrack();
         _pushPlaybackState();
         _updateIosAudioSession();
+        _persistSession();
       }),
     ]);
+  }
+
+  void _maybePersistSession() {
+    final now = DateTime.now();
+    final last = _lastSessionPersist;
+    if (last != null && now.difference(last) < const Duration(seconds: 10)) {
+      return;
+    }
+    _persistSession();
+  }
+
+  // Snapshot the audio queue for the media resumption card and empty queue
+  // play restore. Audiobooks also refresh the client-authoritative local
+  // resume point, which the in-app player only maintains while its own view
+  // is open.
+  void _persistSession() {
+    final current = _manager.queueService.currentItem;
+    if (current is! AggregatedItem || !current.isAudioLike) return;
+    _lastSessionPersist = DateTime.now();
+
+    final items = _manager.queueService.items
+        .whereType<AggregatedItem>()
+        .toList(growable: false);
+    if (items.isEmpty) return;
+    var index = items.indexWhere((i) => i.id == current.id);
+    if (index < 0) index = 0;
+    final positionMs = _manager.state.position.inMilliseconds;
+    final mediaItem = _mediaItemFor(current);
+
+    unawaited(_lastSessionStore.save(LastPlaybackSession(
+      serverId: current.serverId,
+      itemIds: items.map((i) => i.id).toList(growable: false),
+      index: index,
+      positionMs: positionMs,
+      title: mediaItem.title,
+      artist: mediaItem.artist,
+      artUri: mediaItem.artUri?.toString(),
+      isAudiobook: current.isAudiobook,
+    )));
+
+    if (current.isAudiobook && positionMs > 0) {
+      unawaited(GetIt.instance<AudiobookResumeService>()
+          .save(current.serverId, current.id, positionMs));
+    }
   }
 
   bool _drivesSession(dynamic raw) {
@@ -250,10 +317,122 @@ class MoonfinAudioHandler extends BaseAudioHandler
   }
 
   @override
-  Future<void> play() async => _manager.resume();
+  Future<void> play() async {
+    _ensureBound();
+    if (_manager.queueService.currentItem != null) {
+      return _manager.resume();
+    }
+    // Empty queue: a car head unit, steering wheel, or Bluetooth device sent
+    // play with nothing loaded, so restore the last audio session.
+    final prefs = GetIt.instance<UserPreferences>();
+    if (!prefs.get(UserPreferences.resumeLastQueueOnPlay)) return;
+    final last = await _lastSessionStore.load();
+    if (last == null) return;
+    final request = await _browse.resolveLastSession(last);
+    if (request == null) return;
+    await _manager.playItems(
+      request.items,
+      startIndex: request.startIndex,
+      startPosition: request.startPosition,
+    );
+  }
 
   @override
   Future<void> pause() async => _manager.pause();
+
+  @override
+  Future<List<MediaItem>> getChildren(
+    String parentMediaId, [
+    Map<String, dynamic>? options,
+  ]) =>
+      _browse.getChildren(parentMediaId, options);
+
+  @override
+  ValueStream<Map<String, dynamic>> subscribeToChildren(
+    String parentMediaId,
+  ) =>
+      _childrenSubjects.putIfAbsent(
+        parentMediaId,
+        () => BehaviorSubject.seeded(<String, dynamic>{}),
+      );
+
+  /// Makes subscribed car clients re-query [parentMediaId], or all subscribed
+  /// parents when null. Called after the headless session restore completes
+  /// and on sign-in changes.
+  void notifyChildrenChanged([String? parentMediaId]) {
+    if (parentMediaId != null) {
+      _childrenSubjects[parentMediaId]?.add(<String, dynamic>{});
+      return;
+    }
+    for (final subject in _childrenSubjects.values) {
+      subject.add(<String, dynamic>{});
+    }
+  }
+
+  @override
+  Future<void> playFromMediaId(
+    String mediaId, [
+    Map<String, dynamic>? extras,
+  ]) async {
+    _ensureBound();
+    if (mediaId.startsWith('msg|')) {
+      _pushErrorState('Open Moonfin on your phone to sign in');
+      return;
+    }
+    final request = await _browse.resolvePlayRequest(mediaId);
+    if (request == null) {
+      _pushErrorState('This item is unavailable right now');
+      return;
+    }
+    await _manager.playItems(
+      request.items,
+      startIndex: request.startIndex,
+      startPosition: request.startPosition,
+    );
+  }
+
+  // Android's media-resumption flow sends prepareFromMediaId followed by play.
+  @override
+  Future<void> prepareFromMediaId(
+    String mediaId, [
+    Map<String, dynamic>? extras,
+  ]) =>
+      playFromMediaId(mediaId, extras);
+
+  @override
+  Future<void> playFromSearch(
+    String query, [
+    Map<String, dynamic>? extras,
+  ]) async {
+    _ensureBound();
+    final request = await _browse.resolveSearchPlay(query);
+    if (request == null) {
+      _pushErrorState('Nothing found for "$query"');
+      return;
+    }
+    await _manager.playItems(
+      request.items,
+      startIndex: request.startIndex,
+      startPosition: request.startPosition,
+    );
+  }
+
+  @override
+  Future<List<MediaItem>> search(
+    String query, [
+    Map<String, dynamic>? extras,
+  ]) =>
+      _browse.search(query);
+
+  void _pushErrorState(String message) {
+    playbackState.add(PlaybackState(
+      controls: const [],
+      systemActions: const {},
+      processingState: AudioProcessingState.error,
+      errorMessage: message,
+      playing: false,
+    ));
+  }
 
   @override
   Future<void> stop() async {
@@ -324,8 +503,13 @@ Future<void> initAudioService({
   required PlaybackManager manager,
   required MediaServerClientFactory clientFactory,
 }) async {
-  await AudioService.init<MoonfinAudioHandler>(
-    builder: () => MoonfinAudioHandler(manager, clientFactory),
+  final bootstrap = GetIt.instance<HeadlessSessionBootstrap>();
+  final browse = GetIt.instance<MediaBrowseService>();
+  final lastSessionStore = GetIt.instance<LastPlaybackSessionStore>();
+
+  final handler = await AudioService.init<MoonfinAudioHandler>(
+    builder: () =>
+        MoonfinAudioHandler(manager, clientFactory, browse, lastSessionStore),
     config: AudioServiceConfig(
       androidNotificationChannelId: 'com.moonfin.app.audio',
       androidNotificationChannelName: 'Music Playback',
@@ -333,6 +517,26 @@ Future<void> initAudioService({
       androidStopForegroundOnPause: false,
       notificationColor: const Color(0xFF1A1A2E),
       androidNotificationIcon: 'drawable/ic_notification',
+      androidBrowsableRootExtras: {
+        AndroidContentStyle.supportedKey: true,
+        AndroidContentStyle.browsableHintKey:
+            AndroidContentStyle.categoryListItemHintValue,
+        AndroidContentStyle.playableHintKey:
+            AndroidContentStyle.listItemHintValue,
+      },
     ),
   );
+
+  if (!GetIt.instance.isRegistered<MoonfinAudioHandler>()) {
+    GetIt.instance.registerSingleton<MoonfinAudioHandler>(handler);
+  }
+
+  // Kick the widget-free session restore so a car client that bound the
+  // service headlessly gets a populated tree; the notify makes Android Auto
+  // re-query the root it may have seen empty during engine startup.
+  if (PlatformDetection.isAndroid) {
+    unawaited(bootstrap.ensureSession().then((client) {
+      if (client != null) handler.notifyChildrenChanged();
+    }));
+  }
 }

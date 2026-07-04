@@ -370,6 +370,18 @@ void main() async {
 
   await configureDependencies();
 
+  if (PlatformDetection.isMobile ||
+      (PlatformDetection.isAndroid && PlatformDetection.isTV)) {
+    try {
+      await initAudioService(
+        manager: GetIt.instance<PlaybackManager>(),
+        clientFactory: GetIt.instance<MediaServerClientFactory>(),
+      );
+    } catch (e, st) {
+      debugPrint('initAudioService failed (lock-screen controls disabled): $e\n$st');
+    }
+  }
+
   final prefs = GetIt.instance<UserPreferences>();
   WidgetsBinding.instance.addObserver(_PreferenceWriteFlushObserver(prefs));
   await _detectAndApplyAudioCapabilities(prefs);
@@ -388,22 +400,6 @@ void main() async {
   try {
     await notificationService.initialize();
   } catch (_) {}
-
-  // Android TV also gets the MediaSession so music is controllable from the
-  // system quick-access / screensaver after leaving the app. Apple
-  // TV and Tizen are excluded: they have no audio_service backend (tvOS uses the
-  // native NowPlayingController instead).
-  if (PlatformDetection.isMobile ||
-      (PlatformDetection.isAndroid && PlatformDetection.isTV)) {
-    try {
-      await initAudioService(
-        manager: GetIt.instance<PlaybackManager>(),
-        clientFactory: GetIt.instance<MediaServerClientFactory>(),
-      );
-    } catch (e, st) {
-      debugPrint('initAudioService failed (lock-screen controls disabled): $e\n$st');
-    }
-  }
 
   // Audio session ownership differs per platform:
   // - Android: the audio_session package configures and activates the session for

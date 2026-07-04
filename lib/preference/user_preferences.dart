@@ -1411,6 +1411,13 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: 10000,
   );
 
+  // Restore the last audio queue when play arrives with nothing queued
+  // (car head units, steering-wheel and Bluetooth play buttons).
+  static final resumeLastQueueOnPlay = Preference(
+    key: 'pref_resume_last_queue_on_play',
+    defaultValue: true,
+  );
+
   static final skipForwardLength = Preference(
     key: 'skipForwardLength',
     defaultValue: 30000,
