@@ -210,6 +210,26 @@ class MoonfinAudioHandler extends BaseAudioHandler
             MediaControl.skipToPrevious,
             s.isPlaying ? MediaControl.pause : MediaControl.play,
             MediaControl.skipToNext,
+            // Android Auto only renders buttons from the controls list, not from
+            // the repeat/shuffle mode fields, so shuffle and repeat are custom
+            // actions. The icon and label carry the current state since the car
+            // tints custom icons uniformly and can't show an active highlight.
+            MediaControl.custom(
+              androidIcon: 'drawable/ic_shuffle',
+              label: s.isShuffled ? 'Shuffle on' : 'Shuffle',
+              name: 'toggle_shuffle',
+            ),
+            MediaControl.custom(
+              androidIcon: q.repeatMode == RepeatMode.repeatOne
+                  ? 'drawable/ic_repeat_one'
+                  : 'drawable/ic_repeat',
+              label: switch (q.repeatMode) {
+                RepeatMode.none => 'Repeat off',
+                RepeatMode.repeatAll => 'Repeat all',
+                RepeatMode.repeatOne => 'Repeat one',
+              },
+              name: 'toggle_repeat',
+            ),
           ];
 
     playbackState.add(PlaybackState(
@@ -239,6 +259,17 @@ class MoonfinAudioHandler extends BaseAudioHandler
       bufferedPosition: s.buffer,
       speed: s.playbackSpeed,
       queueIndex: q.currentIndex,
+      // Keep the session's shuffle and repeat state correct for the lock screen,
+      // Assistant, and other clients. Android Auto's buttons come from the
+      // controls above, not these fields.
+      repeatMode: switch (q.repeatMode) {
+        RepeatMode.none => AudioServiceRepeatMode.none,
+        RepeatMode.repeatOne => AudioServiceRepeatMode.one,
+        RepeatMode.repeatAll => AudioServiceRepeatMode.all,
+      },
+      shuffleMode: s.isShuffled
+          ? AudioServiceShuffleMode.all
+          : AudioServiceShuffleMode.none,
     ));
   }
 
@@ -476,6 +507,20 @@ class MoonfinAudioHandler extends BaseAudioHandler
   Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
     final wantShuffle = shuffleMode != AudioServiceShuffleMode.none;
     if (_manager.state.isShuffled != wantShuffle) _manager.toggleShuffle();
+  }
+
+  @override
+  Future<dynamic> customAction(String name, [Map<String, dynamic>? extras]) async {
+    switch (name) {
+      // toggleShuffle/toggleRepeat fire queueChangedStream, which re-pushes the
+      // playback state (and its updated control icons), same as setShuffleMode.
+      case 'toggle_shuffle':
+        _manager.toggleShuffle();
+      case 'toggle_repeat':
+        _manager.toggleRepeat();
+      default:
+        return super.customAction(name, extras);
+    }
   }
 
   @override

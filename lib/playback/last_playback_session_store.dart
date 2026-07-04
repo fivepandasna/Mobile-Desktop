@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'car_artwork.dart';
+
 /// Snapshot of the most recent audio queue, persisted across process death.
 class LastPlaybackSession {
   final String serverId;
@@ -116,7 +118,7 @@ class LastPlaybackSessionStore {
             : 'track|${session.serverId}|${session.currentItemId}|-|-',
         title: session.title,
         artist: session.artist,
-        artUri: session.artUri != null ? Uri.tryParse(session.artUri!) : null,
+        artUri: CarArtwork.instance.wrap(session.artUri),
         playable: true,
         extras: {'serverId': session.serverId},
       ),

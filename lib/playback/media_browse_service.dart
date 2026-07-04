@@ -7,6 +7,7 @@ import 'package:server_core/server_core.dart';
 import '../data/models/aggregated_item.dart';
 import '../data/services/audiobook_resume_service.dart';
 import '../data/services/media_server_client_factory.dart';
+import 'car_artwork.dart';
 import 'headless_session_bootstrap.dart';
 import 'last_playback_session_store.dart';
 
@@ -80,8 +81,11 @@ class MediaBrowseService {
     String parentMediaId, [
     Map<String, dynamic>? options,
   ]) async {
+    await CarArtwork.instance.ensureReady();
     if (parentMediaId == AudioService.recentRootId) {
-      return _lastSessionStore.asRecentMediaItems();
+      final recent = await _lastSessionStore.asRecentMediaItems();
+      await CarArtwork.instance.persistHosts();
+      return recent;
     }
 
     final cached = _cache[_cacheKey(parentMediaId, options)];
@@ -105,6 +109,7 @@ class MediaBrowseService {
     }
 
     _cache[_cacheKey(parentMediaId, options)] = _CachedChildren(items);
+    await CarArtwork.instance.persistHosts();
     return items;
   }
 
@@ -455,12 +460,13 @@ class MediaBrowseService {
   }
 
   Future<List<MediaItem>> search(String query) async {
+    await CarArtwork.instance.ensureReady();
     final client = await _client();
     if (client == null || query.trim().isEmpty) return const [];
     final serverId = _serverIdOf(client);
     try {
       final matches = await _searchItems(client, serverId, query);
-      return [
+      final results = [
         for (final item in matches)
           switch (item.type) {
             'MusicAlbum' => _albumNode(item),
@@ -475,6 +481,8 @@ class MediaBrowseService {
                 : _trackLeaf(item, serverId, '-', '-'),
           },
       ];
+      await CarArtwork.instance.persistHosts();
+      return results;
     } catch (_) {
       return const [];
     }
@@ -608,7 +616,7 @@ class MediaBrowseService {
         id: id,
         title: title,
         playable: false,
-        artUri: artUri != null ? Uri.tryParse(artUri) : null,
+        artUri: CarArtwork.instance.wrap(artUri),
         extras: extras,
       );
 
@@ -661,20 +669,23 @@ class MediaBrowseService {
         extras: {'serverId': serverId},
       );
 
-  Uri? _artUri(AggregatedItem item) {
-    final url = _artUriFor(item);
-    return url != null ? Uri.tryParse(url) : null;
-  }
+  Uri? _artUri(AggregatedItem item) => CarArtwork.instance.wrap(_artUriFor(item));
 
   String? _artUriFor(AggregatedItem item) {
     final client = _clientFactory.getClientIfExists(item.serverId);
     if (client == null) return null;
     try {
-      final albumTag = item.albumPrimaryImageTag;
+      // Tracks rarely carry their own image, so fall back to the parent album's
+      // cover. The tag is only a cache key, and the list response often omits
+      // AlbumPrimaryImageTag, so a missing tag must not blank the art: Jellyfin
+      // and Emby both serve the current image by id without one.
       final albumId = item.albumId;
-      if (item.type == 'Audio' && albumTag != null && albumId != null) {
-        return client.imageApi
-            .getPrimaryImageUrl(albumId, maxHeight: 300, tag: albumTag);
+      if (item.type == 'Audio' && albumId != null) {
+        return client.imageApi.getPrimaryImageUrl(
+          albumId,
+          maxHeight: 300,
+          tag: item.albumPrimaryImageTag,
+        );
       }
       if (item.primaryImageTag != null) {
         return client.imageApi.getPrimaryImageUrl(
