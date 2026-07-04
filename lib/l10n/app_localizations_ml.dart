@@ -4239,6 +4239,12 @@ class AppLocalizationsMl extends AppLocalizations {
   String get adminClearDates => 'വ്യക്തമായ തീയതികൾ';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'പ്രവർത്തന ലോഗ് ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു: $error';
   }

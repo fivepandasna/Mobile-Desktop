@@ -4214,6 +4214,12 @@ class AppLocalizationsEt extends AppLocalizations {
   String get adminClearDates => 'Selged kuupäevad';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Tegevuste logi laadimine ebaõnnestus: $error';
   }

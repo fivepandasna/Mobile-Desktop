@@ -4214,6 +4214,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get adminClearDates => 'Xóa ngày';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Không tải được nhật ký hoạt động: $error';
   }

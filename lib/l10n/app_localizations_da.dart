@@ -4209,6 +4209,12 @@ class AppLocalizationsDa extends AppLocalizations {
   String get adminClearDates => 'Klare datoer';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Kunne ikke indlæse aktivitetslog: $error';
   }

@@ -4238,6 +4238,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get adminClearDates => 'Borrar fechas';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'No se pudo cargar el registro de actividad: $error';
   }

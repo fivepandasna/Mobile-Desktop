@@ -4213,6 +4213,12 @@ class AppLocalizationsAf extends AppLocalizations {
   String get adminClearDates => 'Duidelike datums';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Kon nie aktiwiteitlogboek laai nie: $error';
   }

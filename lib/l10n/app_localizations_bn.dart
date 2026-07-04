@@ -4202,6 +4202,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get adminClearDates => 'তারিখগুলি পরিষ্কার করুন';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'কার্যকলাপ লগ লোড করতে ব্যর্থ হয়েছে: $error';
   }

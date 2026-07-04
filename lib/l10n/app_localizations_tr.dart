@@ -4231,6 +4231,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminClearDates => 'Tarihleri temizle';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Etkinlik günlüğü yüklenemedi:$error';
   }

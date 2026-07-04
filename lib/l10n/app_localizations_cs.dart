@@ -4207,6 +4207,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get adminClearDates => 'Vymazat data';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Nepodařilo se načíst protokol aktivit: $error';
   }

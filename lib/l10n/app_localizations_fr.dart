@@ -4278,6 +4278,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminClearDates => 'Effacer les dates';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Échec du chargement du journal d\'activité : $error';
   }

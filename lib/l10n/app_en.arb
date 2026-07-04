@@ -5447,6 +5447,8 @@
   "failedToLoad": "Failed to load",
 
   "adminClearDates": "Clear dates",
+  "adminActivitySeverityAll": "All severities",
+  "adminActivityDateRange": "Date range",
   "adminActivityLoadFailed": "Failed to load activity log: {error}",
   "@adminActivityLoadFailed": {
     "placeholders": {

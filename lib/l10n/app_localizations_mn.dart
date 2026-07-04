@@ -4220,6 +4220,12 @@ class AppLocalizationsMn extends AppLocalizations {
   String get adminClearDates => 'Огноог арилгах';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Үйл ажиллагааны бүртгэлийг ачаалж чадсангүй: $error';
   }

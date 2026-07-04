@@ -4219,6 +4219,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get adminClearDates => 'Hapus tanggal';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Gagal memuat log aktivitas: $error';
   }

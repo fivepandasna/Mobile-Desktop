@@ -4224,6 +4224,12 @@ class AppLocalizationsLv extends AppLocalizations {
   String get adminClearDates => 'Skaidri datumi';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Neizdevās ielādēt darbību žurnālu: $error';
   }

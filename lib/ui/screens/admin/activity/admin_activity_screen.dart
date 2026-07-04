@@ -8,6 +8,7 @@ import 'package:server_core/server_core.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../data/services/socket_handler.dart';
 import '../../../widgets/adaptive/adaptive_dialog.dart';
+import '../../detail/modern/widgets/details_tab_bar.dart';
 import '../widgets/activity_log_ui.dart';
 
 enum _ActivityFilter { all, user, system }
@@ -24,13 +25,18 @@ class _AdminActivityScreenState extends State<AdminActivityScreen> {
   final ScrollController _scrollController = ScrollController();
   _ActivityFilter _filter = _ActivityFilter.all;
   DateTimeRange? _dateRange;
+  String? _severityFilter;
   bool _isLoading = false;
   bool _hasMore = true;
   int _totalCount = 0;
   String? _error;
   StreamSubscription<ServerWebSocketMessage>? _socketSubscription;
+  final _tabFocusNodes = <int, FocusNode>{};
 
   static const _pageSize = 30;
+
+  FocusNode _tabNode(int index) => _tabFocusNodes.putIfAbsent(
+      index, () => FocusNode(debugLabel: 'admin_activity_tab_$index'));
 
   AdminSystemApi get _api => GetIt.instance<MediaServerClient>().adminSystemApi;
 
@@ -53,6 +59,9 @@ class _AdminActivityScreenState extends State<AdminActivityScreen> {
   void dispose() {
     _socketSubscription?.cancel();
     _scrollController.dispose();
+    for (final node in _tabFocusNodes.values) {
+      node.dispose();
+    }
     super.dispose();
   }
 
@@ -137,23 +146,27 @@ class _AdminActivityScreenState extends State<AdminActivityScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: DetailsTabBar(
+            segmented: true,
+            wrap: true,
+            labels: _ActivityFilter.values.map(_filterLabel).toList(),
+            selectedIndex: _filter.index,
+            onSelect: (i) => _changeFilter(_ActivityFilter.values[i]),
+            focusNodeFor: _tabNode,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
           child: Wrap(
             spacing: 8,
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              ..._ActivityFilter.values.map(
-                (f) => FilterChip(
-                  selected: _filter == f,
-                  label: Text(_filterLabel(f)),
-                  onSelected: (_) => _changeFilter(f),
-                ),
-              ),
               FilterChip(
                 selected: _dateRange != null,
                 label: Text(
                   _dateRange == null
-                      ? 'Date range'
+                      ? l10n.adminActivityDateRange
                       : '${_dateRange!.start.month}/${_dateRange!.start.day} - ${_dateRange!.end.month}/${_dateRange!.end.day}',
                 ),
                 onSelected: (_) => _pickDateRange(),
@@ -163,6 +176,7 @@ class _AdminActivityScreenState extends State<AdminActivityScreen> {
                   label: Text(l10n.adminClearDates),
                   onPressed: () => setState(() => _dateRange = null),
                 ),
+              _buildSeverityFilter(l10n),
               if (_totalCount > 0)
                 Padding(
                   padding: const EdgeInsets.only(left: 8),
@@ -182,6 +196,9 @@ class _AdminActivityScreenState extends State<AdminActivityScreen> {
 
   Widget _buildBody(ThemeData theme, AppLocalizations l10n) {
     final visibleEntries = _entries.where((entry) {
+      if (_severityFilter != null && entry.severity != _severityFilter) {
+        return false;
+      }
       if (_dateRange == null) {
         return true;
       }
@@ -244,7 +261,14 @@ class _AdminActivityScreenState extends State<AdminActivityScreen> {
           if (item is String) {
             return _DateHeader(label: item);
           }
-          return _ActivityTile(entry: item as ActivityLogEntry);
+          final isFirst = index == 0 || listItems[index - 1] is String;
+          final isLast = index + 1 >= listItems.length ||
+              listItems[index + 1] is String;
+          return _ActivityTile(
+            entry: item as ActivityLogEntry,
+            isFirst: isFirst,
+            isLast: isLast,
+          );
         },
       ),
     );
@@ -261,66 +285,117 @@ class _AdminActivityScreenState extends State<AdminActivityScreen> {
         return l10n.systemEvents;
     }
   }
+
+  Widget _buildSeverityFilter(AppLocalizations l10n) {
+    if (_entries.isEmpty) return const SizedBox.shrink();
+    // Offer the severities actually present, plus any active selection that has
+    // scrolled out of the loaded window so it stays clearable.
+    final severities = <String>{
+      ..._entries.map((e) => e.severity),
+      ?_severityFilter,
+    }.toList()
+      ..sort();
+    final theme = Theme.of(context);
+    return PopupMenuButton<String?>(
+      initialValue: _severityFilter,
+      onSelected: (value) => setState(() => _severityFilter = value),
+      itemBuilder: (context) => [
+        PopupMenuItem<String?>(
+          value: null,
+          child: Text(l10n.adminActivitySeverityAll),
+        ),
+        ...severities.map(
+          (s) => PopupMenuItem<String?>(value: s, child: Text(s)),
+        ),
+      ],
+      child: Chip(
+        avatar: const Icon(Icons.filter_list, size: 18),
+        label: Text(_severityFilter ?? l10n.adminActivitySeverityAll),
+        backgroundColor:
+            _severityFilter == null ? null : theme.colorScheme.secondaryContainer,
+      ),
+    );
+  }
 }
 
 class _ActivityTile extends StatelessWidget {
   final ActivityLogEntry entry;
-  const _ActivityTile({required this.entry});
+  final bool isFirst;
+  final bool isLast;
+  const _ActivityTile({
+    required this.entry,
+    required this.isFirst,
+    required this.isLast,
+  });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final (rail, icon) = activitySeverityIndicator(entry.severity, theme);
+    final (_, icon) = activitySeverityIndicator(entry.severity, theme);
 
-    return InkWell(
-      onTap: () => _showDetail(context),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    final radius = BorderRadius.vertical(
+      top: Radius.circular(isFirst ? 16 : 0),
+      bottom: Radius.circular(isLast ? 16 : 0),
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.spaceMd),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: ColoredBox(
+          color: AppColorScheme.onSurface.withValues(alpha: 0.04),
+          child: Column(
             children: [
-              Container(
-                width: 3,
-                margin: const EdgeInsets.only(right: 10),
-                decoration: BoxDecoration(
-                  color: rail,
-                  borderRadius: AppRadius.circular(2),
+              if (!isFirst)
+                Divider(
+                  height: 0.5,
+                  thickness: 0.5,
+                  indent: 44,
+                  color: AppColorScheme.onSurface.withValues(alpha: 0.08),
                 ),
-              ),
-              icon,
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      entry.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w500),
-                    ),
-                    if ((entry.shortOverview ?? '').trim().isNotEmpty)
-                      Text(
-                        entry.shortOverview!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+              InkWell(
+                onTap: () => _showDetail(context),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.spaceLg, vertical: 11),
+                  child: Row(
+                    children: [
+                      icon,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              entry.name,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w500),
+                            ),
+                            if ((entry.shortOverview ?? '').trim().isNotEmpty)
+                              Text(
+                                entry.shortOverview!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                activityTimeAgo(entry.date, l10n, compact: false),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 11,
+                      const SizedBox(width: 8),
+                      Text(
+                        activityTimeAgo(entry.date, l10n, compact: false),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -395,15 +470,15 @@ class _DateHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 8),
       child: Text(
         label.toUpperCase(),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
           letterSpacing: 1.1,
-          fontWeight: FontWeight.w600,
+          color: AppColorScheme.accent.withValues(alpha: 0.9),
         ),
       ),
     );

@@ -4214,6 +4214,12 @@ class AppLocalizationsLt extends AppLocalizations {
   String get adminClearDates => 'Aiškios datos';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Nepavyko įkelti veiklos žurnalo: $error';
   }

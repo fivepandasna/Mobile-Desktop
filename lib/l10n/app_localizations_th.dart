@@ -4179,6 +4179,12 @@ class AppLocalizationsTh extends AppLocalizations {
   String get adminClearDates => 'วันที่ที่ชัดเจน';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'ไม่สามารถโหลดบันทึกกิจกรรม: $error';
   }

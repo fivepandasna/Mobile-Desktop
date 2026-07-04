@@ -4227,6 +4227,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get adminClearDates => 'Cancella date';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Failed to load activity log: $error';
   }

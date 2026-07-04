@@ -4242,6 +4242,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adminClearDates => 'Daten löschen';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Aktivitätsprotokoll konnte nicht geladen werden: $error';
   }

@@ -4192,6 +4192,12 @@ class AppLocalizationsFa extends AppLocalizations {
   String get adminClearDates => 'تاریخ ها را پاک کنید';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'گزارش فعالیت بارگیری نشد: $error';
   }

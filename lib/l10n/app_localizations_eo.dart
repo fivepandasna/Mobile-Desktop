@@ -4203,6 +4203,12 @@ class AppLocalizationsEo extends AppLocalizations {
   String get adminClearDates => 'Klaraj datoj';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Malsukcesis ŝargi agadprotokolo: $error';
   }

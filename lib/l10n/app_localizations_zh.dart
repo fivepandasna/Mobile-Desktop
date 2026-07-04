@@ -4097,6 +4097,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get adminClearDates => '清除日期';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return '无法加载活动日志：$error';
   }

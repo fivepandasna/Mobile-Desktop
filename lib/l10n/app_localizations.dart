@@ -7732,6 +7732,18 @@ abstract class AppLocalizations {
   /// **'Clear dates'**
   String get adminClearDates;
 
+  /// No description provided for @adminActivitySeverityAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All severities'**
+  String get adminActivitySeverityAll;
+
+  /// No description provided for @adminActivityDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get adminActivityDateRange;
+
   /// No description provided for @adminActivityLoadFailed.
   ///
   /// In en, this message translates to:

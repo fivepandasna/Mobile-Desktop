@@ -4215,6 +4215,12 @@ class AppLocalizationsBe extends AppLocalizations {
   String get adminClearDates => 'Выразныя даты';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Не ўдалося загрузіць журнал актыўнасці: $error';
   }

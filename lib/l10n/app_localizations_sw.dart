@@ -4235,6 +4235,12 @@ class AppLocalizationsSw extends AppLocalizations {
   String get adminClearDates => 'Tarehe wazi';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Failed to load activity log: $error';
   }

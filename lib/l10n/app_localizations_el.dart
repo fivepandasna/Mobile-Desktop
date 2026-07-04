@@ -4250,6 +4250,12 @@ class AppLocalizationsEl extends AppLocalizations {
   String get adminClearDates => 'Καθαρές ημερομηνίες';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Η φόρτωση του αρχείου καταγραφής δραστηριότητας απέτυχε: $error';
   }

@@ -4218,6 +4218,12 @@ class AppLocalizationsCy extends AppLocalizations {
   String get adminClearDates => 'Dyddiadau clir';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Wedi methu llwytho\'r log gweithgarwch: $error';
   }

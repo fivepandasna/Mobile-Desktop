@@ -4230,6 +4230,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get adminClearDates => 'Limpar datas';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Falha ao carregar o log de atividades: $error';
   }

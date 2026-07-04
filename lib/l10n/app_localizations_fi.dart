@@ -4223,6 +4223,12 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminClearDates => 'Selkeät päivämäärät';
 
   @override
+  String get adminActivitySeverityAll => 'All severities';
+
+  @override
+  String get adminActivityDateRange => 'Date range';
+
+  @override
   String adminActivityLoadFailed(String error) {
     return 'Toimintalokin lataaminen epäonnistui: $error';
   }
