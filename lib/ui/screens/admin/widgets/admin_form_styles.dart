@@ -193,7 +193,8 @@ InputDecoration adminInputDecoration({
 
 /// Dropdown of `(code, displayName)` pairs with a leading "default" option.
 /// Dedupes by code (the localization lists can repeat codes) and preserves an
-/// unknown [current] value so saving never silently drops it.
+/// unknown [current] value so saving never silently drops it. Falls back to a
+/// free-text field when [rawItems] is empty (older servers expose no list).
 Widget adminCodeDropdown({
   required String label,
   required String defaultLabel,
@@ -209,6 +210,13 @@ Widget adminCodeDropdown({
     if (code == null || name == null) continue;
     if (!seen.add(code)) continue;
     items.add((code, name));
+  }
+  if (items.isEmpty) {
+    return TextFormField(
+      initialValue: current,
+      decoration: adminInputDecoration(label: label),
+      onChanged: onChanged,
+    );
   }
   final hasCurrent = current.isEmpty || items.any((e) => e.$1 == current);
   return DropdownButtonFormField<String>(

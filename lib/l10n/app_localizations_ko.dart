@@ -3895,6 +3895,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get adminDrawerLibraries => '도서관';
 
   @override
+  String get adminDrawerDisplay => 'Display';
+
+  @override
+  String get adminDrawerMetadata => 'Metadata';
+
+  @override
+  String get adminDrawerNfo => 'NFO Settings';
+
+  @override
   String get adminDrawerTranscoding => '트랜스코딩';
 
   @override
@@ -4341,6 +4350,85 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get adminLibDefault => 'Default';
+
+  @override
+  String get adminLibDisplayTitle => 'Display';
+
+  @override
+  String get adminLibDisplaySection => 'Library display';
+
+  @override
+  String get adminLibFolderView =>
+      'Display a folder view to show plain media folders';
+
+  @override
+  String get adminLibSpecialsInSeasons =>
+      'Display specials within seasons they aired in';
+
+  @override
+  String get adminLibGroupMovies => 'Group movies into collections';
+
+  @override
+  String get adminLibGroupShows => 'Group shows into collections';
+
+  @override
+  String get adminLibExternalSuggestions =>
+      'Show external content in suggestions';
+
+  @override
+  String get adminLibDateAddedSection => 'Date added behavior';
+
+  @override
+  String get adminLibDateAddedLabel => 'Use date added from';
+
+  @override
+  String get adminLibDateAddedImport => 'Date scanned into the library';
+
+  @override
+  String get adminLibDateAddedFile => 'Date the file was created';
+
+  @override
+  String get adminLibMetadataTitle => 'Metadata and Images';
+
+  @override
+  String get adminLibMetadataLangSection => 'Preferred metadata language';
+
+  @override
+  String get adminLibChaptersSection => 'Chapters';
+
+  @override
+  String get adminLibDummyChapterDuration => 'Dummy chapter duration (seconds)';
+
+  @override
+  String get adminLibDummyChapterDurationHint =>
+      'Length of chapters generated for media that has none. Set to 0 to disable.';
+
+  @override
+  String get adminLibChapterImageResolution => 'Chapter image resolution';
+
+  @override
+  String get adminLibNfoTitle => 'NFO Settings';
+
+  @override
+  String get adminLibNfoHelp =>
+      'NFO metadata is compatible with Kodi and similar clients. Settings apply to all libraries that save NFO metadata.';
+
+  @override
+  String get adminLibKodiUser => 'User to store watch data for in NFO files';
+
+  @override
+  String get adminLibSaveImagePaths => 'Save image paths within NFO files';
+
+  @override
+  String get adminLibPathSubstitution =>
+      'Enable path substitution for NFO image paths';
+
+  @override
+  String get adminLibExtraThumbs =>
+      'Copy extrafanart images into an extrathumbs folder';
+
+  @override
+  String get adminLibNone => 'None';
 
   @override
   String adminLibRefreshDays(int days) {
@@ -6480,6 +6568,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get adminTaskStop => '멈추다';
+
+  @override
+  String get adminRunningTasks => 'Running Tasks';
 
   @override
   String get adminTaskRun => '달리다';

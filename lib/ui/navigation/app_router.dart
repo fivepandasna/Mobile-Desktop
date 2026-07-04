@@ -78,6 +78,9 @@ import '../screens/admin/settings/admin_playback_settings_screen.dart';
 import '../screens/admin/settings/admin_resume_settings_screen.dart';
 import '../screens/admin/settings/admin_streaming_screen.dart';
 import '../screens/admin/settings/admin_trickplay_screen.dart';
+import '../screens/admin/libraries/admin_library_display_screen.dart';
+import '../screens/admin/libraries/admin_library_metadata_screen.dart';
+import '../screens/admin/libraries/admin_library_nfo_screen.dart';
 import '../screens/admin/plugins/admin_plugins_screen.dart';
 import '../screens/admin/plugins/admin_plugin_detail_screen.dart';
 import '../screens/admin/plugins/admin_repositories_screen.dart';
@@ -617,6 +620,18 @@ final appRouter = GoRouter(
         GoRoute(
           path: Destinations.adminSettingsBranding,
           builder: (context, state) => const AdminBrandingScreen(),
+        ),
+        GoRoute(
+          path: Destinations.adminSettingsDisplay,
+          builder: (context, state) => const AdminLibraryDisplayScreen(),
+        ),
+        GoRoute(
+          path: Destinations.adminSettingsMetadata,
+          builder: (context, state) => const AdminLibraryMetadataScreen(),
+        ),
+        GoRoute(
+          path: Destinations.adminSettingsNfo,
+          builder: (context, state) => const AdminLibraryNfoScreen(),
         ),
         GoRoute(
           path: Destinations.adminTasks,

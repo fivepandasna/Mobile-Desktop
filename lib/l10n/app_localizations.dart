@@ -7312,6 +7312,24 @@ abstract class AppLocalizations {
   /// **'Libraries'**
   String get adminDrawerLibraries;
 
+  /// No description provided for @adminDrawerDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get adminDrawerDisplay;
+
+  /// No description provided for @adminDrawerMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Metadata'**
+  String get adminDrawerMetadata;
+
+  /// No description provided for @adminDrawerNfo.
+  ///
+  /// In en, this message translates to:
+  /// **'NFO Settings'**
+  String get adminDrawerNfo;
+
   /// No description provided for @adminDrawerTranscoding.
   ///
   /// In en, this message translates to:
@@ -8121,6 +8139,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Default'**
   String get adminLibDefault;
+
+  /// No description provided for @adminLibDisplayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get adminLibDisplayTitle;
+
+  /// No description provided for @adminLibDisplaySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Library display'**
+  String get adminLibDisplaySection;
+
+  /// No description provided for @adminLibFolderView.
+  ///
+  /// In en, this message translates to:
+  /// **'Display a folder view to show plain media folders'**
+  String get adminLibFolderView;
+
+  /// No description provided for @adminLibSpecialsInSeasons.
+  ///
+  /// In en, this message translates to:
+  /// **'Display specials within seasons they aired in'**
+  String get adminLibSpecialsInSeasons;
+
+  /// No description provided for @adminLibGroupMovies.
+  ///
+  /// In en, this message translates to:
+  /// **'Group movies into collections'**
+  String get adminLibGroupMovies;
+
+  /// No description provided for @adminLibGroupShows.
+  ///
+  /// In en, this message translates to:
+  /// **'Group shows into collections'**
+  String get adminLibGroupShows;
+
+  /// No description provided for @adminLibExternalSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Show external content in suggestions'**
+  String get adminLibExternalSuggestions;
+
+  /// No description provided for @adminLibDateAddedSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Date added behavior'**
+  String get adminLibDateAddedSection;
+
+  /// No description provided for @adminLibDateAddedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Use date added from'**
+  String get adminLibDateAddedLabel;
+
+  /// No description provided for @adminLibDateAddedImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Date scanned into the library'**
+  String get adminLibDateAddedImport;
+
+  /// No description provided for @adminLibDateAddedFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Date the file was created'**
+  String get adminLibDateAddedFile;
+
+  /// No description provided for @adminLibMetadataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Metadata and Images'**
+  String get adminLibMetadataTitle;
+
+  /// No description provided for @adminLibMetadataLangSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred metadata language'**
+  String get adminLibMetadataLangSection;
+
+  /// No description provided for @adminLibChaptersSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapters'**
+  String get adminLibChaptersSection;
+
+  /// No description provided for @adminLibDummyChapterDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Dummy chapter duration (seconds)'**
+  String get adminLibDummyChapterDuration;
+
+  /// No description provided for @adminLibDummyChapterDurationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Length of chapters generated for media that has none. Set to 0 to disable.'**
+  String get adminLibDummyChapterDurationHint;
+
+  /// No description provided for @adminLibChapterImageResolution.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter image resolution'**
+  String get adminLibChapterImageResolution;
+
+  /// No description provided for @adminLibNfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'NFO Settings'**
+  String get adminLibNfoTitle;
+
+  /// No description provided for @adminLibNfoHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'NFO metadata is compatible with Kodi and similar clients. Settings apply to all libraries that save NFO metadata.'**
+  String get adminLibNfoHelp;
+
+  /// No description provided for @adminLibKodiUser.
+  ///
+  /// In en, this message translates to:
+  /// **'User to store watch data for in NFO files'**
+  String get adminLibKodiUser;
+
+  /// No description provided for @adminLibSaveImagePaths.
+  ///
+  /// In en, this message translates to:
+  /// **'Save image paths within NFO files'**
+  String get adminLibSaveImagePaths;
+
+  /// No description provided for @adminLibPathSubstitution.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable path substitution for NFO image paths'**
+  String get adminLibPathSubstitution;
+
+  /// No description provided for @adminLibExtraThumbs.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy extrafanart images into an extrathumbs folder'**
+  String get adminLibExtraThumbs;
+
+  /// No description provided for @adminLibNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get adminLibNone;
 
   /// No description provided for @adminLibRefreshDays.
   ///
@@ -11943,6 +12105,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stop'**
   String get adminTaskStop;
+
+  /// No description provided for @adminRunningTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Running Tasks'**
+  String get adminRunningTasks;
 
   /// No description provided for @adminTaskRun.
   ///

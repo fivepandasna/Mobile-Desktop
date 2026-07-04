@@ -16,6 +16,7 @@ import 'widgets/server_info_card.dart';
 import 'widgets/server_paths_card.dart';
 import 'widgets/active_sessions_card.dart';
 import 'widgets/activity_log_card.dart';
+import 'widgets/running_tasks_card.dart';
 import 'widgets/server_actions_card.dart';
 
 class AdminDashboardScreen extends ConsumerStatefulWidget {
@@ -228,6 +229,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
               worstStorageFill: _worstStorageFill(_storageInfo),
             ),
             const SizedBox(height: 16),
+            const RunningTasksCard(),
             ServerInfoCard(systemInfo: _systemInfo!),
             const SizedBox(height: 16),
             ServerActionsCard(

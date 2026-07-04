@@ -263,6 +263,27 @@ List<_AdminNavEntry> _buildDefaultEntries(AppLocalizations l10n) => [
     iconBuilder: _librariesIcon,
   ),
   _AdminNavEntry(
+    id: 'display',
+    section: l10n.adminDrawerSectionServer,
+    title: l10n.adminDrawerDisplay,
+    icon: Icons.grid_view,
+    destination: Destinations.adminSettingsDisplay,
+  ),
+  _AdminNavEntry(
+    id: 'metadata',
+    section: l10n.adminDrawerSectionServer,
+    title: l10n.adminDrawerMetadata,
+    icon: Icons.description_outlined,
+    destination: Destinations.adminSettingsMetadata,
+  ),
+  _AdminNavEntry(
+    id: 'nfo',
+    section: l10n.adminDrawerSectionServer,
+    title: l10n.adminDrawerNfo,
+    icon: Icons.text_snippet_outlined,
+    destination: Destinations.adminSettingsNfo,
+  ),
+  _AdminNavEntry(
     id: 'transcoding',
     section: l10n.adminDrawerSectionPlayback,
     title: l10n.adminDrawerTranscoding,

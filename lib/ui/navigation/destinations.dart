@@ -114,6 +114,9 @@ class Destinations {
   static const adminLibrariesAdd = '/admin/libraries/add';
   static const adminLibrariesEdit = '/admin/libraries/:libraryId';
   static const adminSettings = '/admin/settings';
+  static const adminSettingsDisplay = '/admin/settings/display';
+  static const adminSettingsMetadata = '/admin/settings/metadata';
+  static const adminSettingsNfo = '/admin/settings/nfo';
   static const adminSettingsPlayback = '/admin/settings/playback';
   static const adminSettingsResume = '/admin/settings/resume';
   static const adminSettingsStreaming = '/admin/settings/streaming';
