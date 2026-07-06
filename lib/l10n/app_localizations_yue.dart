@@ -181,6 +181,22 @@ class AppLocalizationsYue extends AppLocalizations {
   String get interfaceStyleMaterial => '';
 
   @override
+  String get glassQuality => 'Glass Quality';
+
+  @override
+  String get glassQualitySubtitle =>
+      'Auto picks the best glass effect for this device. Full forces real blur; Reduced uses a lightweight glass that saves GPU power.';
+
+  @override
+  String get glassQualityAuto => 'Auto';
+
+  @override
+  String get glassQualityFull => 'Full';
+
+  @override
+  String get glassQualityReduced => 'Reduced';
+
+  @override
   String get settingsAppearanceThemeSubtitle =>
       '在 Moonfin 和 Neon Pulse 之間切換，無需重新啟動應用程式';
 

@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/gestures.dart' show kBackMouseButton, kForwardMouseButton;
+import 'package:flutter/gestures.dart'
+    show kBackMouseButton, kForwardMouseButton;
 import 'package:flutter/cupertino.dart' show CupertinoTheme, CupertinoThemeData;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -40,6 +41,7 @@ import 'util/fullscreen_helper.dart';
 import 'util/global_shortcut_focus.dart';
 import 'util/focus/input_mode_tracker.dart';
 import 'util/idiom/app_ui_idiom.dart';
+import 'util/idiom/glass_capability.dart';
 import 'util/platform_detection.dart';
 import 'ui/widgets/overlay_sheet.dart';
 import 'package:moonfin_design/moonfin_design.dart';
@@ -66,9 +68,11 @@ class _MoonfinAppState extends State<MoonfinApp> {
     _themeController = AppThemeController.fromPreferences(_prefs);
     _lastResolvedLocale = _resolveLocale();
     AppUiIdiomResolver.setOverride(_prefs.get(UserPreferences.interfaceStyle));
+    GlassCapability.apply(_prefs.get(UserPreferences.glassQuality));
     _prefs.addListener(_syncThemeFromPrefs);
     _prefs.addListener(_syncLocaleFromPrefs);
     _prefs.addListener(_syncIdiomFromPrefs);
+    _prefs.addListener(_syncGlassFromPrefs);
     if (PlatformDetection.isAppleTV) {
       TopShelfService().startDeepLinkListener(appRouter.go);
       TvRemoteController.instance.init();
@@ -93,6 +97,14 @@ class _MoonfinAppState extends State<MoonfinApp> {
     final before = AppUiIdiomResolver.current;
     AppUiIdiomResolver.setOverride(_prefs.get(UserPreferences.interfaceStyle));
     if (AppUiIdiomResolver.current != before && mounted) {
+      setState(() {});
+    }
+  }
+
+  void _syncGlassFromPrefs() {
+    final before = GlassSettings.tier;
+    GlassCapability.apply(_prefs.get(UserPreferences.glassQuality));
+    if (GlassSettings.tier != before && mounted) {
       setState(() {});
     }
   }
@@ -125,6 +137,7 @@ class _MoonfinAppState extends State<MoonfinApp> {
     _prefs.removeListener(_syncThemeFromPrefs);
     _prefs.removeListener(_syncLocaleFromPrefs);
     _prefs.removeListener(_syncIdiomFromPrefs);
+    _prefs.removeListener(_syncGlassFromPrefs);
     _themeController.dispose();
     super.dispose();
   }
@@ -138,7 +151,8 @@ class _MoonfinAppState extends State<MoonfinApp> {
           animation: _themeController,
           builder: (context, _) {
             return MaterialApp.router(
-              onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+              onGenerateTitle: (context) =>
+                  AppLocalizations.of(context).appTitle,
               theme: AppTheme.buildTheme(_themeController.activeSpec),
               routerConfig: appRouter,
               debugShowCheckedModeBanner: false,
@@ -192,23 +206,25 @@ class _MoonfinAppState extends State<MoonfinApp> {
                           ],
                         );
                         final glass = AppColorScheme.isGlass;
-                        final Widget content =
-                            (glass || PlatformDetection.isTV)
-                            ? Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  if (glass)
-                                    Positioned.fill(
-                                      child: GlassBackdrop(
-                                        animated: !PlatformDetection.isTV,
-                                      ),
-                                    ),
-                                  shell,
-                                  if (PlatformDetection.isTV)
-                                    const ScreensaverHost(),
-                                ],
-                              )
-                            : shell;
+                        // The backdrop slot stays in the tree even when empty so
+                        // toggling the glass theme only swaps this one child and
+                        // never restructures the shell below it. Restructuring
+                        // would tear down the navigator subtree and drop the
+                        // screen the user is on (e.g. an open settings page).
+                        final Widget content = Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Positioned.fill(
+                              child: glass
+                                  ? GlassBackdrop(
+                                      animated: GlassSettings.animatedBackdrop,
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
+                            shell,
+                            if (PlatformDetection.isTV) const ScreensaverHost(),
+                          ],
+                        );
                         return InputModeTracker(
                           child: _GlobalShortcutScope(
                             child: Material(
@@ -237,18 +253,21 @@ class _MoonfinAppState extends State<MoonfinApp> {
                 return ListenableBuilder(
                   listenable: _prefs,
                   builder: (context, _) {
-                    final scale =
-                        _prefs.get(UserPreferences.desktopUiScale).scaleFactor;
-                    final systemScale =
-                        MediaQuery.textScalerOf(context).scale(1.0);
+                    final scale = _prefs
+                        .get(UserPreferences.desktopUiScale)
+                        .scaleFactor;
+                    final systemScale = MediaQuery.textScalerOf(
+                      context,
+                    ).scale(1.0);
                     // The pixel font renders far larger and wider than a normal
                     // face at a given size, so shrink all text to keep dense
                     // layouts from overflowing.
                     final pixelScale = AppColorScheme.isPixel ? 0.6 : 1.0;
                     return MediaQuery(
                       data: MediaQuery.of(context).copyWith(
-                        textScaler:
-                            TextScaler.linear(scale * systemScale * pixelScale),
+                        textScaler: TextScaler.linear(
+                          scale * systemScale * pixelScale,
+                        ),
                       ),
                       child: mainChild,
                     );
@@ -359,7 +378,8 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
   }
 
   bool _canRouteHistoryForward() {
-    return _routeHistoryIndex >= 0 && _routeHistoryIndex < _routeHistory.length - 1;
+    return _routeHistoryIndex >= 0 &&
+        _routeHistoryIndex < _routeHistory.length - 1;
   }
 
   void _navigateRouteHistory(int delta) {
@@ -610,7 +630,8 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
 
   void _maybePausePlaybackForBackground(AppLifecycleState state) {
     if (!PlatformDetection.isTV) return;
-    final isBackground = state == AppLifecycleState.paused ||
+    final isBackground =
+        state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden ||
         state == AppLifecycleState.detached;
     if (!isBackground) return;
@@ -627,7 +648,8 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
           if (meta != null) {
             final type = meta['Type']?.toString();
             final mediaType = meta['MediaType']?.toString();
-            isAudio = type == 'Audio' || type == 'AudioBook' || mediaType == 'Audio';
+            isAudio =
+                type == 'Audio' || type == 'AudioBook' || mediaType == 'Audio';
           }
         } catch (_) {}
       }
@@ -875,7 +897,8 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
   void _handleAdminMessage(String message) {
     if (!mounted) return;
 
-    final navContext = appRouter.routerDelegate.navigatorKey.currentContext ?? context;
+    final navContext =
+        appRouter.routerDelegate.navigatorKey.currentContext ?? context;
     if (!navContext.mounted) {
       return;
     }
@@ -905,10 +928,12 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
           action: SnackBarAction(
             label: l10n.download,
             onPressed: () {
-              unawaited(launchUrl(
-                update.downloadUri,
-                mode: LaunchMode.externalApplication,
-              ));
+              unawaited(
+                launchUrl(
+                  update.downloadUri,
+                  mode: LaunchMode.externalApplication,
+                ),
+              );
             },
           ),
         ),
@@ -953,7 +978,9 @@ class _AdminMessageDialog extends StatefulWidget {
 
 class _AdminMessageDialogState extends State<_AdminMessageDialog> {
   final _okFocusNode = FocusNode(debugLabel: 'AdminMessageOkButton');
-  final _dialogScopeNode = FocusScopeNode(debugLabel: 'AdminMessageDialogScope');
+  final _dialogScopeNode = FocusScopeNode(
+    debugLabel: 'AdminMessageDialogScope',
+  );
   bool _focused = false;
 
   @override
@@ -1047,7 +1074,10 @@ class _AdminMessageDialogState extends State<_AdminMessageDialog> {
                         Navigator.of(context, rootNavigator: true).pop();
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: _focused
                               ? AppColorScheme.onSurface
@@ -1059,7 +1089,9 @@ class _AdminMessageDialogState extends State<_AdminMessageDialog> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w500,
-                            color: _focused ? AppColors.black : AppColorScheme.onSurface,
+                            color: _focused
+                                ? AppColors.black
+                                : AppColorScheme.onSurface,
                             decoration: TextDecoration.none,
                           ),
                         ),

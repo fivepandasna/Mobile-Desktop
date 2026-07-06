@@ -3401,11 +3401,12 @@ class _Backdrop extends StatelessWidget {
       errorWidget: (_, _, _) => const SizedBox.shrink(),
     );
     if (!blurred) return image;
+    final sigma = GlassSettings.decorativeSigma(blur);
     return RepaintBoundary(
       child: ImageFiltered(
         imageFilter: ImageFilter.blur(
-          sigmaX: blur,
-          sigmaY: blur,
+          sigmaX: sigma,
+          sigmaY: sigma,
           tileMode: TileMode.decal,
         ),
         child: image,
@@ -9674,11 +9675,7 @@ class _DetailActionButtonState extends State<_DetailActionButton>
               ? (widget.activeColor ?? (isNeon ? neonAccent : Colors.white))
               : (isNeon ? neonAccent : Colors.white));
     final labelColor = showHighlight
-        ? (isNeon
-              ? AppColorScheme.accent
-              : (AppColorScheme.isGlass
-                    ? Colors.white
-                    : AppColorScheme.onButtonFocused))
+        ? (isNeon ? AppColorScheme.accent : AppColorScheme.onButtonFocused)
         : (isNeon ? neonAccent : Colors.white);
 
     return MouseRegion(

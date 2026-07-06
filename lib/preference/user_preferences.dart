@@ -857,6 +857,12 @@ class UserPreferences extends ChangeNotifier {
     values: InterfaceStyle.values,
   );
 
+  static final glassQuality = EnumPreference(
+    key: 'pref_glass_quality',
+    defaultValue: GlassQualityMode.auto,
+    values: GlassQualityMode.values,
+  );
+
   /// Structural style for the media detail screen. Global (not scoped per
   /// server/user), so it is deliberately omitted from [_scopedPreferenceKeys].
   static final detailScreenStyle = EnumPreference(

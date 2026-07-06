@@ -3717,12 +3717,17 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
           ),
           if (item?.type == 'Person' && _randomBackdropUrl == null)
             Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.2),
-                ),
-              ),
+              child: GlassSettings.blursBackdrop
+                  ? BackdropFilter(
+                      filter: ImageFilter.blur(
+                        sigmaX: GlassSettings.capSigma(12),
+                        sigmaY: GlassSettings.capSigma(12),
+                      ),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.2),
+                      ),
+                    )
+                  : Container(color: Colors.black.withValues(alpha: 0.35)),
             ),
           ColoredBox(
             color: Colors.black.withValues(

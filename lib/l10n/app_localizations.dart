@@ -538,6 +538,36 @@ abstract class AppLocalizations {
   /// **'Material'**
   String get interfaceStyleMaterial;
 
+  /// Label for the glass rendering quality setting
+  ///
+  /// In en, this message translates to:
+  /// **'Glass Quality'**
+  String get glassQuality;
+
+  /// Explanation under the glass quality setting
+  ///
+  /// In en, this message translates to:
+  /// **'Auto picks the best glass effect for this device. Full forces real blur; Reduced uses a lightweight glass that saves GPU power.'**
+  String get glassQualitySubtitle;
+
+  /// Glass quality option: per-device default
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get glassQualityAuto;
+
+  /// Glass quality option: force real blur
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get glassQualityFull;
+
+  /// Glass quality option: lightweight zero-blur glass
+  ///
+  /// In en, this message translates to:
+  /// **'Reduced'**
+  String get glassQualityReduced;
+
   /// Subtitle for the theme selection screen and theme settings entry
   ///
   /// In en, this message translates to:

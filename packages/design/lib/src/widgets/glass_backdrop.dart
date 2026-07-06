@@ -10,25 +10,61 @@ class GlassBackdrop extends StatefulWidget {
 }
 
 class _GlassBackdropState extends State<GlassBackdrop>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   AnimationController? _controller;
   Animation<double>? _t;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.animated) {
-      final controller = AnimationController(
-        vsync: this,
-        duration: const Duration(seconds: 16),
-      )..repeat(reverse: true);
-      _controller = controller;
-      _t = CurvedAnimation(parent: controller, curve: Curves.easeInOut);
+      _startAnimation();
+    }
+  }
+
+  void _startAnimation() {
+    final controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 16),
+    )..repeat(reverse: true);
+    _controller = controller;
+    _t = CurvedAnimation(parent: controller, curve: Curves.easeInOut);
+  }
+
+  void _stopAnimation() {
+    _controller?.dispose();
+    _controller = null;
+    _t = null;
+  }
+
+  @override
+  void didUpdateWidget(GlassBackdrop oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.animated == oldWidget.animated) return;
+    if (widget.animated) {
+      _startAnimation();
+    } else {
+      _stopAnimation();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final controller = _controller;
+    if (controller == null) return;
+    // The drift is decorative; producing frames while backgrounded or hidden
+    // just burns GPU, so park the controller until the app is visible again.
+    if (state == AppLifecycleState.resumed) {
+      if (!controller.isAnimating) controller.repeat(reverse: true);
+    } else {
+      controller.stop();
     }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller?.dispose();
     super.dispose();
   }

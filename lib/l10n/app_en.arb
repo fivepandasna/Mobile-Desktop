@@ -240,6 +240,26 @@
   "@interfaceStyleMaterial": {
     "description": "Interface style option: Material look"
   },
+  "glassQuality": "Glass Quality",
+  "@glassQuality": {
+    "description": "Label for the glass rendering quality setting"
+  },
+  "glassQualitySubtitle": "Auto picks the best glass effect for this device. Full forces real blur; Reduced uses a lightweight glass that saves GPU power.",
+  "@glassQualitySubtitle": {
+    "description": "Explanation under the glass quality setting"
+  },
+  "glassQualityAuto": "Auto",
+  "@glassQualityAuto": {
+    "description": "Glass quality option: per-device default"
+  },
+  "glassQualityFull": "Full",
+  "@glassQualityFull": {
+    "description": "Glass quality option: force real blur"
+  },
+  "glassQualityReduced": "Reduced",
+  "@glassQualityReduced": {
+    "description": "Glass quality option: lightweight zero-blur glass"
+  },
   "settingsAppearanceThemeSubtitle": "Apply a fully custom theme and switch between an Apple or Material inspired user interface.",
   "@settingsAppearanceThemeSubtitle": {
     "description": "Subtitle for the theme selection screen and theme settings entry"

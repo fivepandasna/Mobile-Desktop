@@ -181,6 +181,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get interfaceStyleMaterial => '';
 
   @override
+  String get glassQuality => 'Glass Quality';
+
+  @override
+  String get glassQualitySubtitle =>
+      'Auto picks the best glass effect for this device. Full forces real blur; Reduced uses a lightweight glass that saves GPU power.';
+
+  @override
+  String get glassQualityAuto => 'Auto';
+
+  @override
+  String get glassQualityFull => 'Full';
+
+  @override
+  String get glassQualityReduced => 'Reduced';
+
+  @override
   String get settingsAppearanceThemeSubtitle =>
       '앱을 다시 시작하지 않고도 Moonfin과 Neon Pulse 간에 전환할 수 있습니다.';
 

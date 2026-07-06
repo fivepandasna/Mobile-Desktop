@@ -183,6 +183,22 @@ class AppLocalizationsTl extends AppLocalizations {
   String get interfaceStyleMaterial => '';
 
   @override
+  String get glassQuality => 'Glass Quality';
+
+  @override
+  String get glassQualitySubtitle =>
+      'Auto picks the best glass effect for this device. Full forces real blur; Reduced uses a lightweight glass that saves GPU power.';
+
+  @override
+  String get glassQualityAuto => 'Auto';
+
+  @override
+  String get glassQualityFull => 'Full';
+
+  @override
+  String get glassQualityReduced => 'Reduced';
+
+  @override
   String get settingsAppearanceThemeSubtitle =>
       'Lumipat sa pagitan ng Moonfin at Neon Pulse nang hindi nire-restart ang app';
 
