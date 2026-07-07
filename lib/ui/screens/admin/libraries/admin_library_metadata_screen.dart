@@ -170,7 +170,12 @@ class _AdminLibraryMetadataScreenState
           decoration:
               adminInputDecoration(label: l10n.adminLibChapterImageResolution),
           items: _resolutions
-              .map((r) => DropdownMenuItem(value: r.$1, child: Text(r.$2)))
+              .map((r) => DropdownMenuItem(
+                    value: r.$1,
+                    child: Text(r.$1 == 'MatchSource'
+                        ? l10n.adminLibChapterImageResolutionMatchSource
+                        : r.$2),
+                  ))
               .toList(),
           onChanged: (v) => setState(() => _config!['ChapterImageResolution'] = v),
         ),

@@ -9600,6 +9600,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String adminAnalyticsLoadingProgress(int percentage) {
     return 'Loading Server Analytics... $percentage%';
   }
+
+  @override
+  String get adminLibChapterImageResolutionMatchSource => 'Match source';
 }
 
 /// The translations for Spanish Castilian, as used in Latin America and the Caribbean (`es_419`).

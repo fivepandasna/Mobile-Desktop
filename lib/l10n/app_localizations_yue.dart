@@ -9275,6 +9275,9 @@ class AppLocalizationsYue extends AppLocalizations {
   String adminAnalyticsLoadingProgress(int percentage) {
     return 'Loading Server Analytics... $percentage%';
   }
+
+  @override
+  String get adminLibChapterImageResolutionMatchSource => 'Match source';
 }
 
 /// The translations for Yue Chinese Cantonese, as used in China (`yue_CN`).

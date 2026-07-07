@@ -9491,6 +9491,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String adminAnalyticsLoadingProgress(int percentage) {
     return 'Loading Server Analytics... $percentage%';
   }
+
+  @override
+  String get adminLibChapterImageResolutionMatchSource => 'Match source';
 }
 
 /// The translations for English, as used in the United Kingdom (`en_GB`).

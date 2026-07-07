@@ -17013,6 +17013,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading Server Analytics... {percentage}%'**
   String adminAnalyticsLoadingProgress(int percentage);
+
+  /// Chapter image resolution option that matches the source resolution
+  ///
+  /// In en, this message translates to:
+  /// **'Match source'**
+  String get adminLibChapterImageResolutionMatchSource;
 }
 
 class _AppLocalizationsDelegate

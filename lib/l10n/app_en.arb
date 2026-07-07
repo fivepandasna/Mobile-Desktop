@@ -8350,5 +8350,9 @@
         "type": "int"
       }
     }
+  },
+  "adminLibChapterImageResolutionMatchSource": "Match source",
+  "@adminLibChapterImageResolutionMatchSource": {
+    "description": "Chapter image resolution option that matches the source resolution"
   }
 }

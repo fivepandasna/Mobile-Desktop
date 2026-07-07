@@ -9559,4 +9559,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String adminAnalyticsLoadingProgress(int percentage) {
     return 'Loading Server Analytics... $percentage%';
   }
+
+  @override
+  String get adminLibChapterImageResolutionMatchSource => 'Match source';
 }

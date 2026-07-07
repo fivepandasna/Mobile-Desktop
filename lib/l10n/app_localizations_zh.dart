@@ -9231,6 +9231,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String adminAnalyticsLoadingProgress(int percentage) {
     return 'Loading Server Analytics... $percentage%';
   }
+
+  @override
+  String get adminLibChapterImageResolutionMatchSource => 'Match source';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).

@@ -686,7 +686,7 @@ Future<AdminLibraryInsights> _loadLibraryInsights(
       audioCodecs: audioCodecs,
     );
   } catch (_) {
-    rethrow;
+    return const AdminLibraryInsights();
   }
 }
 

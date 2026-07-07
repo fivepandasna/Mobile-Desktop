@@ -48,7 +48,9 @@ class _RunningTasksCardState extends ConsumerState<RunningTasksCard> {
         );
       }
     }
-    ref.invalidate(adminTasksProvider);
+    if (mounted) {
+      ref.invalidate(adminTasksProvider);
+    }
   }
 
   @override

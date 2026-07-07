@@ -9580,6 +9580,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String adminAnalyticsLoadingProgress(int percentage) {
     return 'Loading Server Analytics... $percentage%';
   }
+
+  @override
+  String get adminLibChapterImageResolutionMatchSource => 'Match source';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
