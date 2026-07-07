@@ -102,6 +102,8 @@ class _BookReaderScreenState extends State<BookReaderScreen>
   int _currentEpubChapter = 0;
   Uint8List? _epubBytes;
   final Map<String, List<String>> _epubThemeCache = {};
+  final ScrollController _epubScrollController = ScrollController();
+  bool _epubScrollToBottomOnLoad = false;
   Timer? _comicStateSaveDebounce;
   Timer? _pdfPageSaveDebounce;
   List<_BookmarkEntry> _bookmarks = const [];
@@ -128,6 +130,8 @@ class _BookReaderScreenState extends State<BookReaderScreen>
       (PlatformDetection.isMacOS ||
           PlatformDetection.isLinux ||
           PlatformDetection.isWindows);
+
+  bool get _epubIsRtl => Directionality.of(context) == TextDirection.rtl;
 
   ReaderThemeColors get _fixedLayoutChromeColors => ReaderThemeColors(
     background: _invertFixedLayout
@@ -314,6 +318,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     _pageController.dispose();
     _comicTransformController.dispose();
     _comicVerticalController.dispose();
+    _epubScrollController.dispose();
     _pdfSearcher?.dispose();
     _pdfSearchField.dispose();
     super.dispose();
@@ -671,6 +676,213 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     await prefs.setInt(_epubProgressPrefKey, clamped);
   }
 
+  /// Load an EPUB chapter for screenful paging. When [landAtBottom] is set the
+  /// new chapter opens scrolled to its end, so paging back from the top of a
+  /// chapter lands at the bottom of the previous one.
+  Future<void> _epubGoToChapter(int index, {bool landAtBottom = false}) async {
+    if (index < 0 || index >= _epubChapterHtml.length) {
+      return;
+    }
+    // Set on every navigation so a stale value can't carry into a forward jump.
+    _epubScrollToBottomOnLoad = landAtBottom;
+    await _loadEpubChapter(index);
+
+    if (_useNativeHtmlEpub && landAtBottom) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_epubScrollController.hasClients) {
+          return;
+        }
+        _epubScrollController.jumpTo(
+          _epubScrollController.position.maxScrollExtent,
+        );
+      });
+    }
+  }
+
+  /// Turn one screenful in [dir] (1 forward, -1 back), scrolling within the
+  /// current chapter and crossing into the neighbour once its edge is reached.
+  Future<void> _epubPage(int dir) async {
+    final forward = dir > 0;
+    if (_useNativeHtmlEpub) {
+      if (!_epubScrollController.hasClients) {
+        return;
+      }
+      final pos = _epubScrollController.position;
+      final atEdge = forward
+          ? pos.pixels >= pos.maxScrollExtent - 8
+          : pos.pixels <= 8;
+      if (atEdge) {
+        await _epubGoToChapter(
+          _currentEpubChapter + dir,
+          landAtBottom: !forward,
+        );
+      } else {
+        await _epubScrollByFraction(0.9 * dir);
+      }
+      return;
+    }
+
+    final result = await _webController?.evaluateJavascript(
+      source: 'window.__moonfinPage ? window.__moonfinPage($dir) : null',
+    );
+    if (result?.toString() == 'edge') {
+      await _epubGoToChapter(_currentEpubChapter + dir, landAtBottom: !forward);
+    }
+  }
+
+  Future<void> _epubPageForward() => _epubPage(1);
+
+  Future<void> _epubPageBack() => _epubPage(-1);
+
+  void _handleEpubTap(TapUpDetails details) {
+    final width = MediaQuery.sizeOf(context).width;
+    final edge = width * 0.3;
+    final x = details.localPosition.dx;
+    final rtl = _epubIsRtl;
+    if (x < edge) {
+      rtl ? _epubPageForward() : _epubPageBack();
+    } else if (x > width - edge) {
+      rtl ? _epubPageBack() : _epubPageForward();
+    } else {
+      _toggleOverlay();
+    }
+  }
+
+  KeyEventResult _onEpubKey(FocusNode _, KeyEvent event) {
+    if (event is! KeyDownEvent || _mode != _ReaderMode.epub) {
+      return KeyEventResult.ignored;
+    }
+    if (!_desktopInputEnabled && !PlatformDetection.isTV) {
+      return KeyEventResult.ignored;
+    }
+
+    final key = event.logicalKey;
+    final rtl = _epubIsRtl;
+    final shift = HardwareKeyboard.instance.isShiftPressed;
+    final isSelect =
+        key == LogicalKeyboardKey.select || key == LogicalKeyboardKey.enter;
+
+    // On TV, Select toggles the chrome, and while it is showing the D-pad is
+    // left free to move between the chrome buttons.
+    if (PlatformDetection.isTV) {
+      if (isSelect) {
+        _toggleOverlay();
+        return KeyEventResult.handled;
+      }
+      if (_overlayVisible) {
+        return KeyEventResult.ignored;
+      }
+    }
+
+    if (key == LogicalKeyboardKey.arrowRight) {
+      rtl ? _epubPageBack() : _epubPageForward();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowLeft) {
+      rtl ? _epubPageForward() : _epubPageBack();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.pageDown ||
+        (key == LogicalKeyboardKey.space && !shift)) {
+      _epubPageForward();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.pageUp ||
+        (key == LogicalKeyboardKey.space && shift)) {
+      _epubPageBack();
+      return KeyEventResult.handled;
+    }
+
+    // Fine scrolling and chapter-edge jumps only apply to the native scroll
+    // view; the WebView handles these keys itself.
+    if (_useNativeHtmlEpub) {
+      if (key == LogicalKeyboardKey.arrowDown) {
+        _epubScrollByFraction(0.4);
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.arrowUp) {
+        _epubScrollByFraction(-0.4);
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.home && _epubScrollController.hasClients) {
+        _epubScrollController.jumpTo(0);
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.end && _epubScrollController.hasClients) {
+        _epubScrollController.jumpTo(
+          _epubScrollController.position.maxScrollExtent,
+        );
+        return KeyEventResult.handled;
+      }
+    }
+
+    return KeyEventResult.ignored;
+  }
+
+  Future<void> _epubScrollByFraction(double fraction) async {
+    if (!_epubScrollController.hasClients) {
+      return;
+    }
+    final pos = _epubScrollController.position;
+    await _epubScrollController.animateTo(
+      (pos.pixels + pos.viewportDimension * fraction).clamp(
+        0.0,
+        pos.maxScrollExtent,
+      ),
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
+    );
+  }
+
+  /// JS injected into the EPUB WebView: installs tap-zone, keyboard and
+  /// programmatic screenful paging. Idempotent per document.
+  static String _epubNavScript({required bool rtl}) {
+    return '''
+(function () {
+  if (window.__moonfinNavInstalled) return;
+  window.__moonfinNavInstalled = true;
+  var RTL = $rtl;
+  function atBottom() {
+    return window.innerHeight + window.scrollY >=
+      document.documentElement.scrollHeight - 8;
+  }
+  function atTop() { return window.scrollY <= 8; }
+  window.__moonfinPage = function (dir) {
+    if (dir > 0 ? atBottom() : atTop()) return 'edge';
+    window.scrollBy(0, (dir > 0 ? 1 : -1) * window.innerHeight * 0.9);
+    return 'paged';
+  };
+  function page(dir) {
+    if (window.__moonfinPage(dir) === 'edge' && window.flutter_inappwebview) {
+      window.flutter_inappwebview.callHandler(
+        'moonfinReaderNav', dir > 0 ? 'nextChapter' : 'prevChapter');
+    }
+  }
+  document.addEventListener('click', function (e) {
+    if (e.target && e.target.closest && e.target.closest('a')) return;
+    var sel = window.getSelection();
+    if (sel && sel.toString().length > 0) return;
+    var w = window.innerWidth, edge = w * 0.3;
+    if (e.clientX < edge) page(RTL ? 1 : -1);
+    else if (e.clientX > w - edge) page(RTL ? -1 : 1);
+    else if (window.flutter_inappwebview) {
+      window.flutter_inappwebview.callHandler('moonfinReaderNav', 'toggle');
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k === 'ArrowRight') page(RTL ? -1 : 1);
+    else if (k === 'ArrowLeft') page(RTL ? 1 : -1);
+    else if (k === 'PageDown') page(1);
+    else if (k === 'PageUp') page(-1);
+    else if (k === ' ') page(e.shiftKey ? -1 : 1);
+    else return;
+    e.preventDefault();
+  });
+})();
+''';
+  }
+
   Future<void> _goToPdfPage(int targetPage) async {
     final count = _pdfPageCount;
     if (count <= 0) {
@@ -949,11 +1161,7 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     if (!mounted) {
       return;
     }
-    for (final i in [
-      centerIndex + 1,
-      centerIndex + 2,
-      centerIndex - 1,
-    ]) {
+    for (final i in [centerIndex + 1, centerIndex + 2, centerIndex - 1]) {
       if (i < 0 || i >= _comicPageCount) {
         continue;
       }
@@ -2333,16 +2541,95 @@ class _BookReaderScreenState extends State<BookReaderScreen>
     );
   }
 
-  Widget _buildDocumentFullscreen() {
+  Widget _buildEpubFullscreen() {
     final l10n = AppLocalizations.of(context);
     final title = _item?.name ?? l10n.bookReader;
-    final isEpub = _mode == _ReaderMode.epub;
-    final isPdf = _mode == _ReaderMode.pdf;
     final chapterCount = _epubChapterHtml.length;
+    final chromeColors = _pageColors;
+    final epubMinutes = _estimateEpubChapterMinutes();
+
+    return Scaffold(
+      backgroundColor: _readerBackgroundColor,
+      body: Focus(
+        autofocus: true,
+        onKeyEvent: _onEpubKey,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Positioned.fill(child: _buildReaderSurface()),
+            _readerDimWarmthOverlay(),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                ignoring: !_overlayVisible,
+                child: AnimatedOpacity(
+                  opacity: _overlayVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 250),
+                  child: ReaderTopBar(
+                    title: title,
+                    subtitle: chapterCount > 1
+                        ? l10n.chapterNumber(_currentEpubChapter + 1)
+                        : null,
+                    pageColors: chromeColors,
+                    onBack: () => Navigator.of(context).pop(),
+                    onContents: _openContentsHub,
+                    onSettings: _openReaderSettings,
+                    onBookmark: _addCurrentBookmark,
+                    hasBookmarks: _bookmarks.isNotEmpty,
+                    showSettings: true,
+                  ),
+                ),
+              ),
+            ),
+            if (chapterCount > 1)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: IgnorePointer(
+                  ignoring: !_overlayVisible,
+                  child: AnimatedOpacity(
+                    opacity: _overlayVisible ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 250),
+                    child: ReaderBottomBar(
+                      pageColors: chromeColors,
+                      accent: _readerAccent,
+                      leftLabel: '${_currentEpubChapter + 1} / $chapterCount',
+                      rightLabel: epubMinutes > 0 ? '~$epubMinutes min' : null,
+                      captionLabel: _readerProgressCaption(),
+                      value: (_currentEpubChapter + 1).toDouble(),
+                      min: 1,
+                      max: chapterCount.toDouble(),
+                      divisions: chapterCount > 1 ? chapterCount - 1 : null,
+                      onPrev: _currentEpubChapter > 0
+                          ? () => _loadEpubChapter(_currentEpubChapter - 1)
+                          : null,
+                      onNext: _currentEpubChapter < chapterCount - 1
+                          ? () => _loadEpubChapter(_currentEpubChapter + 1)
+                          : null,
+                      onChanged: (value) => _loadEpubChapter(value.round() - 1),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDocumentFullscreen() {
+    if (_mode == _ReaderMode.epub) {
+      return _buildEpubFullscreen();
+    }
+    final l10n = AppLocalizations.of(context);
+    final title = _item?.name ?? l10n.bookReader;
+    final isPdf = _mode == _ReaderMode.pdf;
     final pdfPageCount = _pdfPageCount;
 
     final chromeColors = isPdf ? _fixedLayoutChromeColors : _pageColors;
-    final epubMinutes = isEpub ? _estimateEpubChapterMinutes() : 0;
 
     return Scaffold(
       backgroundColor: _readerBackgroundColor,
@@ -2351,16 +2638,13 @@ class _BookReaderScreenState extends State<BookReaderScreen>
         children: [
           ReaderTopBar(
             title: title,
-            subtitle: isEpub && chapterCount > 1
-                ? l10n.chapterNumber(_currentEpubChapter + 1)
-                : null,
             pageColors: chromeColors,
             onBack: () => Navigator.of(context).pop(),
             onContents: _openContentsHub,
             onSettings: _openReaderSettings,
             onBookmark: _addCurrentBookmark,
             hasBookmarks: _bookmarks.isNotEmpty,
-            showSettings: isEpub,
+            showSettings: false,
             onSearch: isPdf ? _togglePdfSearch : null,
           ),
           if (isPdf && _pdfSearchVisible) _buildPdfSearchBar(chromeColors),
@@ -2373,25 +2657,6 @@ class _BookReaderScreenState extends State<BookReaderScreen>
               ],
             ),
           ),
-          if (isEpub && chapterCount > 1)
-            ReaderBottomBar(
-              pageColors: chromeColors,
-              accent: _readerAccent,
-              leftLabel: '${_currentEpubChapter + 1} / $chapterCount',
-              rightLabel: epubMinutes > 0 ? '~$epubMinutes min' : null,
-              captionLabel: _readerProgressCaption(),
-              value: (_currentEpubChapter + 1).toDouble(),
-              min: 1,
-              max: chapterCount.toDouble(),
-              divisions: chapterCount > 1 ? chapterCount - 1 : null,
-              onPrev: _currentEpubChapter > 0
-                  ? () => _loadEpubChapter(_currentEpubChapter - 1)
-                  : null,
-              onNext: _currentEpubChapter < chapterCount - 1
-                  ? () => _loadEpubChapter(_currentEpubChapter + 1)
-                  : null,
-              onChanged: (value) => _loadEpubChapter(value.round() - 1),
-            ),
           if (isPdf && pdfPageCount > 1)
             ReaderBottomBar(
               pageColors: chromeColors,
@@ -2447,7 +2712,11 @@ class _BookReaderScreenState extends State<BookReaderScreen>
                   hintStyle: TextStyle(
                     color: colors.foreground.withValues(alpha: 0.5),
                   ),
-                  prefixIcon: AdaptiveIcon(Icons.search, color: accent, size: 20),
+                  prefixIcon: AdaptiveIcon(
+                    Icons.search,
+                    color: accent,
+                    size: 20,
+                  ),
                   border: const OutlineInputBorder(),
                 ),
                 onChanged: _runPdfSearch,
@@ -2679,25 +2948,32 @@ class _BookReaderScreenState extends State<BookReaderScreen>
           )];
       final colors = _pageColors;
 
-      return ColoredBox(
-        color: colors.background,
-        child: SingleChildScrollView(
-          key: ValueKey<String>(
-            'epub-native-${_settings.epubStyleKey}-$_currentEpubChapter',
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: _settings.marginPx.toDouble(),
-            vertical: 20,
-          ),
+      return GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTapUp: _handleEpubTap,
+        child: ColoredBox(
+          color: colors.background,
+          child: SingleChildScrollView(
+            controller: _epubScrollController,
+            key: ValueKey<String>(
+              'epub-native-${_settings.epubStyleKey}-$_currentEpubChapter',
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: _settings.marginPx.toDouble(),
+              vertical: 20,
+            ),
 
-          child: SelectionArea(
-            child: HtmlWidget(
-              chapter,
-              textStyle: TextStyle(
-                color: colors.foreground,
-                fontSize: _settings.fontSizePx.toDouble(),
-                height: _settings.lineHeight,
-                fontWeight: _settings.bold ? FontWeight.w600 : FontWeight.w400,
+            child: SelectionArea(
+              child: HtmlWidget(
+                chapter,
+                textStyle: TextStyle(
+                  color: colors.foreground,
+                  fontSize: _settings.fontSizePx.toDouble(),
+                  height: _settings.lineHeight,
+                  fontWeight: _settings.bold
+                      ? FontWeight.w600
+                      : FontWeight.w400,
+                ),
               ),
             ),
           ),
@@ -2759,19 +3035,47 @@ class _BookReaderScreenState extends State<BookReaderScreen>
           : null,
       onWebViewCreated: (controller) {
         _webController = controller;
+        if (isEpub) {
+          controller.addJavaScriptHandler(
+            handlerName: 'moonfinReaderNav',
+            callback: (args) {
+              switch (args.isNotEmpty ? args.first as String? : null) {
+                case 'nextChapter':
+                  _epubGoToChapter(_currentEpubChapter + 1);
+                case 'prevChapter':
+                  _epubGoToChapter(_currentEpubChapter - 1, landAtBottom: true);
+                case 'toggle':
+                  _toggleOverlay();
+              }
+              return null;
+            },
+          );
+        }
       },
       onReceivedServerTrustAuthRequest: gAllowSelfSignedCertificates
           ? (controller, challenge) async => ServerTrustAuthResponse(
-                action: ServerTrustAuthResponseAction.PROCEED,
-              )
+              action: ServerTrustAuthResponseAction.PROCEED,
+            )
           : null,
       onProgressChanged: (controller, progress) {
         if (!mounted) return;
         setState(() => _webLoadProgress = progress);
       },
-      onLoadStop: (controller, url) {
+      onLoadStop: (controller, url) async {
         if (!mounted) return;
         setState(() => _webLoadProgress = 100);
+        if (isEpub) {
+          await controller.evaluateJavascript(
+            source: _epubNavScript(rtl: _epubIsRtl),
+          );
+          if (_epubScrollToBottomOnLoad) {
+            _epubScrollToBottomOnLoad = false;
+            await controller.evaluateJavascript(
+              source:
+                  'window.scrollTo(0, document.documentElement.scrollHeight);',
+            );
+          }
+        }
       },
       shouldOverrideUrlLoading: (controller, action) async {
         if (!isEpub) {
@@ -2911,10 +3215,17 @@ class _PdfRoundButton extends StatelessWidget {
   }
 }
 
-Widget _comicImageError(BuildContext context, Object error, StackTrace? stack) =>
-    const Center(
-      child: AdaptiveIcon(Icons.broken_image_outlined, color: Colors.white38, size: 64),
-    );
+Widget _comicImageError(
+  BuildContext context,
+  Object error,
+  StackTrace? stack,
+) => const Center(
+  child: AdaptiveIcon(
+    Icons.broken_image_outlined,
+    color: Colors.white38,
+    size: 64,
+  ),
+);
 
 class _ComicPageImage extends StatelessWidget {
   final Uint8List bytes;
@@ -2969,20 +3280,17 @@ class _ComicVerticalPageState extends State<_ComicVerticalPage> {
   void initState() {
     super.initState();
     final stream = _provider.resolve(ImageConfiguration.empty);
-    final listener = ImageStreamListener(
-      (info, _) {
-        final h = info.image.height;
-        if (h <= 0) {
-          return;
-        }
-        final aspect = info.image.width / h;
-        widget.onAspect(aspect);
-        if (mounted && (_aspect == null || (_aspect! - aspect).abs() > 0.001)) {
-          setState(() => _aspect = aspect);
-        }
-      },
-      onError: (_, _) {},
-    );
+    final listener = ImageStreamListener((info, _) {
+      final h = info.image.height;
+      if (h <= 0) {
+        return;
+      }
+      final aspect = info.image.width / h;
+      widget.onAspect(aspect);
+      if (mounted && (_aspect == null || (_aspect! - aspect).abs() > 0.001)) {
+        setState(() => _aspect = aspect);
+      }
+    }, onError: (_, _) {});
     stream.addListener(listener);
     _stream = stream;
     _listener = listener;
