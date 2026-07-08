@@ -6568,16 +6568,16 @@ abstract class AppLocalizations {
   /// **'Alert me when someone submits a request'**
   String get seerrNotifyNewRequestsSubtitle;
 
-  /// Title for the toggle that notifies a user when their request is added to the library
+  /// Title for the toggle that notifies a requester about approvals, declines, and library availability
   ///
   /// In en, this message translates to:
-  /// **'Library-added notifications'**
+  /// **'Request updates'**
   String get seerrNotifyLibraryAddedTitle;
 
   /// Subtitle for the library-added notifications toggle
   ///
   /// In en, this message translates to:
-  /// **'Alert me when my requests arrive in the library'**
+  /// **'Approved, declined, and added to your library'**
   String get seerrNotifyLibraryAddedSubtitle;
 
   /// Label showing logged in username

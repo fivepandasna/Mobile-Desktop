@@ -808,8 +808,14 @@ class _ConnectivityListenerState extends ConsumerState<_ConnectivityListener>
         final notificationService =
             GetIt.instance<SeerrNotificationService>();
         GetIt.instance<PluginSyncService>().onSeerrNotification =
-            (title, body, route) =>
-                notificationService.show(title, body, route);
+            (title, body, route, {requestId, isRequest = false}) =>
+                notificationService.show(
+                  title,
+                  body,
+                  route,
+                  requestId: requestId,
+                  isRequest: isRequest,
+                );
       }
     }
     if (GetIt.instance.isRegistered<DownloadService>()) {

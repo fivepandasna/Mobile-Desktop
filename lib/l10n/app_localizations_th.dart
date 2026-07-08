@@ -3561,11 +3561,11 @@ class AppLocalizationsTh extends AppLocalizations {
       'Alert me when someone submits a request';
 
   @override
-  String get seerrNotifyLibraryAddedTitle => 'Library-added notifications';
+  String get seerrNotifyLibraryAddedTitle => 'Request updates';
 
   @override
   String get seerrNotifyLibraryAddedSubtitle =>
-      'Alert me when my requests arrive in the library';
+      'Approved, declined, and added to your library';
 
   @override
   String loggedInAs(String username) {

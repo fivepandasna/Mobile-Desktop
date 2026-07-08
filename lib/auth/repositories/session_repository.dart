@@ -16,6 +16,7 @@ import '../../data/services/download_notification_service.dart';
 import '../../data/services/watch_next_service.dart';
 import '../../data/services/media_server_client_factory.dart';
 import '../../data/services/plugin_sync_service.dart';
+import '../../data/services/push_messaging_service.dart';
 import '../../data/services/socket_handler.dart';
 import '../../di/modules/app_module.dart';
 import '../../di/modules/playback_module.dart';
@@ -26,6 +27,7 @@ import '../../playback/last_playback_session_store.dart';
 import '../../playback/media_browse_service.dart';
 import '../../preference/preference_constants.dart';
 import '../../preference/user_preferences.dart';
+import '../../util/platform_detection.dart';
 import '../store/authentication_preferences.dart';
 import '../store/authentication_store.dart';
 import '../store/credential_store.dart';
@@ -280,6 +282,19 @@ class SessionRepository {
 
     await _pluginSyncService.syncOnLogin(client, serverId: serverId);
 
+    // Register the FCM token now that a session exists, and push the current
+    // notification prefs so defaults reach the plugin. Startup registration
+    // bails before login, so this is where closed-app push actually enrolls.
+    if (PlatformDetection.isMobile) {
+      try {
+        if (GetIt.instance.isRegistered<PushMessagingService>()) {
+          await GetIt.instance<PushMessagingService>()
+              .registerWithCurrentToken();
+        }
+        await _pluginSyncService.pushNotificationPrefs(client);
+      } catch (_) {}
+    }
+
     final seerrAvailable = await _pluginSyncService.configureSeerr(
       client,
       username: username ?? user.name,
@@ -293,6 +308,17 @@ class SessionRepository {
   Future<void> destroyCurrentSession() async {
     final serverId = _activeServerId;
     final userId = _activeUserId;
+
+    // Drop this device's push registration while the session/token is still
+    // live, otherwise the plugin keeps sending closed-app pushes after logout.
+    if (PlatformDetection.isMobile) {
+      try {
+        if (GetIt.instance.isRegistered<PushMessagingService>()) {
+          await GetIt.instance<PushMessagingService>().unregister();
+        }
+      } catch (_) {}
+    }
+
     _pluginSyncService.resetState();
 
     if (serverId != null) {

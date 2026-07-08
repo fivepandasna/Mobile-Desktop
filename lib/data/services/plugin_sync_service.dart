@@ -59,7 +59,14 @@ class PluginSyncService extends ChangeNotifier {
   bool get tmdbAvailable => _tmdbAvailable;
   String? _activeThemeCacheServerId;
   void Function(String message)? onAdminMessage;
-  void Function(String title, String body, String route)? onSeerrNotification;
+  void Function(
+    String title,
+    String body,
+    String route, {
+    String? requestId,
+    bool isRequest,
+  })?
+  onSeerrNotification;
   CancelToken? _settingsStreamCancelToken;
   StreamSubscription<String>? _settingsStreamSubscription;
   bool _settingsStreamReconnectPending = false;
@@ -408,11 +415,16 @@ class PluginSyncService extends ChangeNotifier {
         final title = parsed['title'];
         final body = parsed['body'];
         final route = parsed['route'];
+        final kind = parsed['kind'];
+        final requestIdRaw = parsed['requestId'];
+        final requestId = requestIdRaw is String ? requestIdRaw : null;
         if (route is String && route.trim().isNotEmpty) {
           onSeerrNotification?.call(
             title is String ? title : '',
             body is String ? body : '',
             route.trim(),
+            requestId: requestId,
+            isRequest: kind == 'request',
           );
         }
         return;
@@ -560,11 +572,17 @@ class PluginSyncService extends ChangeNotifier {
   }
 
   Future<void> pushNotificationPrefs(MediaServerClient client) async {
-    if (!_pluginAvailable) return;
+    if (!_pluginAvailable) {
+      debugPrint('PluginSync: skip pushNotificationPrefs, plugin unavailable');
+      return;
+    }
 
     try {
       final headers = _authHeaders(client);
-      if (headers == null) return;
+      if (headers == null) {
+        debugPrint('PluginSync: skip pushNotificationPrefs, no auth headers');
+        return;
+      }
 
       await _dio.post(
         '${client.baseUrl}/Moonfin/Notifications/Prefs',
@@ -585,11 +603,17 @@ class PluginSyncService extends ChangeNotifier {
     required String platform,
     required String deviceId,
   }) async {
-    if (!_pluginAvailable) return;
+    if (!_pluginAvailable) {
+      debugPrint('PluginSync: skip registerPushDevice, plugin unavailable');
+      return;
+    }
 
     try {
       final headers = _authHeaders(client);
-      if (headers == null) return;
+      if (headers == null) {
+        debugPrint('PluginSync: skip registerPushDevice, no auth headers');
+        return;
+      }
 
       await _dio.post(
         '${client.baseUrl}/Moonfin/Notifications/Register',

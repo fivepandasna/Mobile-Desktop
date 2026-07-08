@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:server_core/server_core.dart';
 
@@ -7,13 +8,33 @@ import '../../firebase_options.dart';
 import '../../ui/navigation/app_router.dart';
 import '../../util/platform_detection.dart';
 import 'plugin_sync_service.dart';
+import 'seerr_notification_service.dart';
 
-/// Background/terminated messages are displayed by the OS itself from the
-/// message's notification block, so nothing has to be drawn here. FlutterFire
-/// still requires a registered top-level handler, hence this no-op.
+/// Background/terminated messages that carry a notification block are drawn by
+/// the OS. The one exception is the Android data-only request push, which has
+/// no notification block, so this handler renders the actioned local
+/// notification itself. Everything else stays a no-op.
 @pragma('vm:entry-point')
 Future<void> pushBackgroundHandler(RemoteMessage message) async {
-  return;
+  if (message.data['kind'] != 'request') return;
+
+  final data = message.data;
+  final route = data['route'];
+  if (route is! String || route.trim().isEmpty) return;
+  final requestId = data['requestId'];
+
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    final service = SeerrNotificationService();
+    await service.initialize();
+    service.show(
+      data['title'] is String ? data['title'] as String : '',
+      data['body'] is String ? data['body'] as String : '',
+      route.trim(),
+      requestId: requestId is String ? requestId : null,
+      isRequest: true,
+    );
+  } catch (_) {}
 }
 
 /// Client side of the push notification path. The plugin sends FCM messages
@@ -86,9 +107,26 @@ class PushMessagingService {
     } catch (_) {}
   }
 
+  /// Re-registers the current FCM token after login. Startup registration bails
+  /// before a session exists, so this is called once the client is authenticated.
+  Future<void> registerWithCurrentToken() async {
+    if (!PlatformDetection.isMobile) return;
+    if (!_initialized) {
+      debugPrint('PushMessagingService: skip register, not initialized');
+      return;
+    }
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      await _registerToken(token);
+    } catch (_) {}
+  }
+
   Future<void> _registerToken(String? token) async {
     if (!PlatformDetection.isMobile) return;
-    if (token == null || token.isEmpty) return;
+    if (token == null || token.isEmpty) {
+      debugPrint('PushMessagingService: skip register, no FCM token');
+      return;
+    }
     if (token == _lastRegisteredToken) return;
 
     final client = GetIt.instance.isRegistered<MediaServerClient>()
@@ -97,10 +135,14 @@ class PushMessagingService {
     if (client == null ||
         client.accessToken == null ||
         client.accessToken!.isEmpty) {
+      debugPrint('PushMessagingService: skip register, no active session');
       return;
     }
 
-    if (!GetIt.instance.isRegistered<PluginSyncService>()) return;
+    if (!GetIt.instance.isRegistered<PluginSyncService>()) {
+      debugPrint('PushMessagingService: skip register, plugin sync unavailable');
+      return;
+    }
     final sync = GetIt.instance<PluginSyncService>();
 
     await sync.registerPushDevice(
