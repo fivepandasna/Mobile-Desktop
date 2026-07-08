@@ -725,6 +725,45 @@ class AppLocalizationsKo extends AppLocalizations {
   String get books => '서적';
 
   @override
+  String get latestBooks => 'Latest Books';
+
+  @override
+  String get latestAudiobooks => 'Latest Audiobooks';
+
+  @override
+  String bookSeriesItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count books',
+      one: '1 book',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bookFormatBook => 'Book';
+
+  @override
+  String get bookFormatAudiobook => 'Audiobook';
+
+  @override
+  String bookPercentRead(int percent) {
+    return '$percent% read';
+  }
+
+  @override
+  String bookTimeLeft(String time) {
+    return '$time left';
+  }
+
+  @override
+  String get bookHeroRead => 'Read';
+
+  @override
+  String get bookHeroListen => 'Listen';
+
+  @override
   String get author => '작가';
 
   @override

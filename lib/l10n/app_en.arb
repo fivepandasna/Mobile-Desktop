@@ -982,6 +982,57 @@
   "@books": {
     "description": "Book media tab label"
   },
+  "latestBooks": "Latest Books",
+  "@latestBooks": {
+    "description": "Row title for recently added books in the book library"
+  },
+  "latestAudiobooks": "Latest Audiobooks",
+  "@latestAudiobooks": {
+    "description": "Row title for recently added audiobooks in the book library"
+  },
+  "bookSeriesItemCount": "{count, plural, =1{1 book} other{{count} books}}",
+  "@bookSeriesItemCount": {
+    "description": "Subtitle for a book series shelf entry showing how many books it contains",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bookFormatBook": "Book",
+  "@bookFormatBook": {
+    "description": "Semantic label for the book format badge on library cards"
+  },
+  "bookFormatAudiobook": "Audiobook",
+  "@bookFormatAudiobook": {
+    "description": "Semantic label for the audiobook format badge on library cards"
+  },
+  "bookPercentRead": "{percent}% read",
+  "@bookPercentRead": {
+    "description": "Reading progress label on book cards",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "bookTimeLeft": "{time} left",
+  "@bookTimeLeft": {
+    "description": "Short remaining-duration chip on audiobook cards, e.g. '6h 12m left'",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "bookHeroRead": "Read",
+  "@bookHeroRead": {
+    "description": "Hero CTA label to start reading a book"
+  },
+  "bookHeroListen": "Listen",
+  "@bookHeroListen": {
+    "description": "Hero CTA label to start listening to an audiobook"
+  },
   "author": "Author",
   "@author": {
     "description": "Organize mode label for grouping by author"

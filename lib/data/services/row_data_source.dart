@@ -792,6 +792,82 @@ class RowDataSource {
     );
   }
 
+  /// Continue row for book/audiobook libraries. The Resume endpoint omits
+  /// Book items on some servers, so an empty result retries with the
+  /// IsResumable items filter.
+  Future<HomeRow> loadBookResume(
+    String parentId,
+    String serverId, {
+    required List<String> includeItemTypes,
+    required String title,
+  }) async {
+    Map<String, dynamic> response;
+    try {
+      response = await _getResumeItemsWithFallback(
+        parentId: parentId,
+        includeItemTypes: includeItemTypes,
+        limit: _defaultLimit,
+      );
+    } catch (_) {
+      response = const <String, dynamic>{'Items': <dynamic>[]};
+    }
+    var row = _buildRow(
+      id: 'bookResume_$parentId',
+      title: title,
+      response: response,
+      serverId: serverId,
+      rowType: HomeRowType.resume,
+    );
+    if (row.items.isEmpty) {
+      try {
+        final fallback = await _getItemsWithFallback(
+          parentId: parentId,
+          includeItemTypes: includeItemTypes,
+          filters: ['IsResumable'],
+          sortBy: 'DatePlayed',
+          sortOrder: 'Descending',
+          recursive: true,
+          limit: _defaultLimit,
+        );
+        row = _buildRow(
+          id: 'bookResume_$parentId',
+          title: title,
+          response: fallback,
+          serverId: serverId,
+          rowType: HomeRowType.resume,
+        );
+      } catch (_) {}
+    }
+    return row;
+  }
+
+  /// Book/audiobook authors. Jellyfin indexes book authors as artists, so
+  /// /Artists scoped to the library returns them; servers that don't index
+  /// them return an empty row and the caller hides it.
+  Future<HomeRow> loadBookAuthors(String parentId, String serverId) async {
+    Map<String, dynamic> response;
+    try {
+      response = await _client.itemsApi.getArtists(
+        parentId: parentId,
+        userId: _client.userId,
+        sortBy: _defaultSortBy,
+        sortOrder: _defaultSortOrder,
+        recursive: true,
+        limit: _defaultLimit,
+        fields: 'PrimaryImageAspectRatio,SortName',
+      );
+    } catch (_) {
+      response = const <String, dynamic>{'Items': <dynamic>[]};
+    }
+    return _buildRow(
+      id: 'bookAuthors_$parentId',
+      title: _l10n.authors,
+      response: response,
+      serverId: serverId,
+      rowType: HomeRowType.audioArtists,
+    );
+  }
+
   _ParsedStableId? _parseStableId(String id) {
     if (!id.startsWith('pluginDynamic:')) return null;
     final lastColon = id.lastIndexOf(':');

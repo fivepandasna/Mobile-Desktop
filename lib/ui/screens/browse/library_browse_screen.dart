@@ -28,7 +28,6 @@ import '../../../l10n/app_localizations.dart';
 
 Color get _navyBackground => AppColorScheme.background;
 Color get _jellyfinBlue => AppColorScheme.accent;
-const _bookAccent = Color(0xFF32B9E8);
 const _horizontalPadding = 60.0;
 const _kCompactBreakpoint = 600.0;
 bool _isCompact(BuildContext context) =>
@@ -40,10 +39,6 @@ double _desktopUiScaleFactor() {
       .get(UserPreferences.desktopUiScale)
       .scaleFactor;
 }
-
-enum _BookMediaTab { books, audiobooks }
-
-enum _BookOrganizeMode { all, author, genre }
 
 class LibraryBrowseScreen extends StatefulWidget {
   final String libraryId;
@@ -71,8 +66,6 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
   final _backgroundService = GetIt.instance<BackgroundService>();
   StreamSubscription<String?>? _backgroundSub;
   String? _backdropUrl;
-  _BookMediaTab _bookMediaTab = _BookMediaTab.books;
-  _BookOrganizeMode _bookOrganizeMode = _BookOrganizeMode.all;
   final Set<String> _localProgressItemIds = const {};
 
   @override
@@ -195,65 +188,6 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
             _vm.load();
           }
         });
-  }
-
-  bool _isAudiobook(AggregatedItem item) {
-    final type = (item.type ?? '').toLowerCase();
-    final mediaType = (item.rawData['MediaType'] as String? ?? '')
-        .toLowerCase();
-    return type == 'audio' || type == 'audiobook' || mediaType == 'audio';
-  }
-
-  String _primaryAuthor(AggregatedItem item) {
-    final directAuthor = (item.rawData['Author'] as String?)?.trim();
-    if (directAuthor != null && directAuthor.isNotEmpty) {
-      return directAuthor;
-    }
-
-    final authors = (item.rawData['Authors'] as List?)
-        ?.whereType<String>()
-        .map((name) => name.trim())
-        .where((name) => name.isNotEmpty)
-        .toList();
-    if (authors != null && authors.isNotEmpty) {
-      return authors.first;
-    }
-
-    final people =
-        (item.rawData['People'] as List?)
-            ?.whereType<Map>()
-            .map((p) => p.cast<String, dynamic>())
-            .toList() ??
-        const <Map<String, dynamic>>[];
-    for (final person in people) {
-      final type = (person['Type'] as String?)?.toLowerCase();
-      if (type != 'author' && type != 'writer') continue;
-      final name = (person['Name'] as String?)?.trim();
-      if (name != null && name.isNotEmpty) {
-        return name;
-      }
-    }
-
-    if ((item.albumArtist ?? '').trim().isNotEmpty) {
-      return item.albumArtist!.trim();
-    }
-    if (item.albumArtists.isNotEmpty) {
-      final first = (item.albumArtists.first['Name'] as String?)?.trim();
-      if (first != null && first.isNotEmpty) {
-        return first;
-      }
-    }
-    if (item.artists.isNotEmpty && item.artists.first.trim().isNotEmpty) {
-      return item.artists.first.trim();
-    }
-    return AppLocalizations.of(context).unknownAuthor;
-  }
-
-  String _primaryGenre(AggregatedItem item) {
-    if (item.genres.isNotEmpty && item.genres.first.trim().isNotEmpty) {
-      return item.genres.first.trim();
-    }
-    return AppLocalizations.of(context).uncategorized;
   }
 
   double? _displayPlayedPercentage(AggregatedItem item) {
@@ -604,9 +538,6 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                 sortBy: _vm.sortBy,
                 letterFilter: _vm.letterFilter,
                 isMusicBrowse: _vm.isMusicBrowse,
-                isBookBrowse: false,
-                activeBookTab: _bookMediaTab,
-                bookOrganizeMode: _bookOrganizeMode,
                 playedFilter: _vm.playedFilter,
                 favoriteFilter: _vm.favoriteFilter,
                 onBack: () => PlatformDetection.isWeb
@@ -614,9 +545,6 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                     : context.pop(),
                 onSort: () => _showFilterSortDialog(context),
                 onSettings: () => _showSettingsDialog(context),
-                onBookTabChanged: (tab) => setState(() => _bookMediaTab = tab),
-                onBookOrganizeChanged: (mode) =>
-                    setState(() => _bookOrganizeMode = mode),
                 onLetterChanged: (l) => _vm.setLetterFilter(l),
                 onPlayedFilterChanged: (status) => _vm.setPlayedFilter(status),
                 onFavoriteFilterChanged: (value) =>
@@ -631,10 +559,9 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
   }
 
   Widget _buildBody() {
-    final spinnerColor = _vm.isBookLibrary ? _bookAccent : _jellyfinBlue;
     return switch (_vm.state) {
       LibraryBrowseState.loading => Center(
-        child: CircularProgressIndicator(color: spinnerColor),
+        child: CircularProgressIndicator(color: _jellyfinBlue),
       ),
       LibraryBrowseState.error => Center(
         child: Column(
@@ -643,11 +570,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
             Text(
               _vm.errorMessage ??
                   AppLocalizations.of(context).failedToLoadLibrary,
-              style: TextStyle(
-                color: _vm.isBookLibrary
-                    ? const Color(0xFFF4E6D5)
-                    : Colors.white,
-              ),
+              style: const TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -657,8 +580,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
           ],
         ),
       ),
-      LibraryBrowseState.ready =>
-        _vm.isBookLibrary ? _buildBookGrid() : _buildGrid(),
+      LibraryBrowseState.ready => _buildGrid(),
     };
   }
 
@@ -673,7 +595,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
     }
 
     final cardWidth = _cardWidth();
-    final spacing = _vm.isBookLibrary ? 16.0 : 12.0;
+    const spacing = 12.0;
     final watchedBehavior = _prefs.get(
       UserPreferences.watchedIndicatorBehavior,
     );
@@ -800,174 +722,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Center(
-                    child: CircularProgressIndicator(
-                      color: _vm.isBookLibrary ? _bookAccent : _jellyfinBlue,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildBookGrid() {
-    final baseItems = _vm.items.where((item) => !_vm.isNavigableFolder(item));
-    final tabFiltered = baseItems.where(
-      (item) => _bookMediaTab == _BookMediaTab.books
-          ? !_isAudiobook(item)
-          : _isAudiobook(item),
-    );
-
-    final filtered =
-        tabFiltered.where((item) {
-          final progress = item.playedPercentage ?? 0;
-          final watchedMatch = switch (_vm.playedFilter) {
-            PlayedStatusFilter.all => true,
-            PlayedStatusFilter.watched => item.isPlayed || progress >= 100,
-            PlayedStatusFilter.unwatched => !item.isPlayed && progress < 100,
-          };
-          final favoriteMatch = !_vm.favoriteFilter || item.isFavorite;
-          return watchedMatch && favoriteMatch;
-        }).toList()..sort(
-          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
-        );
-
-    if (filtered.isEmpty) {
-      final label = _bookMediaTab == _BookMediaTab.books
-          ? AppLocalizations.of(context).books.toLowerCase()
-          : AppLocalizations.of(context).audiobooks.toLowerCase();
-      return Center(
-        child: Text(
-          AppLocalizations.of(context).noLabelFound(label),
-          style: const TextStyle(color: Color(0xFFD4B28B)),
-        ),
-      );
-    }
-
-    final sections = <MapEntry<String, List<AggregatedItem>>>[];
-    if (_bookOrganizeMode == _BookOrganizeMode.all) {
-      sections.add(MapEntry('All', List<AggregatedItem>.from(filtered)));
-    } else {
-      final grouped = <String, List<AggregatedItem>>{};
-      for (final item in filtered) {
-        final key = _bookOrganizeMode == _BookOrganizeMode.author
-            ? _primaryAuthor(item)
-            : _primaryGenre(item);
-        grouped.putIfAbsent(key, () => []).add(item);
-      }
-      final keys = grouped.keys.toList()..sort();
-      for (final key in keys) {
-        sections.add(MapEntry(key, grouped[key]!));
-      }
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isMobile = _isCompact(context);
-        final hPad = isMobile ? 16.0 : _horizontalPadding;
-        final spacing = isMobile ? 10.0 : 14.0;
-        final desiredWidth = isMobile ? 112.0 : 136.0;
-        final crossAxisCount =
-            ((constraints.maxWidth - hPad * 2 + spacing) /
-                    (desiredWidth + spacing))
-                .floor()
-                .clamp(2, 10);
-
-        final cellWidth =
-            (constraints.maxWidth - hPad * 2 - (crossAxisCount - 1) * spacing) /
-            crossAxisCount;
-        const cardRatio = 2 / 3;
-        final textHeight = 44.0 * _desktopUiScaleFactor();
-        final childAspectRatio =
-            cellWidth / (cellWidth / cardRatio + textHeight);
-
-        return CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(hPad, 10, hPad, 40),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final section = sections[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_bookOrganizeMode != _BookOrganizeMode.all)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Text(
-                            section.key,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFFFFE6C3),
-                            ),
-                          ),
-                        ),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: section.value.length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: crossAxisCount,
-                          crossAxisSpacing: spacing,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: childAspectRatio,
-                        ),
-                        itemBuilder: (context, i) {
-                          final item = section.value[i];
-                          return MediaCard(
-                            title: item.name,
-                            subtitle: _primaryAuthor(item),
-                            imageUrl: _imageUrl(item),
-                            width: double.infinity,
-                            aspectRatio: 2 / 3,
-                            focusColor: _bookAccent,
-                            cardFocusExpansion: _prefs.get(
-                              UserPreferences.cardFocusExpansion,
-                            ),
-                            suppressFocusGlow:
-                                ThemeRegistry.active.id ==
-                                ThemeRegistry.neonPulseId,
-                            isPlayed: item.isPlayed,
-                            isFavorite: item.isFavorite,
-                            playedPercentage: _displayPlayedPercentage(item),
-                            watchedBehavior: _prefs.get(
-                              UserPreferences.watchedIndicatorBehavior,
-                            ),
-                            itemType: item.type,
-                            onFocus: isMobile
-                                ? null
-                                : () => _onItemFocused(item),
-                            onHoverStart: isMobile
-                                ? null
-                                : () => _onItemFocused(item),
-                            onHoverEnd: isMobile
-                                ? null
-                                : () => _vm.setFocusedItem(null),
-                            onTap: () => _onItemTap(item),
-                            onLongPress: () => showContextMenu(
-                              context,
-                              item,
-                              onChanged: () => setState(() {}),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-                  );
-                }, childCount: sections.length),
-              ),
-            ),
-            if (_vm.loadingMore)
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(
-                    child: CircularProgressIndicator(color: _bookAccent),
+                    child: CircularProgressIndicator(color: _jellyfinBlue),
                   ),
                 ),
               ),
@@ -1075,16 +830,11 @@ class _LibraryHeader extends StatelessWidget {
   final LibrarySortBy sortBy;
   final String letterFilter;
   final bool isMusicBrowse;
-  final bool isBookBrowse;
-  final _BookMediaTab activeBookTab;
-  final _BookOrganizeMode bookOrganizeMode;
   final PlayedStatusFilter playedFilter;
   final bool favoriteFilter;
   final VoidCallback onBack;
   final VoidCallback onSort;
   final VoidCallback onSettings;
-  final ValueChanged<_BookMediaTab> onBookTabChanged;
-  final ValueChanged<_BookOrganizeMode> onBookOrganizeChanged;
   final ValueChanged<String> onLetterChanged;
   final ValueChanged<PlayedStatusFilter> onPlayedFilterChanged;
   final ValueChanged<bool> onFavoriteFilterChanged;
@@ -1102,16 +852,11 @@ class _LibraryHeader extends StatelessWidget {
     required this.sortBy,
     required this.letterFilter,
     this.isMusicBrowse = false,
-    this.isBookBrowse = false,
-    this.activeBookTab = _BookMediaTab.books,
-    this.bookOrganizeMode = _BookOrganizeMode.all,
     this.playedFilter = PlayedStatusFilter.all,
     this.favoriteFilter = false,
     required this.onBack,
     required this.onSort,
     required this.onSettings,
-    required this.onBookTabChanged,
-    required this.onBookOrganizeChanged,
     required this.onLetterChanged,
     required this.onPlayedFilterChanged,
     required this.onFavoriteFilterChanged,
@@ -1126,11 +871,8 @@ class _LibraryHeader extends StatelessWidget {
     final isCompactLandscape = isMobile && isLandscape;
     final isCompactPortrait = isMobile && !isLandscape;
     final showInlineAlpha =
-        !isBookBrowse &&
-        sortBy == LibrarySortBy.name &&
-        (!isMobile || isCompactLandscape);
-    final showBelowAlpha =
-        !isBookBrowse && sortBy == LibrarySortBy.name && isCompactPortrait;
+        sortBy == LibrarySortBy.name && (!isMobile || isCompactLandscape);
+    final showBelowAlpha = sortBy == LibrarySortBy.name && isCompactPortrait;
     final topPad = (isMobile ? MediaQuery.of(context).padding.top : 0.0) + 8.0;
     final hPad = isMobile ? 16.0 : _horizontalPadding * desktopScale;
 
@@ -1147,9 +889,8 @@ class _LibraryHeader extends StatelessWidget {
                 libraryName,
                 style: TextStyle(
                   fontSize: 26 * desktopScale,
-                  fontWeight: isBookBrowse ? FontWeight.w600 : FontWeight.w300,
-                  color: isBookBrowse ? const Color(0xFFF3E3CF) : Colors.white,
-                  letterSpacing: isBookBrowse ? 0.4 : 0,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.white,
                 ),
               ),
               if (totalCount > 0) ...[
@@ -1158,15 +899,13 @@ class _LibraryHeader extends StatelessWidget {
                   '$totalCount Items',
                   style: TextStyle(
                     fontSize: 12 * desktopScale,
-                    color: isBookBrowse
-                        ? const Color(0xFFE5C9A3)
-                        : Colors.white.withAlpha(102),
+                    color: Colors.white.withAlpha(102),
                   ),
                 ),
               ],
             ],
           ),
-          if (showMediaDetails && !isMobile && !isBookBrowse) ...[
+          if (showMediaDetails && !isMobile) ...[
             const SizedBox(height: 2),
             _FocusedItemHud(
               item: focusedItem,
@@ -1177,7 +916,7 @@ class _LibraryHeader extends StatelessWidget {
               showBadges: showBadges,
             ),
           ],
-          SizedBox(height: isBookBrowse ? 2 : 8),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: (isMobile && !showInlineAlpha)
                 ? MainAxisAlignment.center
@@ -1199,17 +938,15 @@ class _LibraryHeader extends StatelessWidget {
                   unfocusedIconAlpha: 128,
                   onTap: onBack,
                 ),
-              if (!isBookBrowse) ...[
-                SizedBox(width: 2 * desktopScale),
-                FocusableToolbarButton(
-                  icon: Icons.sort,
-                  size: 30 * desktopScale,
-                  iconSize: 20 * desktopScale,
-                  unfocusedIconAlpha: 128,
-                  onTap: onSort,
-                ),
-              ],
-              if (!isMusicBrowse && !isBookBrowse) ...[
+              SizedBox(width: 2 * desktopScale),
+              FocusableToolbarButton(
+                icon: Icons.sort,
+                size: 30 * desktopScale,
+                iconSize: 20 * desktopScale,
+                unfocusedIconAlpha: 128,
+                onTap: onSort,
+              ),
+              if (!isMusicBrowse) ...[
                 SizedBox(width: 2 * desktopScale),
                 FocusableToolbarButton(
                   icon: Icons.settings,
@@ -1233,25 +970,6 @@ class _LibraryHeader extends StatelessWidget {
           if (showBelowAlpha) ...[
             const SizedBox(height: 8),
             _AlphaPickerBar(selected: letterFilter, onChanged: onLetterChanged),
-          ],
-          if (isBookBrowse) ...[
-            const SizedBox(height: 10),
-            _BookMediaTabs(
-              activeTab: activeBookTab,
-              onChanged: onBookTabChanged,
-            ),
-            const SizedBox(height: 8),
-            _BookStatusCategories(
-              playedFilter: playedFilter,
-              favoriteFilter: favoriteFilter,
-              onPlayedFilterChanged: onPlayedFilterChanged,
-              onFavoriteFilterChanged: onFavoriteFilterChanged,
-            ),
-            const SizedBox(height: 8),
-            _BookOrganizeChips(
-              mode: bookOrganizeMode,
-              onChanged: onBookOrganizeChanged,
-            ),
           ],
         ],
       ),
@@ -1567,11 +1285,9 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
   Widget build(BuildContext context) {
     final vm = widget.vm;
     final isBookBrowse = vm.isBookLibrary;
-    final accent = isBookBrowse ? _bookAccent : _jellyfinBlue;
+    final accent = _jellyfinBlue;
     final l10n = AppLocalizations.of(context);
-    final surfaceColor = AppColorScheme.surface.withValues(
-      alpha: isBookBrowse ? 0.96 : 0.92,
-    );
+    final surfaceColor = AppColorScheme.surface.withValues(alpha: 0.92);
     final onSurface = AppColorScheme.onSurface;
     final dividerColor = onSurface.withValues(alpha: 0.12);
     final sectionColor = onSurface.withValues(alpha: 0.72);
@@ -1874,11 +1590,8 @@ class _SettingsDialogState extends State<_SettingsDialog> {
   @override
   Widget build(BuildContext context) {
     final vm = widget.vm;
-    final isBookBrowse = vm.isBookLibrary;
     final l10n = AppLocalizations.of(context);
-    final surfaceColor = AppColorScheme.surface.withValues(
-      alpha: isBookBrowse ? 0.96 : 0.92,
-    );
+    final surfaceColor = AppColorScheme.surface.withValues(alpha: 0.92);
     final onSurface = AppColorScheme.onSurface;
     final dividerColor = onSurface.withValues(alpha: 0.12);
     final sectionColor = onSurface.withValues(alpha: 0.72);
@@ -1948,7 +1661,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
 
   Widget _settingsRadioTile(LibraryBrowseViewModel vm, ImageType type) {
     final selected = vm.imageType == type;
-    final accent = vm.isBookLibrary ? _bookAccent : _jellyfinBlue;
+    final accent = _jellyfinBlue;
     final onSurface = AppColorScheme.onSurface;
     return InkWell(
       onTap: () => vm.setImageType(type),
@@ -1973,7 +1686,7 @@ class _SettingsDialogState extends State<_SettingsDialog> {
 
   Widget _posterSizeRadioTile(LibraryBrowseViewModel vm, PosterSize size) {
     final selected = vm.posterSize == size;
-    final accent = vm.isBookLibrary ? _bookAccent : _jellyfinBlue;
+    final accent = _jellyfinBlue;
     final onSurface = AppColorScheme.onSurface;
     final label = switch (size) {
       PosterSize.small => AppLocalizations.of(context).small,
@@ -2029,160 +1742,6 @@ class _SettingsDialogState extends State<_SettingsDialog> {
               ),
             )
           : null,
-    );
-  }
-}
-
-class _BookMediaTabs extends StatelessWidget {
-  final _BookMediaTab activeTab;
-  final ValueChanged<_BookMediaTab> onChanged;
-
-  const _BookMediaTabs({required this.activeTab, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Row(
-      children: [
-        Expanded(
-          child: _BookFilterChip(
-            label: l10n.books,
-            selected: activeTab == _BookMediaTab.books,
-            onTap: () => onChanged(_BookMediaTab.books),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _BookFilterChip(
-            label: l10n.audiobooks,
-            selected: activeTab == _BookMediaTab.audiobooks,
-            onTap: () => onChanged(_BookMediaTab.audiobooks),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _BookOrganizeChips extends StatelessWidget {
-  final _BookOrganizeMode mode;
-  final ValueChanged<_BookOrganizeMode> onChanged;
-
-  const _BookOrganizeChips({required this.mode, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        _BookFilterChip(
-          label: l10n.all,
-          selected: mode == _BookOrganizeMode.all,
-          onTap: () => onChanged(_BookOrganizeMode.all),
-        ),
-        _BookFilterChip(
-          label: l10n.author,
-          selected: mode == _BookOrganizeMode.author,
-          onTap: () => onChanged(_BookOrganizeMode.author),
-        ),
-        _BookFilterChip(
-          label: l10n.genres,
-          selected: mode == _BookOrganizeMode.genre,
-          onTap: () => onChanged(_BookOrganizeMode.genre),
-        ),
-      ],
-    );
-  }
-}
-
-class _BookStatusCategories extends StatelessWidget {
-  final PlayedStatusFilter playedFilter;
-  final bool favoriteFilter;
-  final ValueChanged<PlayedStatusFilter> onPlayedFilterChanged;
-  final ValueChanged<bool> onFavoriteFilterChanged;
-
-  const _BookStatusCategories({
-    required this.playedFilter,
-    required this.favoriteFilter,
-    required this.onPlayedFilterChanged,
-    required this.onFavoriteFilterChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        _BookFilterChip(
-          label: l10n.all,
-          selected: playedFilter == PlayedStatusFilter.all && !favoriteFilter,
-          onTap: () {
-            onFavoriteFilterChanged(false);
-            onPlayedFilterChanged(PlayedStatusFilter.all);
-          },
-        ),
-        _BookFilterChip(
-          label: l10n.unread,
-          selected: playedFilter == PlayedStatusFilter.unwatched,
-          onTap: () => onPlayedFilterChanged(PlayedStatusFilter.unwatched),
-        ),
-        _BookFilterChip(
-          label: l10n.readStatus,
-          selected: playedFilter == PlayedStatusFilter.watched,
-          onTap: () => onPlayedFilterChanged(PlayedStatusFilter.watched),
-        ),
-        _BookFilterChip(
-          label: l10n.favorites,
-          selected: favoriteFilter,
-          onTap: () => onFavoriteFilterChanged(!favoriteFilter),
-        ),
-      ],
-    );
-  }
-}
-
-class _BookFilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _BookFilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: AppRadius.circular(999),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          borderRadius: AppRadius.circular(999),
-          color: selected ? const Color(0x3332B9E8) : const Color(0x22131E33),
-          border: Border.fromBorderSide(
-            ThemeRegistry.active.borders.chipBorder.copyWith(
-              color: selected ? _bookAccent : const Color(0x556388A8),
-              width: selected ? 1.6 : 1,
-            ),
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? const Color(0xFFD9F2FF) : const Color(0xFFAECBE2),
-          ),
-        ),
-      ),
     );
   }
 }

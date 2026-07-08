@@ -1546,6 +1546,60 @@ abstract class AppLocalizations {
   /// **'Books'**
   String get books;
 
+  /// Row title for recently added books in the book library
+  ///
+  /// In en, this message translates to:
+  /// **'Latest Books'**
+  String get latestBooks;
+
+  /// Row title for recently added audiobooks in the book library
+  ///
+  /// In en, this message translates to:
+  /// **'Latest Audiobooks'**
+  String get latestAudiobooks;
+
+  /// Subtitle for a book series shelf entry showing how many books it contains
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 book} other{{count} books}}'**
+  String bookSeriesItemCount(int count);
+
+  /// Semantic label for the book format badge on library cards
+  ///
+  /// In en, this message translates to:
+  /// **'Book'**
+  String get bookFormatBook;
+
+  /// Semantic label for the audiobook format badge on library cards
+  ///
+  /// In en, this message translates to:
+  /// **'Audiobook'**
+  String get bookFormatAudiobook;
+
+  /// Reading progress label on book cards
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% read'**
+  String bookPercentRead(int percent);
+
+  /// Short remaining-duration chip on audiobook cards, e.g. '6h 12m left'
+  ///
+  /// In en, this message translates to:
+  /// **'{time} left'**
+  String bookTimeLeft(String time);
+
+  /// Hero CTA label to start reading a book
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get bookHeroRead;
+
+  /// Hero CTA label to start listening to an audiobook
+  ///
+  /// In en, this message translates to:
+  /// **'Listen'**
+  String get bookHeroListen;
+
   /// Organize mode label for grouping by author
   ///
   /// In en, this message translates to:

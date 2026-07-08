@@ -47,6 +47,14 @@ class MediaCard extends StatefulWidget {
   final Color? titleColor;
   final Color? subtitleColor;
 
+  /// Extra widgets layered over the poster image (inside its clip), e.g.
+  /// format badges. Position each with [Positioned].
+  final List<Widget> imageOverlays;
+
+  /// Set when an [imageOverlays] entry occupies the top-left corner so the
+  /// favorite heart shifts down, like it does for the Seerr badge.
+  final bool overlayOccupiesTopLeft;
+
   const MediaCard({
     super.key,
     this.title,
@@ -81,6 +89,8 @@ class MediaCard extends StatefulWidget {
     this.suppressFocusGlow = false,
     this.titleColor,
     this.subtitleColor,
+    this.imageOverlays = const [],
+    this.overlayOccupiesTopLeft = false,
   });
 
   static IconData iconForType(String? type) {
@@ -116,6 +126,10 @@ class MediaCard extends StatefulWidget {
         return Icons.playlist_play;
       case 'Book':
         return Icons.book;
+      case 'AudioBook':
+        return Icons.headphones;
+      case 'BookSeries':
+        return Icons.collections_bookmark;
       default:
         return Icons.movie;
     }
@@ -240,6 +254,8 @@ class _MediaCardState extends State<MediaCard> with FocusStateMixin {
                   itemType: widget.itemType,
                   seerrMediaType: widget.seerrMediaType,
                   seerrStatus: widget.seerrStatus,
+                  imageOverlays: widget.imageOverlays,
+                  overlayOccupiesTopLeft: widget.overlayOccupiesTopLeft,
                 ),
                 if (widget.title != null) ...[
                   const SizedBox(height: 6),
@@ -464,6 +480,8 @@ class _CardImage extends StatelessWidget {
   final String? itemType;
   final String? seerrMediaType;
   final int? seerrStatus;
+  final List<Widget> imageOverlays;
+  final bool overlayOccupiesTopLeft;
 
   const _CardImage({
     this.imageUrl,
@@ -483,6 +501,8 @@ class _CardImage extends StatelessWidget {
     this.itemType,
     this.seerrMediaType,
     this.seerrStatus,
+    this.imageOverlays = const [],
+    this.overlayOccupiesTopLeft = false,
   });
 
   @override
@@ -557,7 +577,9 @@ class _CardImage extends StatelessWidget {
                 ),
                 if (isFavorite)
                   Positioned(
-                    top: _showSeerrMediaTypeBadge ? 28 : 4,
+                    top: (_showSeerrMediaTypeBadge || overlayOccupiesTopLeft)
+                        ? 28
+                        : 4,
                     left: 4,
                     child: Icon(
                       Icons.favorite,
@@ -598,6 +620,7 @@ class _CardImage extends StatelessWidget {
                       ),
                     ),
                   ),
+                ...imageOverlays,
               ],
             ),
           ),
