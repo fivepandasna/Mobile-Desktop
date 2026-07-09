@@ -805,7 +805,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
       context: context,
       useRootNavigator: false,
       builder: (_) => _FilterSortDialog(vm: _vm),
-    );
+    ).whenComplete(_restoreGridFocusAfterDialog);
   }
 
   void _showSettingsDialog(BuildContext context) {
@@ -813,7 +813,16 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
       context: context,
       useRootNavigator: false,
       builder: (_) => _SettingsDialog(vm: _vm),
-    );
+    ).whenComplete(_restoreGridFocusAfterDialog);
+  }
+
+  // Sorting or filtering can rebuild the grid while the dialog is open, which
+  // disposes the row the dialog restores focus to. Once the dialog is gone,
+  // point focus back at a valid grid row.
+  void _restoreGridFocusAfterDialog() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) restoreGridFocusIfNeeded();
+    });
   }
 }
 
@@ -1334,21 +1343,21 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                         o != LibrarySortBy.criticRating &&
                         o != LibrarySortBy.communityRating
                       )))
-              _radioTile(
+              _DialogRadioTile(
                 label: (vm.isMusicBrowse && option == LibrarySortBy.premiereDate)
                     ? 'Release Date'
                     : option.displayName,
                 selected: vm.sortBy == option,
                 trailing: vm.sortBy == option
-                    ? IconButton(
-                        icon: Icon(
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Icon(
                           vm.sortDirection == SortDirection.ascending
                               ? Icons.arrow_upward
                               : Icons.arrow_downward,
                           color: accent,
                           size: 18,
                         ),
-                        onPressed: () => vm.toggleSortDirection(),
                       )
                     : null,
                 onTap: () {
@@ -1358,11 +1367,12 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                     vm.setSortBy(option);
                   }
                 },
+                accent: accent,
                 onSurface: onSurface,
               ),
             Divider(color: dividerColor),
             _sectionHeader(l10n.filters, sectionColor),
-            _checkboxTile(
+            _DialogCheckboxTile(
               label: l10n.favorites,
               checked: vm.favoriteFilter,
               onTap: () => vm.setFavoriteFilter(!vm.favoriteFilter),
@@ -1376,25 +1386,25 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                 sectionColor,
               ),
               for (final status in PlayedStatusFilter.values)
-                _radioTile(
+                _DialogRadioTile(
                   label: switch (status) {
                     PlayedStatusFilter.all => l10n.all,
                     PlayedStatusFilter.watched =>
                       isBookBrowse ? l10n.readStatus : l10n.watched,
                     PlayedStatusFilter.unwatched =>
                       isBookBrowse ? l10n.unread : l10n.unwatched,
-                  },
-                  selected: vm.playedFilter == status,
-                  onTap: () => vm.setPlayedFilter(status),
-                  accent: accent,
-                  onSurface: onSurface,
-                ),
+                },
+                selected: vm.playedFilter == status,
+                onTap: () => vm.setPlayedFilter(status),
+                accent: accent,
+                onSurface: onSurface,
+              ),
             ],
             if (vm.isSeriesLibrary) ...[
               Divider(color: dividerColor),
               _sectionHeader(l10n.seriesStatus, sectionColor),
               for (final status in SeriesStatusFilter.values)
-                _radioTile(
+                _DialogRadioTile(
                   label: switch (status) {
                     SeriesStatusFilter.all => l10n.all,
                     SeriesStatusFilter.continuing => l10n.continuing,
@@ -1409,7 +1419,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
             if (vm.isGenreBrowse && vm.libraries.isNotEmpty) ...[
               Divider(color: dividerColor),
               _sectionHeader(l10n.library, sectionColor),
-              _radioTile(
+              _DialogRadioTile(
                 label: l10n.allLibraries,
                 selected: vm.libraryFilter == null,
                 onTap: () => vm.setLibraryFilter(null),
@@ -1417,7 +1427,7 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                 onSurface: onSurface,
               ),
               for (final lib in vm.libraries)
-                _radioTile(
+                _DialogRadioTile(
                   label: lib['Name'] as String? ?? '',
                   selected: vm.libraryFilter == lib['Id'],
                   onTap: () => vm.setLibraryFilter(lib['Id']?.toString() ?? ''),
@@ -1445,116 +1455,190 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
     );
   }
 
-  Widget _radioTile({
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-    Widget? trailing,
-    Color? accent,
-    required Color onSurface,
-  }) {
-    final effectiveAccent = accent ?? AppColorScheme.accent;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 18,
-              height: 18,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.fromBorderSide(
-                  ThemeRegistry.active.borders.chipBorder.copyWith(
-                    color: selected
-                        ? effectiveAccent
-                        : onSurface.withValues(alpha: 0.5),
-                    width: 2,
+}
+
+class _DialogRadioTile extends StatefulWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Widget? trailing;
+  final Color? accent;
+  final Color onSurface;
+
+  const _DialogRadioTile({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.trailing,
+    this.accent,
+    required this.onSurface,
+  });
+
+  @override
+  State<_DialogRadioTile> createState() => _DialogRadioTileState();
+}
+
+class _DialogRadioTileState extends State<_DialogRadioTile> with FocusStateMixin {
+  @override
+  Widget build(BuildContext context) {
+    final effectiveAccent = widget.accent ?? AppColorScheme.accent;
+    final showActive = focused || hovered;
+    final color = showActive ? focusColor : widget.onSurface;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setHovered(true),
+      onExit: (_) => setHovered(false),
+      child: Focus(
+        onFocusChange: (f) => setFocused(f),
+        onKeyEvent: (_, event) {
+          if (isActivateKey(event)) {
+            widget.onTap();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            color: showActive ? focusColor.withValues(alpha: 0.12) : Colors.transparent,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.fromBorderSide(
+                      ThemeRegistry.active.borders.focusBorder.copyWith(
+                        color: widget.selected
+                            ? effectiveAccent
+                            : color.withValues(alpha: 0.5),
+                        width: 2,
+                      ),
+                    ),
+                    color: widget.selected ? effectiveAccent : Colors.transparent,
+                  ),
+                  child: widget.selected
+                      ? Center(
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: widget.onSurface,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    widget.label,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: widget.selected
+                          ? color
+                          : color.withValues(alpha: 0.72),
+                    ),
                   ),
                 ),
-                color: selected ? effectiveAccent : Colors.transparent,
-              ),
-              child: selected
-                  ? Center(
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: onSurface,
-                        ),
-                      ),
-                    )
-                  : null,
+                if (widget.trailing != null) widget.trailing!,
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: selected
-                      ? onSurface
-                      : onSurface.withValues(alpha: 0.72),
-                ),
-              ),
-            ),
-            ?trailing,
-          ],
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _checkboxTile({
-    required String label,
-    required bool checked,
-    required VoidCallback onTap,
-    required Color accent,
-    required Color onSurface,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 18,
-              height: 18,
-              decoration: BoxDecoration(
-                borderRadius: AppRadius.circular(4),
-                border: Border.fromBorderSide(
-                  ThemeRegistry.active.borders.chipBorder.copyWith(
-                    color: checked ? accent : onSurface.withValues(alpha: 0.5),
-                    width: 2,
+class _DialogCheckboxTile extends StatefulWidget {
+  final String label;
+  final bool checked;
+  final VoidCallback onTap;
+  final Color accent;
+  final Color onSurface;
+
+  const _DialogCheckboxTile({
+    required this.label,
+    required this.checked,
+    required this.onTap,
+    required this.accent,
+    required this.onSurface,
+  });
+
+  @override
+  State<_DialogCheckboxTile> createState() => _DialogCheckboxTileState();
+}
+
+class _DialogCheckboxTileState extends State<_DialogCheckboxTile> with FocusStateMixin {
+  @override
+  Widget build(BuildContext context) {
+    final showActive = focused || hovered;
+    final color = showActive ? focusColor : widget.onSurface;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setHovered(true),
+      onExit: (_) => setHovered(false),
+      child: Focus(
+        onFocusChange: (f) => setFocused(f),
+        onKeyEvent: (_, event) {
+          if (isActivateKey(event)) {
+            widget.onTap();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            color: showActive ? focusColor.withValues(alpha: 0.12) : Colors.transparent,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    borderRadius: AppRadius.circular(4),
+                    border: Border.fromBorderSide(
+                      ThemeRegistry.active.borders.focusBorder.copyWith(
+                        color: widget.checked ? widget.accent : color.withValues(alpha: 0.5),
+                        width: 2,
+                      ),
+                    ),
+                    color: widget.checked ? widget.accent : Colors.transparent,
+                  ),
+                  child: widget.checked
+                      ? Center(
+                          child: Text(
+                            '✓',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: widget.onSurface,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: widget.checked ? color : color.withValues(alpha: 0.72),
                   ),
                 ),
-                color: checked ? accent : Colors.transparent,
-              ),
-              child: checked
-                  ? Center(
-                      child: Text(
-                        '✓',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: onSurface,
-                        ),
-                      ),
-                    )
-                  : null,
+              ],
             ),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 15,
-                color: checked ? onSurface : onSurface.withValues(alpha: 0.72),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -1663,24 +1747,12 @@ class _SettingsDialogState extends State<_SettingsDialog> {
     final selected = vm.imageType == type;
     final accent = _jellyfinBlue;
     final onSurface = AppColorScheme.onSurface;
-    return InkWell(
+    return _DialogRadioTile(
+      label: type.name[0].toUpperCase() + type.name.substring(1),
+      selected: selected,
       onTap: () => vm.setImageType(type),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        child: Row(
-          children: [
-            _radioCircle(selected, accent),
-            const SizedBox(width: 12),
-            Text(
-              type.name[0].toUpperCase() + type.name.substring(1),
-              style: TextStyle(
-                fontSize: 15,
-                color: selected ? onSurface : onSurface.withValues(alpha: 0.72),
-              ),
-            ),
-          ],
-        ),
-      ),
+      accent: accent,
+      onSurface: onSurface,
     );
   }
 
@@ -1694,54 +1766,12 @@ class _SettingsDialogState extends State<_SettingsDialog> {
       PosterSize.large => AppLocalizations.of(context).large,
       PosterSize.extraLarge => AppLocalizations.of(context).extraLarge,
     };
-    return InkWell(
+    return _DialogRadioTile(
+      label: label,
+      selected: selected,
       onTap: () => vm.setPosterSize(size),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        child: Row(
-          children: [
-            _radioCircle(selected, accent),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 15,
-                color: selected ? onSurface : onSurface.withValues(alpha: 0.72),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _radioCircle(bool selected, Color accent) {
-    final onSurface = AppColorScheme.onSurface;
-    return Container(
-      width: 18,
-      height: 18,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.fromBorderSide(
-          ThemeRegistry.active.borders.chipBorder.copyWith(
-            color: selected ? accent : onSurface.withValues(alpha: 0.5),
-            width: 2,
-          ),
-        ),
-        color: selected ? accent : Colors.transparent,
-      ),
-      child: selected
-          ? Center(
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: onSurface,
-                ),
-              ),
-            )
-          : null,
+      accent: accent,
+      onSurface: onSurface,
     );
   }
 }

@@ -49,10 +49,17 @@ mixin GridFocusNodeMixin<T extends StatefulWidget> on State<T> {
   }
 
   void restoreGridFocusIfNeeded() {
+    if (ModalRoute.of(context)?.isCurrent != true) return;
     if (lastFocusedGridContentVersion == gridContentVersion) return;
     final idx = lastFocusedGridIndex;
     if (idx == null) return;
-    final node = gridItemFocusNodes[idx];
+    // The grid may have shrunk, so fall back to the last available row when the
+    // remembered index no longer exists.
+    var node = gridItemFocusNodes[idx];
+    if (node == null && gridItemFocusNodes.isNotEmpty) {
+      final maxIndex = gridItemFocusNodes.keys.reduce((a, b) => a > b ? a : b);
+      node = gridItemFocusNodes[maxIndex];
+    }
     if (node != null && node.canRequestFocus) {
       node.requestFocus();
     }
