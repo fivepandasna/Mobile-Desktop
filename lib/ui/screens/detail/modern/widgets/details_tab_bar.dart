@@ -1,15 +1,20 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 
 import '../../../../../util/platform_detection.dart';
+import '../../../../../util/idiom/glass_capability.dart';
+import '../../../../widgets/focus/glass_focus_halo.dart';
 
 /// Focusable, d-pad friendly tab bar: tabs select on press, left/right move
 /// focus between tabs, and left from the first tab calls [onExitLeft].
 ///
-/// Two looks: the default is clean text with an underline under the active tab;
-/// [segmented] wraps the tabs in a single rounded surface with the active tab
-/// filled, matching the audiobook drawer tabs.
+/// Three looks: the default is clean text with an underline under the active
+/// tab; [segmented] wraps the tabs in a single rounded surface with the active
+/// tab filled; [pill] is the glass sliding-thumb look from the search screen,
+/// with a single thumb that tracks the selected tab. Every look keeps the same
+/// per-tab focus model, so d-pad navigation is identical across them.
 class DetailsTabBar extends StatelessWidget {
   final List<String> labels;
   final int selectedIndex;
@@ -19,6 +24,9 @@ class DetailsTabBar extends StatelessWidget {
   final VoidCallback? onExitUp;
   final void Function(int index)? onNavigateDown;
   final bool segmented;
+  // Glass sliding-thumb look from the search screen. Takes priority over
+  // [segmented] when both are set.
+  final bool pill;
   // Wrap the segments onto multiple rows instead of scrolling horizontally.
   // Intended for touch layouts where every tab should stay visible.
   final bool wrap;
@@ -33,37 +41,44 @@ class DetailsTabBar extends StatelessWidget {
     this.onExitUp,
     this.onNavigateDown,
     this.segmented = false,
+    this.pill = false,
     this.wrap = false,
   });
 
+  _DetailsTabItem _buildTabItem(int i, {Key? key}) => _DetailsTabItem(
+        key: key,
+        label: labels[i],
+        isSelected: selectedIndex == i,
+        segmented: segmented,
+        pill: pill,
+        focusNode: focusNodeFor(i),
+        onSelect: () => onSelect(i),
+        onNavigateDown:
+            onNavigateDown != null ? () => onNavigateDown!(i) : null,
+        onNavigateUp: onExitUp,
+        onNavigateLeft: () {
+          if (i > 0) {
+            focusNodeFor(i - 1).requestFocus();
+            return true;
+          }
+          if (onExitLeft != null) {
+            onExitLeft!();
+            return true;
+          }
+          return false;
+        },
+        onNavigateRight: () {
+          if (i < labels.length - 1) {
+            focusNodeFor(i + 1).requestFocus();
+          }
+        },
+      );
+
   @override
   Widget build(BuildContext context) {
-    _DetailsTabItem item(int i) => _DetailsTabItem(
-          label: labels[i],
-          isSelected: selectedIndex == i,
-          segmented: segmented,
-          focusNode: focusNodeFor(i),
-          onSelect: () => onSelect(i),
-          onNavigateDown:
-              onNavigateDown != null ? () => onNavigateDown!(i) : null,
-          onNavigateUp: onExitUp,
-          onNavigateLeft: () {
-            if (i > 0) {
-              focusNodeFor(i - 1).requestFocus();
-              return true;
-            }
-            if (onExitLeft != null) {
-              onExitLeft!();
-              return true;
-            }
-            return false;
-          },
-          onNavigateRight: () {
-            if (i < labels.length - 1) {
-              focusNodeFor(i + 1).requestFocus();
-            }
-          },
-        );
+    if (pill) return _PillTabBar(this);
+
+    _DetailsTabItem item(int i) => _buildTabItem(i);
 
     if (segmented) {
       final container = Container(
@@ -110,6 +125,7 @@ class _DetailsTabItem extends StatefulWidget {
   final String label;
   final bool isSelected;
   final bool segmented;
+  final bool pill;
   final FocusNode focusNode;
   final VoidCallback onSelect;
   final VoidCallback? onNavigateDown;
@@ -119,9 +135,11 @@ class _DetailsTabItem extends StatefulWidget {
   final VoidCallback onNavigateRight;
 
   const _DetailsTabItem({
+    super.key,
     required this.label,
     required this.isSelected,
     required this.segmented,
+    this.pill = false,
     required this.focusNode,
     required this.onSelect,
     this.onNavigateDown,
@@ -203,6 +221,7 @@ class _DetailsTabItemState extends State<_DetailsTabItem> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.pill) return _buildPill(context);
     if (widget.segmented) return _buildSegmented(context);
 
     final textTheme = Theme.of(context).textTheme;
@@ -253,6 +272,46 @@ class _DetailsTabItemState extends State<_DetailsTabItem> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // One segment of the glass pill. The selected thumb is drawn behind the whole
+  // row by _PillTabBar, so a segment only renders its label plus a focus halo.
+  Widget _buildPill(BuildContext context) {
+    final glass = GlassCapability.glassLookActive;
+    final onSurface = AppColorScheme.onSurface;
+    final selected = widget.isSelected;
+    final selectedTextColor = glass ? onSurface : AppColorScheme.onAccent;
+
+    return Focus(
+      focusNode: widget.focusNode,
+      onKeyEvent: _onKeyEvent,
+      child: GestureDetector(
+        onTap: widget.onSelect,
+        behavior: HitTestBehavior.opaque,
+        child: GlassFocusHalo(
+          focused: _isFocused,
+          scale: 1.0,
+          borderRadius: BorderRadius.circular(999),
+          backgroundColor: Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+            child: Text(
+              widget.label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                color: selected
+                    ? selectedTextColor
+                    : onSurface.withValues(alpha: 0.75),
+              ),
             ),
           ),
         ),
@@ -315,6 +374,170 @@ class _DetailsTabItemState extends State<_DetailsTabItem> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Glass pill container for the [DetailsTabBar] pill look. It measures each
+/// segment so a single thumb can slide behind the selected one, scrolls the
+/// selection into view, and hugs its content up to the available width. The
+/// segments stay individually focusable, so d-pad navigation is unchanged.
+class _PillTabBar extends StatefulWidget {
+  final DetailsTabBar config;
+
+  const _PillTabBar(this.config);
+
+  @override
+  State<_PillTabBar> createState() => _PillTabBarState();
+}
+
+class _PillTabBarState extends State<_PillTabBar> {
+  List<GlobalKey> _segmentKeys = const [];
+  List<double> _widths = const [];
+
+  DetailsTabBar get _config => widget.config;
+  List<String> get _labels => _config.labels;
+
+  @override
+  void initState() {
+    super.initState();
+    _rebuildKeys();
+    _scheduleMeasure();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PillTabBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldLabels = oldWidget.config.labels;
+    if (oldLabels.length != _labels.length) {
+      _rebuildKeys();
+      _widths = const [];
+    }
+    if (!listEquals(oldLabels, _labels)) {
+      _scheduleMeasure();
+    }
+    if (oldWidget.config.selectedIndex != _config.selectedIndex) {
+      _scheduleEnsureVisible();
+    }
+  }
+
+  void _rebuildKeys() {
+    _segmentKeys = [for (var i = 0; i < _labels.length; i++) GlobalKey()];
+  }
+
+  void _scheduleMeasure() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+  }
+
+  void _measure() {
+    if (!mounted) return;
+    final widths = <double>[];
+    for (final key in _segmentKeys) {
+      final box = key.currentContext?.findRenderObject() as RenderBox?;
+      if (box == null || !box.hasSize) {
+        // Not laid out yet on this frame; retry on the next one.
+        _scheduleMeasure();
+        return;
+      }
+      widths.add(box.size.width);
+    }
+    if (widths.isEmpty || listEquals(widths, _widths)) return;
+    setState(() => _widths = widths);
+  }
+
+  void _scheduleEnsureVisible() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final i = _config.selectedIndex;
+      if (i < 0 || i >= _segmentKeys.length) return;
+      final ctx = _segmentKeys[i].currentContext;
+      if (ctx == null) return;
+      Scrollable.ensureVisible(
+        ctx,
+        alignment: 0.5,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final glass = GlassCapability.glassLookActive;
+    final onSurface = AppColorScheme.onSurface;
+    final accent = AppColorScheme.accent;
+    final selectedIndex = _config.selectedIndex;
+    final thumbColor = glass ? onSurface.withValues(alpha: 0.22) : accent;
+
+    final hasThumb = selectedIndex >= 0 && selectedIndex < _widths.length;
+    var thumbLeft = 0.0;
+    for (var i = 0; i < selectedIndex && i < _widths.length; i++) {
+      thumbLeft += _widths[i];
+    }
+
+    final stack = Stack(
+      children: [
+        if (hasThumb)
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            top: 0,
+            bottom: 0,
+            left: thumbLeft,
+            width: _widths[selectedIndex],
+            child: Container(
+              decoration: BoxDecoration(
+                color: thumbColor,
+                borderRadius: AppRadius.circular(999),
+                border: glass
+                    ? Border.all(
+                        color: onSurface.withValues(alpha: 0.25),
+                        width: 0.5,
+                      )
+                    : null,
+              ),
+            ),
+          ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < _labels.length; i++)
+              _config._buildTabItem(i, key: _segmentKeys[i]),
+          ],
+        ),
+      ],
+    );
+
+    final pane = glassPane(
+      tier: glass ? GlassSettings.tier : GlassTier.solid,
+      fallbackColor: onSurface.withValues(alpha: 0.08),
+      cornerRadius: 999,
+      sigma: 12,
+      context: context,
+      padding: const EdgeInsets.all(3),
+      child: SizedBox(
+        height: 34,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: stack,
+        ),
+      ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Hug the content when it fits, cap at the available width and let the
+        // segments scroll inside when they overflow. The 6px accounts for the
+        // pane's all(3) padding.
+        final available = constraints.maxWidth;
+        if (_widths.isEmpty || !available.isFinite) return pane;
+        final content = _widths.fold<double>(0, (sum, w) => sum + w) + 6;
+        final pillWidth = content < available ? content : available;
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: SizedBox(width: pillWidth, child: pane),
+        );
+      },
     );
   }
 }

@@ -101,8 +101,14 @@ class ModernDetailContent extends StatefulWidget {
 }
 
 class _ModernDetailContentState extends State<ModernDetailContent> {
-  int _selectedTab = PlatformDetection.isTV ? -1 : 0;
+  int _selectedTab = 0;
   bool _landscape = true;
+
+  /// Expanded Tabs preference: when on, tabs behave like the search pill, with
+  /// the first tab expanded and focusing a tab showing its content. When off,
+  /// tabs start collapsed and are opened or closed by pressing them.
+  bool get _expandedTabs =>
+      widget.prefs.get(UserPreferences.detailExpandedTabs);
   final Map<String, FocusNode> _trackFocusNodes = {};
   final List<FocusNode> _tabFocusNodes = [];
   final FocusNode _upNextFocusNode = FocusNode(debugLabel: 'modernUpNext');
@@ -494,12 +500,10 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
 
     _vm.addListener(_onViewModelChanged);
     _scrollController.addListener(_onScroll);
+    // With Expanded Tabs off the tabs start collapsed on every platform and are
+    // opened by clicking; Seasons always start expanded.
+    _selectedTab = (_expandedTabs || _vm.item?.type == 'Season') ? 0 : -1;
     if (PlatformDetection.isTV) {
-      if (_vm.item?.type == 'Season') {
-        _selectedTab = 0;
-      } else {
-        _selectedTab = -1;
-      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) widget.initialFocusNode?.requestFocus();
       });
@@ -636,13 +640,12 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     while (_tabFocusNodes.length <= index) {
       final i = _tabFocusNodes.length;
       final node = FocusNode(debugLabel: 'tab_$i');
-      // On TV the tab content is collapsed by default
-      // Auto-expand the tab you first land on
-      if (PlatformDetection.isTV) {
+      if (PlatformDetection.isTV || PlatformDetection.useDesktopUi) {
         node.addListener(() {
-          if (node.hasFocus && mounted && _selectedTab < 0) {
-            _selectTab(i);
-          }
+          if (!node.hasFocus || !mounted) return;
+          // Expanded Tabs makes focus follow selection like the search pill.
+          // Otherwise the tab opens only when the user presses select or clicks.
+          if (_expandedTabs && _selectedTab != i) _selectTab(i);
         });
       }
       _tabFocusNodes.add(node);
@@ -4007,7 +4010,8 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
 
   void _selectTab(int index) {
     if (index == _selectedTab) {
-      if (PlatformDetection.isTV) {
+      // With Expanded Tabs on, reselecting the current tab never collapses.
+      if (!_expandedTabs) {
         setState(() => _selectedTab = -1);
         if (_scrollController.hasClients) {
           _scrollController.animateTo(
@@ -4059,7 +4063,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     if (isMusicAlbumOrPlaylist) {
       _selectedTab = 0;
     } else if (_selectedTab >= tabs.length) {
-      _selectedTab = PlatformDetection.isTV ? -1 : 0;
+      _selectedTab = _expandedTabs ? 0 : -1;
     }
 
     if (tabs.isNotEmpty && _selectedTab >= 0 && _selectedTab < tabs.length && tabs[_selectedTab].label == l10n.details) {
@@ -4075,6 +4079,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
         : tabs[_selectedTab].builder(context, item);
 
     final tabBar = DetailsTabBar(
+      pill: true,
       labels: [for (final t in tabs) t.label],
       selectedIndex: _selectedTab,
       onSelect: _selectTab,

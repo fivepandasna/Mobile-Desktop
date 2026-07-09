@@ -484,6 +484,18 @@ abstract class AppLocalizations {
   /// **'Modern'**
   String get detailScreenStyleModern;
 
+  /// Label for the detail screen expanded tabs setting
+  ///
+  /// In en, this message translates to:
+  /// **'Expanded Tabs'**
+  String get expandedTabs;
+
+  /// Explanation under the expanded tabs setting
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically show tab content while browsing tabs. Turn off to open and close each tab manually.'**
+  String get expandedTabsSubtitle;
+
   /// Label for the Recommendation System setting
   ///
   /// In en, this message translates to:
@@ -14097,6 +14109,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Theme accents, backdrops, and watched indicators'**
   String get settingsGeneralStyleSubtitle;
+
+  /// No description provided for @settingsDetailsScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Details Screen'**
+  String get settingsDetailsScreen;
+
+  /// No description provided for @settingsDetailsScreenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Style, background blur, and tab behavior'**
+  String get settingsDetailsScreenSubtitle;
 
   /// No description provided for @settingsHomePage.
   ///

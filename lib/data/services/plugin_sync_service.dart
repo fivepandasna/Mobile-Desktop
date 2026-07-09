@@ -1034,6 +1034,11 @@ class PluginSyncService extends ChangeNotifier {
       );
       _applyBool(
         resolved,
+        'detailExpandedTabs',
+        UserPreferences.detailExpandedTabs,
+      );
+      _applyBool(
+        resolved,
         'fullScreenRows',
         UserPreferences.fullScreenRows,
       );
@@ -1667,6 +1672,7 @@ class PluginSyncService extends ChangeNotifier {
       'recommendationSystemSource':
           _prefs.get(UserPreferences.recommendationSystemSource).name,
       'detailScreenStyle': _prefs.get(UserPreferences.detailScreenStyle).name,
+      'detailExpandedTabs': _prefs.get(UserPreferences.detailExpandedTabs),
       'homeImageTypeContinueWatching': _prefs
           .get(UserPreferences.homeRowImageType(prefs.HomeSectionType.resume))
           .name,

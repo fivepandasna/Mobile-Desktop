@@ -82,17 +82,6 @@ class _GeneralStyleScreenState extends State<_GeneralStyleScreen> {
                     onTap: () =>
                         context.pushSettingsScreen(const SavedThemesScreen()),
                   ),
-                  EnumPreferenceTile<DetailScreenStyle>(
-                    preference: UserPreferences.detailScreenStyle,
-                    title: l10n.detailScreenStyle,
-                    description: l10n.detailScreenStyleSubtitle,
-                    icon: Icons.movie_outlined,
-                    labelOf: (v) => switch (v) {
-                      DetailScreenStyle.moonfin =>
-                        l10n.detailScreenStyleMoonfin,
-                      DetailScreenStyle.modern => l10n.detailScreenStyleModern,
-                    },
-                  ),
                   EnumPreferenceTile<AppTheme>(
                     preference: UserPreferences.focusColor,
                     title: l10n.focusBorderColor,
@@ -168,16 +157,6 @@ class _GeneralStyleScreenState extends State<_GeneralStyleScreen> {
                     preference: UserPreferences.browsingBackgroundBlurAmount,
                     title: l10n.browsingBackgroundBlur,
                     icon: Icons.blur_circular,
-                    min: 0,
-                    max: 25,
-                    divisions: 25,
-                    labelOf: (v) => '$v',
-                    onChangeEnd: _pushPersonalizationSync,
-                  ),
-                  SliderPreferenceTile(
-                    preference: UserPreferences.detailsBackgroundBlurAmount,
-                    title: l10n.detailsBackgroundBlur,
-                    icon: Icons.blur_on,
                     min: 0,
                     max: 25,
                     divisions: 25,

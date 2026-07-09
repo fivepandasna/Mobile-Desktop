@@ -204,6 +204,14 @@
   "@detailScreenStyleModern": {
     "description": "Detail screen style option: the responsive cinematic layout"
   },
+  "expandedTabs": "Expanded Tabs",
+  "@expandedTabs": {
+    "description": "Label for the detail screen expanded tabs setting"
+  },
+  "expandedTabsSubtitle": "Automatically show tab content while browsing tabs. Turn off to open and close each tab manually.",
+  "@expandedTabsSubtitle": {
+    "description": "Explanation under the expanded tabs setting"
+  },
   "recommendationSystem": "Recommendation System",
   "@recommendationSystem": {
     "description": "Label for the Recommendation System setting"
@@ -7514,6 +7522,8 @@
   "settingsBlockedRatings": "Blocked Ratings",
   "settingsGeneralStyle": "General Style",
   "settingsGeneralStyleSubtitle": "Theme accents, backdrops, and watched indicators",
+  "settingsDetailsScreen": "Details Screen",
+  "settingsDetailsScreenSubtitle": "Style, background blur, and tab behavior",
   "settingsHomePage": "Home Page",
   "settingsHomePageSubtitle": "Sections, image types, overlays, and media previews",
   "settingsLibrariesSubtitle": "Library visibility, folder view, and multi-server behavior",

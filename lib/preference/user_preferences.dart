@@ -871,6 +871,15 @@ class UserPreferences extends ChangeNotifier {
     values: DetailScreenStyle.values,
   );
 
+  /// When on, the modern detail tabs behave like the search tabs: the first
+  /// tab starts expanded and moving focus across tabs shows their content
+  /// without pressing select. When off, tabs start collapsed on TV and each
+  /// one is opened/closed by pressing it. Global like [detailScreenStyle].
+  static final detailExpandedTabs = Preference(
+    key: 'pref_detail_expanded_tabs',
+    defaultValue: true,
+  );
+
   /// Algorithm source for the similar items recommendation system. Global
   /// (not scoped per server/user), so it is deliberately omitted from [_scopedPreferenceKeys].
   static final recommendationSystemSource = EnumPreference(

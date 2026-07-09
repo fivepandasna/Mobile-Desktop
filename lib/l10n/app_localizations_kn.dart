@@ -154,6 +154,13 @@ class AppLocalizationsKn extends AppLocalizations {
   String get detailScreenStyleModern => 'Modern';
 
   @override
+  String get expandedTabs => 'Expanded Tabs';
+
+  @override
+  String get expandedTabsSubtitle =>
+      'Automatically show tab content while browsing tabs. Turn off to open and close each tab manually.';
+
+  @override
   String get recommendationSystem => 'Recommendation System';
 
   @override
@@ -7901,6 +7908,13 @@ class AppLocalizationsKn extends AppLocalizations {
   @override
   String get settingsGeneralStyleSubtitle =>
       'ಥೀಮ್ ಉಚ್ಚಾರಣೆಗಳು, ಬ್ಯಾಕ್‌ಡ್ರಾಪ್‌ಗಳು, ವೀಕ್ಷಿಸಿದ ಸೂಚಕಗಳು ಮತ್ತು ಥೀಮ್ ಸಂಗೀತ';
+
+  @override
+  String get settingsDetailsScreen => 'Details Screen';
+
+  @override
+  String get settingsDetailsScreenSubtitle =>
+      'Style, background blur, and tab behavior';
 
   @override
   String get settingsHomePage => 'ಮುಖಪುಟ';

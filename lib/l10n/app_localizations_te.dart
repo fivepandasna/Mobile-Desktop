@@ -154,6 +154,13 @@ class AppLocalizationsTe extends AppLocalizations {
   String get detailScreenStyleModern => 'Modern';
 
   @override
+  String get expandedTabs => 'Expanded Tabs';
+
+  @override
+  String get expandedTabsSubtitle =>
+      'Automatically show tab content while browsing tabs. Turn off to open and close each tab manually.';
+
+  @override
   String get recommendationSystem => 'Recommendation System';
 
   @override
@@ -7893,6 +7900,13 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get settingsGeneralStyleSubtitle =>
       'థీమ్ స్వరాలు, బ్యాక్‌డ్రాప్‌లు, వీక్షించిన సూచికలు మరియు థీమ్ సంగీతం';
+
+  @override
+  String get settingsDetailsScreen => 'Details Screen';
+
+  @override
+  String get settingsDetailsScreenSubtitle =>
+      'Style, background blur, and tab behavior';
 
   @override
   String get settingsHomePage => 'హోమ్ పేజీ';

@@ -27,6 +27,14 @@ class _CustomizationCategoryScreen extends StatelessWidget {
                       context.pushSettingsScreen(const _GeneralStyleScreen()),
                 ),
                 _TvSettingsListTile(
+                  leading: const Icon(Icons.article_outlined),
+                  title: Text(l10n.settingsDetailsScreen),
+                  subtitle: Text(l10n.settingsDetailsScreenSubtitle),
+                  onTap: () => context.pushSettingsScreen(
+                    const _DetailsScreenSettingsScreen(),
+                  ),
+                ),
+                _TvSettingsListTile(
                   leading: const Icon(Icons.view_sidebar),
                   title: Text(l10n.navigation),
                   subtitle: Text(l10n.navbarStyleToolbarAppearance),

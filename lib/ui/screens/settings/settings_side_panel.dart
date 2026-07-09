@@ -79,6 +79,7 @@ part 'panel/settings_panel_infra.dart';
 part 'panel/authentication_category_screen.dart';
 part 'panel/customization_category_screen.dart';
 part 'panel/general_style_screen.dart';
+part 'panel/details_screen_settings_screen.dart';
 part 'panel/navigation_category_screen.dart';
 part 'panel/home_screen_category_screen.dart';
 part 'panel/libraries_category_screen.dart';
