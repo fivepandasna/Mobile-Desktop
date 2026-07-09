@@ -133,6 +133,7 @@ private class NativeVideoFactory(
 private class Media3VideoFactory : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
 
     override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
-        return Media3VideoView(context, viewId)
+        val role = (args as? Map<*, *>)?.get("role") as? String ?: "main"
+        return Media3VideoView(context, viewId, role)
     }
 }

@@ -5283,7 +5283,7 @@ class _PreviewCardShell extends StatelessWidget {
 
     final Widget? previewSurface;
     if (useMedia3) {
-      previewSurface = const Media3VideoView(fill: Colors.black);
+      previewSurface = const Media3VideoView(fill: Colors.black, role: 'preview');
     } else if (appleTvTextureId != null) {
       previewSurface = FittedBox(
         fit: BoxFit.cover,

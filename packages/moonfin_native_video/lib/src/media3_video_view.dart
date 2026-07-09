@@ -9,11 +9,17 @@ class Media3VideoView extends StatelessWidget {
     super.key,
     this.fill = const Color(0xFF000000),
     this.onPlatformViewCreated,
+    this.role = 'main',
   });
 
   static const String _viewType = 'moonfin/media3_video';
 
   final Color fill;
+
+  /// 'preview' for inline media-bar/row trailers, 'main' for real players. The
+  /// native bridge uses this so a preview never steals the shared player slot
+  /// from a live main view.
+  final String role;
 
   /// Reports the Android platform-view id so a persistent host (media bar)
   /// can re-activate this view via Media3PlayerBackend.activateView().
@@ -42,7 +48,7 @@ class Media3VideoView extends StatelessWidget {
             id: params.id,
             viewType: _viewType,
             layoutDirection: TextDirection.ltr,
-            creationParams: null,
+            creationParams: {'role': role},
             creationParamsCodec: const StandardMessageCodec(),
           )
             ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)

@@ -124,6 +124,7 @@ class _MediaBarState extends State<MediaBar>
   StreamSubscription<Duration>? _trailerPositionSub;
   Timer? _trailerRevealTimer;
   Timer? _trailerPrepareTimer;
+  Timer? _mainPlaybackInactiveTimer;
   Timer? _youTubeRevealTimer;
   double _trailerVideoOpacity = 0.0;
   String? _activeTrailerItemId;
@@ -251,6 +252,7 @@ class _MediaBarState extends State<MediaBar>
     _autoAdvanceTimer?.cancel();
     _trailerRevealTimer?.cancel();
     _trailerPrepareTimer?.cancel();
+    _mainPlaybackInactiveTimer?.cancel();
     _youTubeRevealTimer?.cancel();
     _mainPlaybackSub?.cancel();
     _media3EventSub?.cancel();
@@ -315,11 +317,27 @@ class _MediaBarState extends State<MediaBar>
         _isHomeRouteCurrent()) {
       return;
     }
-    if (_mainPlaybackActive == isPlaying) {
+    if (isPlaying) {
+      _mainPlaybackInactiveTimer?.cancel();
+      _mainPlaybackInactiveTimer = null;
+      _setMainPlaybackActive(true);
       return;
     }
-    _mainPlaybackActive = isPlaying;
-    if (isPlaying) {
+    // Debounce the drop to false: buffering, a scrub, and queue auto-advance all
+    // report a brief isPlaying=false, and remounting the preview during that
+    // window would steal the shared Media3 slot from the live player. A real
+    // stop stays false past the timer.
+    if (!_mainPlaybackActive || _mainPlaybackInactiveTimer != null) return;
+    _mainPlaybackInactiveTimer = Timer(const Duration(seconds: 1), () {
+      _mainPlaybackInactiveTimer = null;
+      _setMainPlaybackActive(false);
+    });
+  }
+
+  void _setMainPlaybackActive(bool active) {
+    if (_mainPlaybackActive == active) return;
+    _mainPlaybackActive = active;
+    if (active) {
       _cancelTrailerPreview();
     }
     // Re-evaluate the persistent Media3 view's mount condition.
@@ -2558,6 +2576,7 @@ class _MediaBarState extends State<MediaBar>
               child: _trailerUsingMedia3 || mountPersistentMedia3
                   ? Media3VideoView(
                       fill: Colors.transparent,
+                      role: 'preview',
                       onPlatformViewCreated: (id) =>
                           _media3PlatformViewId = id,
                     )

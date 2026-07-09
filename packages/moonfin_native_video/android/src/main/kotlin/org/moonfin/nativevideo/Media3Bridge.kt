@@ -93,6 +93,17 @@ object Media3Bridge {
     fun attachView(view: Media3VideoView) {
         mainHandler.post {
             val oldView = activeView
+            // A preview (media bar / row trailer) must never interrupt a live
+            // main player. It stays registered so activateView can promote it
+            // later, once the main view is gone.
+            if (view.role == "preview" &&
+                oldView != null &&
+                oldView !== view &&
+                oldView.role == "main" &&
+                oldView.isPlayerLive()
+            ) {
+                return@post
+            }
             if (oldView != null && oldView !== view) {
                 oldView.forceReleasePlayer()
             }
@@ -205,6 +216,30 @@ object Media3Bridge {
                 result.success(null)
             }
             return
+        }
+
+        if (call.method == "setSource") {
+            val isPreviewSource =
+                (call.arguments as? Map<*, *>)?.get("preview") as? Boolean ?: false
+            val current = activeView
+            if (!isPreviewSource && current != null && current.role == "preview") {
+                // Real playback starting while a trailer owns the slot (the
+                // idle-home start window). Load the source into the next main
+                // view instead of the preview: release the preview, drop the
+                // slot, and queue so the flush lands on the fullscreen player.
+                current.forceReleasePlayer()
+                activeView = null
+                queueCall(call.method, call.arguments)
+                result.success(null)
+                return
+            }
+            if (isPreviewSource && current != null &&
+                current.role == "main" && current.isPlayerLive()
+            ) {
+                // Never let a trailer interrupt real playback.
+                result.success(null)
+                return
+            }
         }
 
         val view = activeView

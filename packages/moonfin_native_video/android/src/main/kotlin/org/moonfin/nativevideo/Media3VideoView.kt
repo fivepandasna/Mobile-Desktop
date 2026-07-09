@@ -338,6 +338,9 @@ private class AdjustableAudioDelayProcessor : BaseAudioProcessor() {
 class Media3VideoView(
     private val context: Context,
     private val platformViewId: Int = -1,
+    // "preview" for the media bar and home row inline trailers, "main" for the
+    // real players. A preview must never steal the slot from a live main view.
+    val role: String = "main",
 ) : PlatformView, MethodChannel.MethodCallHandler {
     companion object {
         private const val TS_SEARCH_BYTES_LOW_RAM = TsExtractor.TS_PACKET_SIZE * 1800
@@ -908,6 +911,8 @@ class Media3VideoView(
     override fun getView(): View = containerView
 
     fun isReattachable(): Boolean = !isDisposedByFlutter
+
+    fun isPlayerLive(): Boolean = !isPlayerReleased && !isDisposedByFlutter
 
     // Rebuilds the player after another view's attachView() force-released it
     // while this widget stayed mounted. This mirrors the init path.

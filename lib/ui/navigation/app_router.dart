@@ -164,6 +164,9 @@ CustomTransitionPage<T> _opaqueFullScreenPage<T>({
 }) {
   return CustomTransitionPage<T>(
     key: state.pageKey,
+    // Name the page so PlayerRouteObserver recognizes fullscreen player routes.
+    // go_router only auto-names builder-based routes, not pageBuilder ones.
+    name: state.name ?? state.uri.path,
     opaque: true,
     barrierColor: Colors.black,
     transitionDuration: Duration.zero,
@@ -808,6 +811,7 @@ class PlayerRouteObserver extends NavigatorObserver {
     final name = route.settings.name;
     return name != null &&
         (name.startsWith('/player/') ||
+         name.startsWith('/game-player/') ||
          name == '/live-tv/player' ||
          name == Destinations.audioPlayer ||
          name == Destinations.videoPlayer);
