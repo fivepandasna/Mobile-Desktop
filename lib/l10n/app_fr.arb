@@ -176,7 +176,7 @@
     "@themeMoonfin": {
         "description": "Display name for the Moonfin theme"
     },
-    "themeMoonfinSubtitle": "Le look actuel de Moonfin que vous aimez tous",
+    "themeMoonfinSubtitle": "Le look actuel de Moonfin que vous aimez tous.",
     "@themeMoonfinSubtitle": {
         "description": "Preview description for the Moonfin theme"
     },
@@ -8434,5 +8434,256 @@
             }
         }
     },
-    "externalLists": "Listes de rangées d'accueil externes"
+    "externalLists": "Listes de rangées d'accueil externes",
+    "audiobookExportFailed": "Export échoué : {error}",
+    "@audiobookExportFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "audiobookLyrics": "Paroles",
+    "audiobookAddBookmark": "Ajouter un marque-page",
+    "directPlayCapabilityLabel": "Possibilité de lecture directe : ",
+    "transcodeAudioChannelsNotSupported": "Ce nombre de canaux audio n'est pas supporté.",
+    "sortReleaseDescending": "Ordre de sortie (Descendant)",
+    "transcodeAudioProfileNotSupported": "Le profil audio n'est pas supporté.",
+    "gamePaused": "En pause",
+    "@gamePaused": {
+        "description": "Status shown in the in-game menu while the game is paused"
+    },
+    "gameSaveState": "Sauvegarder",
+    "@gameSaveState": {
+        "description": "In-game menu action to save the game state"
+    },
+    "gameLoadState": "Charger une sauvegarde",
+    "@gameLoadState": {
+        "description": "In-game menu action to load the saved game state"
+    },
+    "gameFastForward": "Avance rapide",
+    "@gameFastForward": {
+        "description": "In-game menu action to toggle fast-forward"
+    },
+    "gameEmulatorSettings": "Paramètres d'émulateur",
+    "@gameEmulatorSettings": {
+        "description": "In-game menu action opening the emulator settings"
+    },
+    "gameHoldToOpenMenu": "Gardez appuyé pour ouvrir le menu",
+    "@gameHoldToOpenMenu": {
+        "description": "Hint shown while holding the gamepad combo to open the in-game menu"
+    },
+    "guideNextProgram": "A suivre : {time}   {title}",
+    "@guideNextProgram": {
+        "description": "Guide card line for the upcoming program, e.g. 'Next: 9:00 PM  The News'",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            },
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "guideMinutesLeft": "{minutes}min restantes",
+    "@guideMinutesLeft": {
+        "description": "Remaining time of the current program, under an hour",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "audiobookExportBookmarks": "Exporter les marque-pages",
+    "audiobookExportAll": "Toute exporter",
+    "audiobookExportSuccess": "Exporter vers {path}",
+    "@audiobookExportSuccess": {
+        "placeholders": {
+            "path": {
+                "type": "String"
+            }
+        }
+    },
+    "audiobookAddNote": "Ajouter une note",
+    "audiobookSleepEndOfChapter": "Fin du chapitre",
+    "audiobookSleepCustom": "Personalisé",
+    "audiobookNoChapters": "Pas de chapitre",
+    "transcodeVideoProfileNotSupported": "Le profil vidéo n'est pas supporté.",
+    "detailScreenStyleMoonfin": "Classique",
+    "@detailScreenStyleMoonfin": {
+        "description": "Detail screen style option: the classic centered layout"
+    },
+    "customThemeTitle": "Thème personnalisé",
+    "@customThemeTitle": {
+        "description": "Title for the custom theme settings section"
+    },
+    "theme8BitHero": "8-bit Hero",
+    "@theme8BitHero": {
+        "description": "Display name for the 8-bit Hero theme"
+    },
+    "audiobookNoNotes": "Pas encore de notes",
+    "audiobookBookmarkAdded": "Marque-page ajoutée à {position}",
+    "@audiobookBookmarkAdded": {
+        "placeholders": {
+            "position": {
+                "type": "String"
+            }
+        }
+    },
+    "audiobookSpeedReset": "Réinitialiser a 1.0x",
+    "forced": "Forcé",
+    "transcodeSubtitleCodecNotSupported": "Le format de sous-titre n'est pas supporté (burn-in requis).",
+    "glassQualityFull": "Complet",
+    "@glassQualityFull": {
+        "description": "Glass quality option: force real blur"
+    },
+    "items": "Objets",
+    "@items": {
+        "description": "Tab label for the items in a collection/box set"
+    },
+    "gameMenu": "Menu",
+    "@gameMenu": {
+        "description": "Tooltip for the in-game menu button"
+    },
+    "transcodeContainerNotSupported": "Le format du conteneur n'est pas supporté par le lecteur.",
+    "glassQualityAuto": "Auto",
+    "@glassQualityAuto": {
+        "description": "Glass quality option: per-device default"
+    },
+    "audiobookCancel": "Annuler",
+    "extras": "Extras",
+    "@extras": {
+        "description": "Tab label for special features / extras"
+    },
+    "timeRemaining": "{time} restante",
+    "@timeRemaining": {
+        "description": "Label showing remaining playback time, e.g. '42m remaining'",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "guideHoursLeft": "{hours}h restantes",
+    "@guideHoursLeft": {
+        "description": "Remaining time of the current program, whole hours",
+        "placeholders": {
+            "hours": {
+                "type": "int"
+            }
+        }
+    },
+    "guideHoursMinutesLeft": "{hours}h {minutes}min restantes",
+    "@guideHoursMinutesLeft": {
+        "description": "Remaining time of the current program, hours and minutes",
+        "placeholders": {
+            "hours": {
+                "type": "int"
+            },
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "settingsAudioRouteHeadphones": "Écouteurs",
+    "@settingsAudioRouteHeadphones": {
+        "description": "Audio route type wired or USB headphones"
+    },
+    "settingsConnectionSection": "CONNEXION",
+    "@settingsConnectionSection": {
+        "description": "Section header for server connection settings"
+    },
+    "settingsAllowSelfSignedCerts": "Autoriser les certificats auto-signés",
+    "@settingsAllowSelfSignedCerts": {
+        "description": "Setting to trust self-signed TLS certificates"
+    },
+    "audiobookWholeBook": "Livre entier",
+    "audiobookSleepRemaining": "{remaining} restant",
+    "@audiobookSleepRemaining": {
+        "placeholders": {
+            "remaining": {
+                "type": "String"
+            }
+        }
+    },
+    "audiobookNextChapter": "Chapitre suivant",
+    "audiobookChapterIndicator": "Chapitre {current} sur {total}",
+    "@audiobookChapterIndicator": {
+        "placeholders": {
+            "current": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "audiobookNoBookmarks": "Pas encore de marque-pages",
+    "audiobookDelete": "Supprimer",
+    "checkingDirectPlay": "Vérification de la possibilité de lecture directe...",
+    "transcodeVideoCodecNotSupported": "Le codec vidéo n'est pas supporté.",
+    "transcodeAudioCodecNotSupported": "Le codec audio n'est pas supporté.",
+    "transcodeVideoResolutionNotSupported": "Cette résolution n'est pas supportée par cet appareil.",
+    "transcodeVideoFramerateNotSupported": "La fréquence vidéo n'est pas supporté.",
+    "transcodeContainerBitrateExceedsLimit": "Le débit du fichier dépasse la limite de streaming du lecteur.",
+    "transcodeVideoBitrateExceedsLimit": "Le débit vidéo dépasse la limite de streaming.",
+    "transcodeAudioBitrateExceedsLimit": "Le débit audio dépasse la limite de streaming.",
+    "sortReleaseAscending": "Ordre de sortie (Ascendant)",
+    "sortCustomDragDrop": "Personnalisé (Drag-and-Drop)",
+    "impellerCloseNow": "Fermer l'application immédiatement",
+    "@impellerCloseNow": {
+        "description": "Button that closes the app so the new rendering engine takes effect on next launch."
+    },
+    "audiobookNoteHint": "Écrire une note pour ce passage",
+    "audiobookSleepTimer": "Minuteur de sommeil",
+    "audiobookSleepOff": "Désactivé",
+    "audiobookPlaybackSpeed": "Vitesse de lecture",
+    "audiobookRemainingTime": "Restant",
+    "audiobookElapsedTime": "Écoulé",
+    "audiobookPreviousChapter": "Chapitre précédent",
+    "fileInformation": "Informations du fichier",
+    "fileSizeFormat": "Taille : {size}  •  Format : {format}",
+    "@fileSizeFormat": {
+        "placeholders": {
+            "size": {},
+            "format": {}
+        }
+    },
+    "showAllAudioTracks": "Afficher les ({count}) pistes audios",
+    "@showAllAudioTracks": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "showAllSubtitleTracks": "Afficher les ({count}) pistes sous-titre",
+    "@showAllSubtitleTracks": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "sortAlphabetical": "Alphabétique",
+    "audiobookExportNotes": "Exporter les notes",
+    "glassQualityReduced": "Réduite",
+    "@glassQualityReduced": {
+        "description": "Glass quality option: lightweight zero-blur glass"
+    },
+    "audiobookEditNote": "Modifier une note",
+    "replay": "Rejouer",
+    "recommendationSystem": "Système de recommandation",
+    "@recommendationSystem": {
+        "description": "Label for the Recommendation System setting"
+    },
+    "recommendationSystemMoonfin": "Moonfin recommande",
+    "@recommendationSystemMoonfin": {
+        "description": "Recommendation system option: Moonfin Recommends"
+    },
+    "audiobookSave": "Sauvegarder",
+    "detailScreenStyleModern": "Moderne",
+    "@detailScreenStyleModern": {
+        "description": "Detail screen style option: the responsive cinematic layout"
+    }
 }
