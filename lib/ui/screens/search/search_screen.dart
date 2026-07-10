@@ -790,7 +790,7 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
           child: Column(
             children: [
               const SizedBox(height: 30),
-              if (topbar || PlatformDetection.isMobile)
+              if (topbar || !PlatformDetection.isTV)
                 const SizedBox(height: 50),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 48),
