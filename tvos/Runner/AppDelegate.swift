@@ -10,6 +10,7 @@ class AppDelegate: FlutterAppDelegate {
     private var audioChannel: AppleTvAudioChannel?
     private var themeMusicChannel: AppleTvThemeMusicChannel?
     private var sfSymbolChannel: AppleTvSfSymbolChannel?
+    private var gameChannel: AppleTvGameChannel?
 
     override func application(
         _ application: UIApplication,
@@ -39,6 +40,10 @@ class AppDelegate: FlutterAppDelegate {
             messenger: flutterViewController.binaryMessenger)
         sfSymbolChannel = AppleTvSfSymbolChannel(
             messenger: flutterViewController.binaryMessenger)
+        gameChannel = AppleTvGameChannel(
+            messenger: flutterViewController.binaryMessenger,
+            textures: flutterViewController,
+            rootViewController: flutterViewController)
 
         if let launchUrl = launchOptions?[.url] as? URL {
             topShelfChannel?.deliverDeepLink(launchUrl, isLaunch: true)

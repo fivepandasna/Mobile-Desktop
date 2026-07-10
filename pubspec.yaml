@@ -204,6 +204,7 @@ flutter:
     - assets/icons/
     - assets/icons/ratings/
     - assets/fonts/
+    - assets/licenses/cores/
 
   fonts:
     - family: NeonPulseDisplay

@@ -38,6 +38,7 @@ import 'preference/user_preferences.dart';
 import 'util/fullscreen_helper.dart';
 import 'util/http_overrides_stub.dart'
     if (dart.library.io) 'util/http_overrides_io.dart';
+import 'util/game_core_licenses.dart';
 import 'util/platform_detection.dart';
 import 'util/tv_image_cache_stub.dart'
     if (dart.library.io) 'util/tv_image_cache_io.dart';
@@ -319,6 +320,10 @@ Future<void> watchNextBackgroundMain() => watch_next_bg.watchNextBackgroundMain(
 void main() async {
   configureHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (PlatformDetection.isAppleTV) {
+    registerGameCoreLicenses();
+  }
 
   if (!PlatformDetection.isWeb && PlatformDetection.isWindows) {
     try {

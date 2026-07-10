@@ -1,6 +1,7 @@
 #import "GeneratedPluginRegistrant.h"
 #import <stdint.h>
 #import "Playback/Native/ClientAudioRemux.h"
+#import "Games/libretro.h"
 
 void installAudioUnitChannelLayoutFix(void);
 

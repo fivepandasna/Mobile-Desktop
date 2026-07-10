@@ -28,6 +28,19 @@ abstract class GamesApi {
     bool includeSaveUrl = false,
   });
 
+  /// Streams GET /Moonfin/Games/{libraryId}/Rom/{gameId} to [destPath].
+  /// Used by the native (non-WebView) player; ROMs can be large, so the bytes
+  /// are written straight to disk.
+  Future<void> downloadRom(
+    String libraryId,
+    String gameId,
+    String destPath, {
+    void Function(int received, int total)? onProgress,
+  });
+
+  /// Streams GET /Moonfin/Games/{libraryId}/Bios/{biosId} to [destPath].
+  Future<void> downloadBios(String libraryId, String biosId, String destPath);
+
   /// GET /Moonfin/Games/Saves/{gameId}: returns the stored save blob or null.
   Future<List<int>?> getSave(String gameId, {String kind = 'state'});
 

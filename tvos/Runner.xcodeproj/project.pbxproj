@@ -8,24 +8,32 @@
 
 /* Begin PBXBuildFile section */
 		0316DD643E79331004E6F08B /* NativeVideoSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABB61EC1F545441192DA6CA2 /* NativeVideoSurface.swift */; };
+		039843062E60277649E9EA5D /* pcsx_rearmed_libretro.framework in Embed Libretro Cores */ = {isa = PBXBuildFile; fileRef = 408735DC25E7BC9A0E23AF66 /* pcsx_rearmed_libretro.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		0891769C67B4C60864B42A13 /* GameVideoOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26AF6C4FDC95C4A3E0FE6876 /* GameVideoOutput.swift */; };
+		0BB4A7E017A41C2DC92AA740 /* AppleTvGameChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EDED7BFBF49D54BA9795365 /* AppleTvGameChannel.swift */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		19D9E6BE3FA8EE28B6403EF0 /* MoonfinTvosStubs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 801CE2E73F4BC2A1B34A231A /* MoonfinTvosStubs.swift */; };
+		1DFED451953EAD7F2A8939DF /* GameAudioOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DC400404ADA61BB07E400A /* GameAudioOutput.swift */; };
+		2567189A5ED4D6CF76A03672 /* LibretroCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D492B1A866CDE5E7EA46048F /* LibretroCore.swift */; };
 		25FF46D745C1E582C7E57181 /* MPVKit in Frameworks */ = {isa = PBXBuildFile; productRef = BB0919487984CFCD5A613D23 /* MPVKit */; };
 		2B65D00E1B996987D1068274 /* VTDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C792C58696D522266D9D1EBB /* VTDecoder.swift */; };
 		337D6DF5382996FA5E5A23CC /* MoonfinTopShelf.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = AFC8523FE7AAB0D9378753BF /* MoonfinTopShelf.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		392FA88E3B70132920CBF0FF /* MpvPlayerWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89E585754437193C3D9997B9 /* MpvPlayerWrapper.swift */; };
+		3AC3CEF468D8D4EB37B773D1 /* GameSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0CCE08AF23DCECD17895AC /* GameSession.swift */; };
 		3B3967161E833CAB004F5970 /* Flutter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAB004F5970 /* Flutter.framework */; };
 		3E667EB6FA1A725FA86597C7 /* DisplayCriteriaManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99109D0268859C9931C2BB69 /* DisplayCriteriaManager.swift */; };
 		4AFB7564397FC850A08E65BA /* AudioRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFF6254FE139BE2ABD845050 /* AudioRenderer.swift */; };
 		4E5A5870850C50C8C2179B09 /* AudioUnitInterpose.c in Sources */ = {isa = PBXBuildFile; fileRef = 2B21837790FBF0F01F83A222 /* AudioUnitInterpose.c */; };
+		572ECC94C4EC71C3ED83CAF1 /* GameInputController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112802CD31173650976CCFDD /* GameInputController.swift */; };
 		5BA7845828F41526E1B65D24 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E49740A9B3056886C7389DA /* Pods_Runner.framework */; };
 		5CE155E72FDE599A002FEC36 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CE155E62FDE599A002FEC36 /* AVKit.framework */; };
 		6BDB0CA2F17384360FC7A86A /* NativePlayerWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB983BF44E10FDD7C1C6A86 /* NativePlayerWrapper.swift */; };
 		6E8429C73DFB8688BD40C60F /* AppleTvSystemChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0D05FC70CE4F8BD2EC3962C /* AppleTvSystemChannel.swift */; };
 		7BC8A8140C07EF63D219CAE4 /* SubtitleDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8FB1F102374E32454EA3D4 /* SubtitleDecoder.swift */; };
-		A5500000000000000000A551 /* AssRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5500000000000000000A552 /* AssRenderer.swift */; };
+		81DCCA41EF933CEC711C17AF /* genesis_plus_gx_libretro.framework in Embed Libretro Cores */ = {isa = PBXBuildFile; fileRef = 3D25A3FF43C9B94D5ED8A397 /* genesis_plus_gx_libretro.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8557BDEED1364C160FDCCA78 /* FFDemuxer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2C5316F2396D410BF8F85E /* FFDemuxer.swift */; };
 		86EBDA29EC9F3F8B48EC6A25 /* AppleTvPreviewChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3D4A2E4C583DF7B8CAE4BA /* AppleTvPreviewChannel.swift */; };
+		8DDA1544C590D9C1AAA8093C /* gambatte_libretro.framework in Embed Libretro Cores */ = {isa = PBXBuildFile; fileRef = 5A0944BC3FD88308B7E81F3D /* gambatte_libretro.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9705A1C61CF904A100538489 /* Flutter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAB004F5970 /* Flutter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		97C146FB1CF9000082B4168C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000082B4168C /* AppDelegate.swift */; };
 		97C1470A1CF9000082B4168D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000082B4168D /* Main.storyboard */; };
@@ -35,16 +43,21 @@
 		9DAC7F059A7480839BA11950 /* SubtitleOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8241334D38FB25BD2E009065 /* SubtitleOverlay.swift */; };
 		9F8983DDEF9A4015C052340A /* PlaybackSurfaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3890B80B269CACDD79E803ED /* PlaybackSurfaceView.swift */; };
 		A0A9A43E975A45351F5BAC7A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AA2EEAB62F9513C16D8925F /* Foundation.framework */; };
+		A5500000000000000000A551 /* AssRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5500000000000000000A552 /* AssRenderer.swift */; };
 		AB10AD10AD10AD10AD100001 /* AVPlayerAudioBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10AD10AD10AD10AD100002 /* AVPlayerAudioBridge.swift */; };
 		AB10AD10AD10AD10AD100011 /* ClientAudioRemux.m in Sources */ = {isa = PBXBuildFile; fileRef = AB10AD10AD10AD10AD100012 /* ClientAudioRemux.m */; };
 		AB10AD10AD10AD10AD100013 /* ClientAudioRemuxer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10AD10AD10AD10AD100014 /* ClientAudioRemuxer.swift */; };
 		AB10AD10AD10AD10AD100015 /* LoopbackHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10AD10AD10AD10AD100016 /* LoopbackHTTPServer.swift */; };
 		AD10AD10AD10AD10AD100001 /* AppleTvAudioChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD10AD10AD10AD10AD100002 /* AppleTvAudioChannel.swift */; };
 		AD10AD10AD10AD10AD100003 /* AppleTvThemeMusicChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD10AD10AD10AD10AD100004 /* AppleTvThemeMusicChannel.swift */; };
+		C1F1E8188A6812EC3C6A9EF1 /* AppleTvGameInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2A868E735744FD641776321 /* AppleTvGameInputViewController.swift */; };
 		C557DEB3826898C325D08A5A /* AppleTvVideoChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42C7E472F4F533204C68EA04 /* AppleTvVideoChannel.swift */; };
 		D806D8D63D0DFDE94D61895A /* TVServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69C2A2281BE7FC2256E62A2C /* TVServices.framework */; };
+		D8C7A8FA09A6FD717A2D9A10 /* mgba_libretro.framework in Embed Libretro Cores */ = {isa = PBXBuildFile; fileRef = 98DD98A0507A79F82DE9B512 /* mgba_libretro.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		DC8916296F406B350E0E7238 /* ServiceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACEF4B8C13F871646DA3AA02 /* ServiceProvider.swift */; };
+		DFD4D95C3B71D467770180E3 /* fceumm_libretro.framework in Embed Libretro Cores */ = {isa = PBXBuildFile; fileRef = EBDE8DF681CD2620EB749A48 /* fceumm_libretro.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		EE2FE47D58540C4879690FCD /* AppleTvPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1773504F1BFC6685035E4328 /* AppleTvPlayerViewController.swift */; };
+		F679DA3562E5260D7EB5E8E9 /* snes9x_libretro.framework in Embed Libretro Cores */ = {isa = PBXBuildFile; fileRef = E96043FE795EA6E651493D5F /* snes9x_libretro.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -80,22 +93,44 @@
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C684840F3AA166FC634CC11A /* Embed Libretro Cores */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				DFD4D95C3B71D467770180E3 /* fceumm_libretro.framework in Embed Libretro Cores */,
+				8DDA1544C590D9C1AAA8093C /* gambatte_libretro.framework in Embed Libretro Cores */,
+				81DCCA41EF933CEC711C17AF /* genesis_plus_gx_libretro.framework in Embed Libretro Cores */,
+				D8C7A8FA09A6FD717A2D9A10 /* mgba_libretro.framework in Embed Libretro Cores */,
+				039843062E60277649E9EA5D /* pcsx_rearmed_libretro.framework in Embed Libretro Cores */,
+				F679DA3562E5260D7EB5E8E9 /* snes9x_libretro.framework in Embed Libretro Cores */,
+			);
+			name = "Embed Libretro Cores";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		06981437AF8387C9BD61CC96 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
+		112802CD31173650976CCFDD /* GameInputController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameInputController.swift; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		1773504F1BFC6685035E4328 /* AppleTvPlayerViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleTvPlayerViewController.swift; sourceTree = "<group>"; };
 		1E49740A9B3056886C7389DA /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1EE89F1EA89993C2ABEC53B7 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		262ACA82479C66EBA778DB00 /* Runner.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		26AF6C4FDC95C4A3E0FE6876 /* GameVideoOutput.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameVideoOutput.swift; sourceTree = "<group>"; };
 		2B21837790FBF0F01F83A222 /* AudioUnitInterpose.c */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.c; path = AudioUnitInterpose.c; sourceTree = "<group>"; };
 		2D0DB225C5FD5F802D648CC0 /* TopShelfChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TopShelfChannel.swift; sourceTree = "<group>"; };
 		3890B80B269CACDD79E803ED /* PlaybackSurfaceView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlaybackSurfaceView.swift; sourceTree = "<group>"; };
 		3B3967151E833CAB004F5970 /* Flutter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Flutter.framework; path = Flutter/Flutter.framework; sourceTree = "<group>"; };
+		3D25A3FF43C9B94D5ED8A397 /* genesis_plus_gx_libretro.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = genesis_plus_gx_libretro.framework; sourceTree = "<group>"; };
+		408735DC25E7BC9A0E23AF66 /* pcsx_rearmed_libretro.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = pcsx_rearmed_libretro.framework; sourceTree = "<group>"; };
 		42C7E472F4F533204C68EA04 /* AppleTvVideoChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleTvVideoChannel.swift; sourceTree = "<group>"; };
 		4AA2EEAB62F9513C16D8925F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		4EDED7BFBF49D54BA9795365 /* AppleTvGameChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleTvGameChannel.swift; sourceTree = "<group>"; };
+		5A0944BC3FD88308B7E81F3D /* gambatte_libretro.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = gambatte_libretro.framework; sourceTree = "<group>"; };
 		5B3D4A2E4C583DF7B8CAE4BA /* AppleTvPreviewChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleTvPreviewChannel.swift; sourceTree = "<group>"; };
 		5CE155E62FDE599A002FEC36 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		69C2A2281BE7FC2256E62A2C /* TVServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = TVServices.framework; path = System/Library/Frameworks/TVServices.framework; sourceTree = SDKROOT; };
@@ -114,10 +149,11 @@
 		97C146FE1CF9000082B4168C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		97C146FF1CF9000082B4168D /* Main.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Main.storyboard; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		97C146FF1CF9000082B4168E /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		98DD98A0507A79F82DE9B512 /* mgba_libretro.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = mgba_libretro.framework; sourceTree = "<group>"; };
 		99109D0268859C9931C2BB69 /* DisplayCriteriaManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DisplayCriteriaManager.swift; sourceTree = "<group>"; };
 		9D8FB1F102374E32454EA3D4 /* SubtitleDecoder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubtitleDecoder.swift; sourceTree = "<group>"; };
-		A5500000000000000000A552 /* AssRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AssRenderer.swift; sourceTree = "<group>"; };
 		A0D05FC70CE4F8BD2EC3962C /* AppleTvSystemChannel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleTvSystemChannel.swift; sourceTree = "<group>"; };
+		A5500000000000000000A552 /* AssRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AssRenderer.swift; sourceTree = "<group>"; };
 		AAA000000000000000000003 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		AB10AD10AD10AD10AD100002 /* AVPlayerAudioBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AVPlayerAudioBridge.swift; sourceTree = "<group>"; };
 		AB10AD10AD10AD10AD100010 /* ClientAudioRemux.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = ClientAudioRemux.h; sourceTree = "<group>"; };
@@ -131,6 +167,12 @@
 		AFC8523FE7AAB0D9378753BF /* MoonfinTopShelf.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MoonfinTopShelf.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C792C58696D522266D9D1EBB /* VTDecoder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VTDecoder.swift; sourceTree = "<group>"; };
 		CA2C5316F2396D410BF8F85E /* FFDemuxer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FFDemuxer.swift; sourceTree = "<group>"; };
+		CD0CCE08AF23DCECD17895AC /* GameSession.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameSession.swift; sourceTree = "<group>"; };
+		D2A868E735744FD641776321 /* AppleTvGameInputViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleTvGameInputViewController.swift; sourceTree = "<group>"; };
+		D492B1A866CDE5E7EA46048F /* LibretroCore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LibretroCore.swift; sourceTree = "<group>"; };
+		D5DC400404ADA61BB07E400A /* GameAudioOutput.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameAudioOutput.swift; sourceTree = "<group>"; };
+		E96043FE795EA6E651493D5F /* snes9x_libretro.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = snes9x_libretro.framework; sourceTree = "<group>"; };
+		EBDE8DF681CD2620EB749A48 /* fceumm_libretro.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = fceumm_libretro.framework; sourceTree = "<group>"; };
 		EC66562038A8BA35AC8B1733 /* MoonfinTopShelf.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = MoonfinTopShelf.entitlements; sourceTree = "<group>"; };
 		FFF6254FE139BE2ABD845050 /* AudioRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AudioRenderer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -197,6 +239,35 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		4790983D8AB5249022D779CA /* Games */ = {
+			isa = PBXGroup;
+			children = (
+				4EDED7BFBF49D54BA9795365 /* AppleTvGameChannel.swift */,
+				D2A868E735744FD641776321 /* AppleTvGameInputViewController.swift */,
+				D5DC400404ADA61BB07E400A /* GameAudioOutput.swift */,
+				112802CD31173650976CCFDD /* GameInputController.swift */,
+				CD0CCE08AF23DCECD17895AC /* GameSession.swift */,
+				26AF6C4FDC95C4A3E0FE6876 /* GameVideoOutput.swift */,
+				D492B1A866CDE5E7EA46048F /* LibretroCore.swift */,
+			);
+			name = Games;
+			path = Runner/Games;
+			sourceTree = SOURCE_ROOT;
+		};
+		5C35408D9CC7A390CB922834 /* Cores */ = {
+			isa = PBXGroup;
+			children = (
+				EBDE8DF681CD2620EB749A48 /* fceumm_libretro.framework */,
+				5A0944BC3FD88308B7E81F3D /* gambatte_libretro.framework */,
+				3D25A3FF43C9B94D5ED8A397 /* genesis_plus_gx_libretro.framework */,
+				98DD98A0507A79F82DE9B512 /* mgba_libretro.framework */,
+				408735DC25E7BC9A0E23AF66 /* pcsx_rearmed_libretro.framework */,
+				E96043FE795EA6E651493D5F /* snes9x_libretro.framework */,
+			);
+			name = Cores;
+			path = Frameworks/Cores;
+			sourceTree = SOURCE_ROOT;
+		};
 		66DD9E560EFC48A917ADF4E1 /* Playback */ = {
 			isa = PBXGroup;
 			children = (
@@ -252,6 +323,7 @@
 				A0D05FC70CE4F8BD2EC3962C /* AppleTvSystemChannel.swift */,
 				AD10AD10AD10AD10AD100002 /* AppleTvAudioChannel.swift */,
 				AD10AD10AD10AD10AD100004 /* AppleTvThemeMusicChannel.swift */,
+				4790983D8AB5249022D779CA /* Games */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -274,6 +346,7 @@
 				1E49740A9B3056886C7389DA /* Pods_Runner.framework */,
 				20EBA61DB96FDD7390F82AD5 /* tvOS */,
 				69C2A2281BE7FC2256E62A2C /* TVServices.framework */,
+				5C35408D9CC7A390CB922834 /* Cores */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -312,16 +385,17 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 97C147051CF9000082B4168C /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
-				FCC6A24EE796FADC6C441BA4 /* Patch MPVKit Module Maps */,
 				CBC64758AED267822414F1CB /* [CP] Check Pods Manifest.lock */,
+				FCC6A24EE796FADC6C441BA4 /* Patch MPVKit Module Maps */,
 				97C146EA1CF9000082B4168C /* Sources */,
 				97C146EB1CF9000082B4168C /* Frameworks */,
 				97C146EC1CF9000082B4168C /* Resources */,
 				3B06AD1E1E4923F5004D2608 /* Embed Frameworks */,
 				AAF10000000000000000F00D /* Embed App.framework */,
 				9740EEB31CF901A200538489 /* Copy flutter_assets */,
-				DDE3F58B9783817438B2022B /* [CP] Embed Pods Frameworks */,
 				60EDF8A1CB9173CB8A4CB006 /* Embed App Extensions */,
+				C684840F3AA166FC634CC11A /* Embed Libretro Cores */,
+				32BDF3F100529256E6C9C933 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -394,6 +468,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		32BDF3F100529256E6C9C933 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		9740EEB31CF901A200538489 /* Copy flutter_assets */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -450,27 +541,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		DDE3F58B9783817438B2022B /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			inputPaths = (
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		FCC6A24EE796FADC6C441BA4 /* Patch MPVKit Module Maps */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -522,6 +592,13 @@
 				6E8429C73DFB8688BD40C60F /* AppleTvSystemChannel.swift in Sources */,
 				AD10AD10AD10AD10AD100001 /* AppleTvAudioChannel.swift in Sources */,
 				AD10AD10AD10AD10AD100003 /* AppleTvThemeMusicChannel.swift in Sources */,
+				0BB4A7E017A41C2DC92AA740 /* AppleTvGameChannel.swift in Sources */,
+				C1F1E8188A6812EC3C6A9EF1 /* AppleTvGameInputViewController.swift in Sources */,
+				1DFED451953EAD7F2A8939DF /* GameAudioOutput.swift in Sources */,
+				572ECC94C4EC71C3ED83CAF1 /* GameInputController.swift in Sources */,
+				3AC3CEF468D8D4EB37B773D1 /* GameSession.swift in Sources */,
+				0891769C67B4C60864B42A13 /* GameVideoOutput.swift in Sources */,
+				2567189A5ED4D6CF76A03672 /* LibretroCore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

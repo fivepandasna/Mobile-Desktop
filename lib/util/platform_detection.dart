@@ -56,9 +56,10 @@ class PlatformDetection {
   static bool _isTv = false;
   static void setTvMode(bool value) => _isTv = value;
 
-  /// EmulatorJS runs inside a WebView. tvOS has no WebKit/WKWebView, so retro-game
-  /// playback cannot run there; callers show a graceful "not supported" instead.
-  static bool get gamesPlaybackSupported => !isAppleTV;
+  /// Games play via EmulatorJS in a WebView everywhere except tvOS, which has
+  /// no WebKit and uses the native libretro bridge instead. Per-system support
+  /// on tvOS is gated by the bundled-core map in util/game_cores.dart.
+  static bool get gamesPlaybackSupported => true;
 
   static final Set<String> _displayHdrTypes = <String>{};
   static final Map<String, dynamic> _mediaCodecCapabilities =

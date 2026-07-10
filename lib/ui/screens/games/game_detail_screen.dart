@@ -12,6 +12,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../widgets/adaptive/adaptive_glass.dart';
 import '../../widgets/focus/focusable_button.dart';
 import '../../widgets/game/game_poster_rail.dart';
+import '../../../util/game_cores.dart';
 import '../../../util/game_library.dart';
 import '../../../util/platform_detection.dart';
 
@@ -111,7 +112,8 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
   void _play({required bool fresh}) {
     final game = _game;
     if (game == null) return;
-    if (!PlatformDetection.gamesPlaybackSupported) {
+    if (!PlatformDetection.gamesPlaybackSupported ||
+        !gameCoreSupported(game.core)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context).gamePlaybackUnsupported),

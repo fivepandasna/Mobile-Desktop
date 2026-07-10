@@ -33,6 +33,7 @@ import '../screens/detail/item_detail_screen.dart';
 import '../screens/games/game_library_screen.dart';
 import '../screens/games/game_detail_screen.dart';
 import '../screens/playback/game_emulator_screen.dart';
+import '../screens/playback/native_game_player_screen.dart';
 import '../screens/detail/item_list_screen.dart';
 import '../screens/detail/music_favorites_screen.dart';
 import '../screens/home/home_screen.dart';
@@ -444,17 +445,32 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: Destinations.gamePlayer,
-      pageBuilder: (context, state) => _opaqueFullScreenPage<void>(
-        state: state,
-        child: GameEmulatorScreen(
-          libraryId: state.pathParameters['libraryId']!,
-          gameId: state.pathParameters['gameId']!,
-          core: state.uri.queryParameters['core'] ?? 'nes',
-          biosId: state.uri.queryParameters['bios'],
-          gameName: state.uri.queryParameters['name'],
-          startFresh: state.uri.queryParameters['fresh'] == '1',
-        ),
-      ),
+      pageBuilder: (context, state) {
+        final libraryId = state.pathParameters['libraryId']!;
+        final gameId = state.pathParameters['gameId']!;
+        final core = state.uri.queryParameters['core'] ?? 'nes';
+        final startFresh = state.uri.queryParameters['fresh'] == '1';
+        return _opaqueFullScreenPage<void>(
+          state: state,
+          // tvOS has no WebView; games run on the native libretro bridge there.
+          child: PlatformDetection.isAppleTV
+              ? NativeGamePlayerScreen(
+                  libraryId: libraryId,
+                  gameId: gameId,
+                  core: core,
+                  gameName: state.uri.queryParameters['name'],
+                  startFresh: startFresh,
+                )
+              : GameEmulatorScreen(
+                  libraryId: libraryId,
+                  gameId: gameId,
+                  core: core,
+                  biosId: state.uri.queryParameters['bios'],
+                  gameName: state.uri.queryParameters['name'],
+                  startFresh: startFresh,
+                ),
+        );
+      },
     ),
 
     // Live TV

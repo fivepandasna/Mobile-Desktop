@@ -83,6 +83,30 @@ class MoonbaseGamesApi implements GamesApi {
   }
 
   @override
+  Future<void> downloadRom(
+    String libraryId,
+    String gameId,
+    String destPath, {
+    void Function(int received, int total)? onProgress,
+  }) async {
+    final lib = Uri.encodeComponent(libraryId);
+    final id = Uri.encodeComponent(gameId);
+    await _dio.download(
+      '/Moonfin/Games/$lib/Rom/$id',
+      destPath,
+      onReceiveProgress: onProgress,
+    );
+  }
+
+  @override
+  Future<void> downloadBios(
+      String libraryId, String biosId, String destPath) async {
+    final lib = Uri.encodeComponent(libraryId);
+    final id = Uri.encodeComponent(biosId);
+    await _dio.download('/Moonfin/Games/$lib/Bios/$id', destPath);
+  }
+
+  @override
   String playerUrl({
     required String libraryId,
     required String gameId,
