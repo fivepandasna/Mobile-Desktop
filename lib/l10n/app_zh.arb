@@ -168,7 +168,7 @@
     "@settingsAppearanceTheme": {
         "description": "Title for the theme selection screen and theme settings entry"
     },
-    "settingsAppearanceThemeSubtitle": "无需重启应用即可在 Moonfin 和 Neon Pulse 之间切换",
+    "settingsAppearanceThemeSubtitle": "可在 Moonfin 与 Neon Pulse 之间切换，无需重启应用。",
     "@settingsAppearanceThemeSubtitle": {
         "description": "Subtitle for the theme selection screen and theme settings entry"
     },
@@ -176,7 +176,7 @@
     "@themeMoonfin": {
         "description": "Display name for the Moonfin theme"
     },
-    "themeMoonfinSubtitle": "你熟悉并喜爱的 Moonfin 经典外观",
+    "themeMoonfinSubtitle": "原版简洁清爽的 Moonfin 默认界面。",
     "@themeMoonfinSubtitle": {
         "description": "Preview description for the Moonfin theme"
     },
@@ -216,11 +216,11 @@
     "@invalidEmbyConnectLogin": {
         "description": "Error for wrong Emby Connect credentials"
     },
-    "embyConnectExchangeNotSupported": "服务器不支持 Emby Connect 交换登录",
+    "embyConnectExchangeNotSupported": "服务器不支持 Emby Connect 账号交互验证",
     "@embyConnectExchangeNotSupported": {
         "description": "Error when server lacks Emby Connect exchange endpoint"
     },
-    "embyConnectNetworkError": "联系 Emby Connect 或所选服务器时出现网络错误",
+    "embyConnectNetworkError": "连接 Emby Connect 或所选服务器时出现网络错误",
     "@embyConnectNetworkError": {
         "description": "Generic network error during Emby Connect flow"
     },
@@ -4088,15 +4088,15 @@
             }
         }
     },
-    "discoverRows": "发现栏目",
+    "discoverRows": "Seerr 发现页",
     "@discoverRows": {
         "description": "Section title for discover rows"
     },
-    "discoverRowsDescriptionPlugin": "拖动可重新排序。可启用或禁用栏目。启用的栏目顺序会与 Moonfin 插件同步。",
+    "discoverRowsDescriptionPlugin": "启用首页展示栏目，拖动调整排序，自定义顺序将同步至 Moonfin 服务端。",
     "@discoverRowsDescriptionPlugin": {
         "description": "Description for discover rows with plugin"
     },
-    "discoverRowsDescription": "拖动可重新排序。可启用或禁用栏目。",
+    "discoverRowsDescription": "启用首页展示栏目，拖动调整排序，自定义顺序将同步至 Moonfin 服务端。",
     "@discoverRowsDescription": {
         "description": "Description for discover rows without plugin"
     },
@@ -4231,7 +4231,7 @@
     "@navbarStyleToolbarAppearance": {
         "description": "Navigation settings subtitle"
     },
-    "reorderToggleHomeRows": "重新排序并开关首页栏目",
+    "reorderToggleHomeRows": "调整并开关媒体库及外部来源首页栏目",
     "@reorderToggleHomeRows": {
         "description": "Home sections settings subtitle"
     },
@@ -6684,7 +6684,7 @@
             }
         }
     },
-    "latestLibraryName": "最新 {libraryName}",
+    "latestLibraryName": "新增 {libraryName}",
     "@latestLibraryName": {
         "description": "Row title for latest media in a specific library",
         "placeholders": {
@@ -7403,7 +7403,7 @@
     "homeRowDisplay": "首页行显示",
     "homeRowSections": "首页行栏目",
     "homeRowToggles": "首页行开关",
-    "homeRowTogglesSubtitle": "启用或禁用不同的首页行类别",
+    "homeRowTogglesSubtitle": "启用或关闭媒体库首页分类栏目",
     "homeRowTogglesDescription": "启用以下开关以在首页栏目中显示对应行。",
     "displayPlaylistsRows": "显示播放列表行",
     "displayPlaylistsRowsSubtitle": "在首页栏目中显示播放列表行。",
@@ -7458,83 +7458,83 @@
     "resolutionMedium": "中（720p）",
     "resolutionLow": "低（低于 720p）",
     "sources": "来源",
-    "interfaceStyle": "",
+    "interfaceStyle": "界面风格",
     "@interfaceStyle": {
         "description": "Label for the Automatic/Apple/Material interface style setting"
     },
-    "fallbackAudioLanguage": "",
+    "fallbackAudioLanguage": "备用音频语言",
     "@fallbackAudioLanguage": {
         "description": "Setting for fallback audio language"
     },
-    "preferDefaultAudioTrack": "",
+    "preferDefaultAudioTrack": "优先默认音轨",
     "@preferDefaultAudioTrack": {
         "description": "Setting for preferring default audio track"
     },
-    "preferDefaultAudioTrackDescription": "",
+    "preferDefaultAudioTrackDescription": "优先使用原始音轨，而非本地化配音。",
     "@preferDefaultAudioTrackDescription": {
         "description": "Description for preferring default audio track setting"
     },
-    "preferAudioDescription": "",
+    "preferAudioDescription": "优先音画描述音轨",
     "@preferAudioDescription": {
         "description": "Setting for preferring audio description tracks"
     },
-    "preferAudioDescriptionDescription": "",
+    "preferAudioDescriptionDescription": "优先播放无障碍音画描述音轨，替代普通音轨。",
     "@preferAudioDescriptionDescription": {
         "description": "Description for preferring audio description tracks setting"
     },
-    "transcodingAudio": "",
+    "transcodingAudio": "转码（仅音频）",
     "@transcodingAudio": {
         "description": "Label for audio-only transcode playback method"
     },
-    "subtitleModeForced": "",
+    "subtitleModeForced": "仅强制字幕",
     "@subtitleModeForced": {
         "description": "Subtitle mode: only forced"
     },
-    "subtitleModeFlaggedDescription": "",
+    "subtitleModeFlaggedDescription": "自动加载媒体元数据内标记为「默认」或「强制」的字幕轨道。",
     "@subtitleModeFlaggedDescription": {
         "description": "Description for flagged subtitle mode"
     },
-    "subtitleModeAlwaysDescription": "",
+    "subtitleModeAlwaysDescription": "每次播放视频时自动加载并显示字幕。",
     "@subtitleModeAlwaysDescription": {
         "description": "Description for always subtitle mode"
     },
-    "subtitleModeForeignDescription": "",
+    "subtitleModeForeignDescription": "若默认音轨为外语，则自动开启字幕。",
     "@subtitleModeForeignDescription": {
         "description": "Description for foreign subtitle mode"
     },
-    "subtitleModeForcedDescription": "",
+    "subtitleModeForcedDescription": "仅加载元数据标记为强制显示的字幕。",
     "@subtitleModeForcedDescription": {
         "description": "Description for forced subtitle mode"
     },
-    "subtitleModeNoneDescription": "",
+    "subtitleModeNoneDescription": "完全关闭自动加载字幕功能。",
     "@subtitleModeNoneDescription": {
         "description": "Description for none subtitle mode"
     },
-    "fallbackSubtitleLanguage": "",
+    "fallbackSubtitleLanguage": "备用字幕语言",
     "@fallbackSubtitleLanguage": {
         "description": "Setting for fallback subtitle language"
     },
-    "subtitleStream": "",
+    "subtitleStream": "字幕轨道",
     "@subtitleStream": {
         "description": "Header for subtitle stream settings"
     },
-    "groupItemsIntoCollections": "",
+    "groupItemsIntoCollections": "将影片归类至系列合集",
     "@groupItemsIntoCollections": {
         "description": "Setting for grouping items into collections"
     },
-    "hideCollectionAssociatedItems": "",
+    "hideCollectionAssociatedItems": "浏览媒体库时隐藏合集内关联的单部影片",
     "@hideCollectionAssociatedItems": {
         "description": "Description for grouping items into collections"
     },
-    "groupItemsIntoCollectionsDialogTitle": "",
+    "groupItemsIntoCollectionsDialogTitle": "媒体库归类提示",
     "@groupItemsIntoCollectionsDialogTitle": {
         "description": "Title of the alert dialog explaining server settings requirement"
     },
-    "groupItemsIntoCollectionsDialogMessage": "",
+    "groupItemsIntoCollectionsDialogMessage": "如需启用该功能，请前往 Jellyfin / Emby 服务器媒体库的显示设置，开启「电影合集分组」和/或「剧集系列分组」选项。",
     "@groupItemsIntoCollectionsDialogMessage": {
         "description": "Message of the alert dialog explaining server settings requirement"
     },
-    "recentlyReleasedLibraryName": "",
+    "recentlyReleasedLibraryName": "新上映 {libraryName}",
     "@recentlyReleasedLibraryName": {
         "description": "Row title for recently released media in a specific library",
         "placeholders": {
@@ -7543,88 +7543,88 @@
             }
         }
     },
-    "crewContributionsSeerr": "",
-    "subtitlePreferences": "",
+    "crewContributionsSeerr": "演职人员作品（Seerr）",
+    "subtitlePreferences": "字幕偏好设置",
     "@subtitlePreferences": {
         "description": "Title for the subtitle preferences settings section"
     },
-    "subtitlePreferencesDescription": "",
+    "subtitlePreferencesDescription": "自定义字幕模式、默认语言、外观样式与渲染参数。",
     "@subtitlePreferencesDescription": {
         "description": "Description for the subtitle preferences settings section"
     },
-    "subtitleRendering": "",
+    "subtitleRendering": "字幕渲染",
     "@subtitleRendering": {
         "description": "Header for subtitle rendering settings"
     },
-    "displayOptions": "",
+    "displayOptions": "显示选项",
     "@displayOptions": {
         "description": "Title for details display options dialog"
     },
-    "releaseDateAscending": "",
+    "releaseDateAscending": "上映日期（升序）",
     "@releaseDateAscending": {
         "description": "Sort option for crew/cast contributions in ascending release date order"
     },
-    "releaseDateDescending": "",
+    "releaseDateDescending": "上映日期（降序）",
     "@releaseDateDescending": {
         "description": "Sort option for crew/cast contributions in descending release date order"
     },
-    "groupContributions": "",
+    "groupContributions": "作品分组",
     "@groupContributions": {
         "description": "Section header for grouping person contributions"
     },
-    "groupMultipleRoles": "",
+    "groupMultipleRoles": "合并同一人员多角色作品",
     "@groupMultipleRoles": {
         "description": "Option to group multiple roles for a person"
     },
-    "interfaceStyleSubtitle": "",
+    "interfaceStyleSubtitle": "“自动模式”会在苹果设备上原生适配苹果外观。选择“Apple”可强制启用苹果界面风格，选择“Material”则使用标准界面样式。",
     "@interfaceStyleSubtitle": {
         "description": "Explanation under the interface style setting"
     },
-    "interfaceStyleAutomatic": "",
+    "interfaceStyleAutomatic": "自动模式",
     "@interfaceStyleAutomatic": {
         "description": "Interface style option: follow the platform"
     },
-    "interfaceStyleApple": "",
+    "interfaceStyleApple": "Apple",
     "@interfaceStyleApple": {
         "description": "Interface style option: Apple native look"
     },
-    "interfaceStyleMaterial": "",
+    "interfaceStyleMaterial": "Material",
     "@interfaceStyleMaterial": {
         "description": "Interface style option: Material look"
     },
-    "subtitleMode": "",
+    "subtitleMode": "字幕模式",
     "@subtitleMode": {
         "description": "Setting for subtitle mode"
     },
-    "subtitleModeFlagged": "",
+    "subtitleModeFlagged": "标记默认",
     "@subtitleModeFlagged": {
         "description": "Subtitle mode: default/flagged"
     },
-    "subtitleModeAlways": "",
+    "subtitleModeAlways": "始终显示",
     "@subtitleModeAlways": {
         "description": "Subtitle mode: always play"
     },
-    "subtitleModeForeign": "",
+    "subtitleModeForeign": "外语自动",
     "@subtitleModeForeign": {
         "description": "Subtitle mode: foreign/smart"
     },
-    "libraryWriteAccessWarningTitle": "",
+    "libraryWriteAccessWarningTitle": "媒体库写入权限警告",
     "@libraryWriteAccessWarningTitle": {
         "description": "Title for library write access warning dialog"
     },
-    "libraryWriteAccessHowToFix": "",
+    "libraryWriteAccessHowToFix": "解决方法：",
     "@libraryWriteAccessHowToFix": {
         "description": "Section header for write access troubleshooting"
     },
-    "libraryWriteAccessFixSteps": "",
+    "libraryWriteAccessFixSteps": "1. 在服务器上为媒体库文件夹授予 Jellyfin 服务账号写入权限（Docker 环境需配置正确 PUID/PGID）。\n\n2. 或前往 Jellyfin 控制台-媒体库，编辑当前媒体库，关闭「将封面图片保存至媒体文件夹」，封面将统一存储在 Jellyfin 内置数据库中。",
     "@libraryWriteAccessFixSteps": {
         "description": "Troubleshooting steps for write access issues"
     },
-    "dismiss": "",
+    "dismiss": "忽略",
     "@dismiss": {
         "description": "Dismiss button text"
     },
-    "libraryWriteAccessProactiveBody": "",
+    "libraryWriteAccessProactiveBody": "您的“{libraryName}”媒体库已开启「将封面图片保存至媒体文件夹」，但 Jellyfin 检测发现无权限写入以下目录：\n\n{failedPath}",
     "@libraryWriteAccessProactiveBody": {
         "description": "Proactive warning message about server write access",
         "placeholders": {
@@ -7636,7 +7636,7 @@
             }
         }
     },
-    "libraryWriteAccessReactiveBody": "",
+    "libraryWriteAccessReactiveBody": "Jellyfin 封面更新失败。当前媒体库设置为直接将封面存入媒体文件夹，该报错通常是 Jellyfin 服务进程缺少媒体目录写入权限导致。",
     "@libraryWriteAccessReactiveBody": {
         "description": "Reactive error warning message when artwork update fails"
     },
@@ -7687,5 +7687,798 @@
     },
     "settingsDetailsScreen": "",
     "settingsDetailsScreenSubtitle": "",
-    "mpvConfiguration": ""
+    "mpvConfiguration": "",
+    "customThemeTitle": "自定义主题",
+    "@customThemeTitle": {
+        "description": "Title for the custom theme settings section"
+    },
+    "latestBooks": "最新图书",
+    "@latestBooks": {
+        "description": "Row title for recently added books in the book library"
+    },
+    "adminLibraryTabDownloaders": "下载器",
+    "adminLibArchiveMediaFiles": "将压缩包视为媒体文件",
+    "adminLibEnablePhotos": "显示照片",
+    "adminLibDefault": "默认",
+    "adminLibNone": "无",
+    "adminLibRefreshDays": "{days} 天",
+    "@adminLibRefreshDays": {
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
+    },
+    "adminLibEmbeddedAllowImage": "仅图片",
+    "adminDaySunday": "周日",
+    "adminBackupOptionsTitle": "创建备份",
+    "adminRecordingPostProcessor": "后处理应用程序路径",
+    "adminPlaybackEnableVppTonemapping": "启用 VPP 色调映射",
+    "adminPlaybackTonemappingPeak": "色调映射峰值",
+    "adminPlaybackTonemappingParam": "色调映射参数",
+    "adminNetworkingRequireHttps": "要求 HTTPS",
+    "adminGeneralSectionServer": "服务器",
+    "audiobookBookmarks": "书签",
+    "audiobookSkipForwardSeconds": "前进 {seconds}秒",
+    "@audiobookSkipForwardSeconds": {
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "audiobookPreviousChapter": "上一章",
+    "audiobookNextChapter": "下一章",
+    "audiobookSave": "保存",
+    "replay": "重播",
+    "transcodeVideoProfileNotSupported": "视频配置文件不受支持。",
+    "transcodeVideoLevelNotSupported": "视频级别不受支持。",
+    "transcodeVideoBitDepthNotSupported": "视频位深不受支持。",
+    "transcodeVideoFramerateNotSupported": "视频帧率不受支持。",
+    "transcodeAudioChannelsNotSupported": "音频声道数不受支持。",
+    "sortAlphabetical": "字母顺序",
+    "sortReleaseDescending": "发行顺序（降序）",
+    "impellerRestartMessage": "Moonfin 需要重启以更改渲染引擎。立即关闭应用，然后重新打开以应用更改。",
+    "@impellerRestartMessage": {
+        "description": "Body of the dialog shown after changing the rendering engine."
+    },
+    "adminRepoSortNameAsc": "字母顺序（A 到 Z）",
+    "@adminRepoSortNameAsc": {
+        "description": "Repository sort option, alphabetical ascending"
+    },
+    "recommendationSystemTmdb": "TMDb 相似影片推荐",
+    "@recommendationSystemTmdb": {
+        "description": "Recommendation system option: TMDb Similarity"
+    },
+    "detailScreenStyle": "详情界面样式",
+    "@detailScreenStyle": {
+        "description": "Label for the media detail screen layout style setting"
+    },
+    "detailScreenStyleModern": "现代",
+    "@detailScreenStyleModern": {
+        "description": "Detail screen style option: the responsive cinematic layout"
+    },
+    "adminLibDateAddedSection": "日期添加行为",
+    "adminLibDateAddedLabel": "使用日期添加自",
+    "adminLibDateAddedImport": "扫描进媒体库的日期",
+    "adminParentalControl": "家长控制",
+    "adminPlaybackIntelLowPowerHevc": "启用 Intel 低功耗 HEVC 编码器",
+    "adminNetworkingPublishedUriHint": "将子网或地址映射到发布的 URL，例如 all=https://example.com",
+    "audiobookChapters": "章节",
+    "audiobookSpeedCustomLabel": "{value}x",
+    "@audiobookSpeedCustomLabel": {
+        "placeholders": {
+            "value": {
+                "type": "String"
+            }
+        }
+    },
+    "transcodeSubtitleCodecNotSupported": "字幕格式不受支持（需要烧录）。",
+    "transcodeAudioProfileNotSupported": "音频配置文件不受支持。",
+    "guideHoursMinutesLeft": "剩余 {hours} 小时 {minutes} 分钟",
+    "@guideHoursMinutesLeft": {
+        "description": "Remaining time of the current program, hours and minutes",
+        "placeholders": {
+            "hours": {
+                "type": "int"
+            },
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "recommendationSystemSubtitle": "可选用「Moonfin本地资料库推荐算法」，或线上 TMDb 相似度匹配算法。注意：线上推荐功能需要对接 Seerr 服务。",
+    "@recommendationSystemSubtitle": {
+        "description": "Explanation under the recommendation system setting"
+    },
+    "detailScreenStyleMoonfin": "Moonfin",
+    "@detailScreenStyleMoonfin": {
+        "description": "Detail screen style option: the classic centered layout"
+    },
+    "glassQualityAuto": "自动",
+    "@glassQualityAuto": {
+        "description": "Glass quality option: per-device default"
+    },
+    "glassQualityFull": "完整",
+    "@glassQualityFull": {
+        "description": "Glass quality option: force real blur"
+    },
+    "glassQualityReduced": "简化",
+    "@glassQualityReduced": {
+        "description": "Glass quality option: lightweight zero-blur glass"
+    },
+    "theme8BitHeroSubtitle": "复古像素艺术风格，具有粗犷的调色板、方块边框、强烈的阴影和像素字体",
+    "@theme8BitHeroSubtitle": {
+        "description": "Preview description for the 8-bit Hero theme"
+    },
+    "gamePaused": "已暂停",
+    "@gamePaused": {
+        "description": "Status shown in the in-game menu while the game is paused"
+    },
+    "gameSaveState": "保存存档",
+    "@gameSaveState": {
+        "description": "In-game menu action to save the game state"
+    },
+    "gameNoCoreOptions": "此核心没有可调整的选项。",
+    "@gameNoCoreOptions": {
+        "description": "Shown when a game core exposes no settings"
+    },
+    "latestAudiobooks": "最新有声读物",
+    "@latestAudiobooks": {
+        "description": "Row title for recently added audiobooks in the book library"
+    },
+    "bookSeriesItemCount": "{count, plural, =1{1 本书} other{{count} 本书}}",
+    "@bookSeriesItemCount": {
+        "description": "Subtitle for a book series shelf entry showing how many books it contains",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "bookFormatBook": "图书",
+    "@bookFormatBook": {
+        "description": "Semantic label for the book format badge on library cards"
+    },
+    "bookFormatAudiobook": "有声读物",
+    "@bookFormatAudiobook": {
+        "description": "Semantic label for the audiobook format badge on library cards"
+    },
+    "bookPercentRead": "{percent}% 已读",
+    "@bookPercentRead": {
+        "description": "Reading progress label on book cards",
+        "placeholders": {
+            "percent": {
+                "type": "int"
+            }
+        }
+    },
+    "bookTimeLeft": "{time} 剩余",
+    "@bookTimeLeft": {
+        "description": "Short remaining-duration chip on audiobook cards, e.g. '6h 12m left'",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "bookHeroRead": "阅读",
+    "@bookHeroRead": {
+        "description": "Hero CTA label to start reading a book"
+    },
+    "bookHeroListen": "收听",
+    "@bookHeroListen": {
+        "description": "Hero CTA label to start listening to an audiobook"
+    },
+    "extras": "额外",
+    "@extras": {
+        "description": "Tab label for special features / extras"
+    },
+    "carServerUnreachable": "无法连接到服务器",
+    "@carServerUnreachable": {
+        "description": "Shown in the car when the media server can't be reached"
+    },
+    "guideMinutesLeft": "剩余 {minutes} 分钟",
+    "@guideMinutesLeft": {
+        "description": "Remaining time of the current program, under an hour",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "guideHoursLeft": "剩余 {hours} 小时",
+    "@guideHoursLeft": {
+        "description": "Remaining time of the current program, whole hours",
+        "placeholders": {
+            "hours": {
+                "type": "int"
+            }
+        }
+    },
+    "navbarAlwaysExpanded": "始终展开导航栏标签",
+    "@navbarAlwaysExpanded": {
+        "description": "Setting to keep every top navbar heading's text label visible at all times, tvOS-style"
+    },
+    "seerrNotificationsSection": "通知",
+    "@seerrNotificationsSection": {
+        "description": "Header for the Seerr notifications settings section"
+    },
+    "seerrNotifyLibraryAddedTitle": "请求更新",
+    "@seerrNotifyLibraryAddedTitle": {
+        "description": "Title for the toggle that notifies a requester about approvals, declines, and library availability"
+    },
+    "seerrNotifyLibraryAddedSubtitle": "已批准、已拒绝和已添加到媒体库",
+    "@seerrNotifyLibraryAddedSubtitle": {
+        "description": "Subtitle for the library-added notifications toggle"
+    },
+    "adminDrawerDisplay": "显示",
+    "adminDrawerMetadata": "元数据",
+    "adminRemoveDeviceConfirm": "移除设备 \"{name}\"？该用户需要在此设备上重新登录。",
+    "@adminRemoveDeviceConfirm": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "adminDeleteAllDevices": "删除所有设备",
+    "adminDeleteAllDevicesConfirm": "移除 {count} 个设备？受影响的用户需要重新登录。当前设备不受影响。",
+    "@adminDeleteAllDevicesConfirm": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "adminDevicesDeletedAll": "设备已移除",
+    "adminLibMetadataDownloadersFor": "元数据下载器: {type}",
+    "@adminLibMetadataDownloadersFor": {
+        "placeholders": {
+            "type": {
+                "type": "String"
+            }
+        }
+    },
+    "adminLibImageFetchersFor": "图片获取器: {type}",
+    "@adminLibImageFetchersFor": {
+        "placeholders": {
+            "type": {
+                "type": "String"
+            }
+        }
+    },
+    "adminLibNoDownloaders": "此服务器未为此媒体库类型公开下载器。",
+    "adminLibrarySectionMetadata": "元数据",
+    "adminLibrarySectionEmbedded": "内嵌信息",
+    "adminLibrarySectionSubtitles": "字幕",
+    "adminLibrarySectionImages": "图片",
+    "adminLibrarySectionMusic": "音乐",
+    "adminLibrarySectionMovies": "电影",
+    "adminLibRealtimeMonitor": "启用实时监控",
+    "adminLibRealtimeMonitorHint": "检测文件更改并自动处理。",
+    "adminLibSaveLocalMetadata": "将封面保存到媒体文件夹",
+    "adminLibRefreshInterval": "自动元数据刷新",
+    "adminLibDisplayTitle": "显示",
+    "adminLibDisplaySection": "媒体库显示",
+    "adminLibFolderView": "显示文件夹视图以展示纯媒体文件夹",
+    "adminLibSpecialsInSeasons": "在播出季中显示特别篇",
+    "adminLibGroupMovies": "将电影分组到合集中",
+    "adminLibGroupShows": "将剧集分组到合集中",
+    "adminLibExternalSuggestions": "在建议中显示外部内容",
+    "adminLibNfoTitle": "NFO 设置",
+    "adminLibNfoHelp": "NFO 元数据与 Kodi 和类似客户端兼容。设置适用于所有保存 NFO 元数据的媒体库。",
+    "adminLibSaveImagePaths": "在 NFO 文件中保存图片路径",
+    "adminLibExtraThumbs": "将 extrafanart 图片复制到 extrathumbs 文件夹",
+    "adminLibEmbeddedAllowNone": "无",
+    "adminLibSkipIfAudioMatches": "如果音轨与下载语言匹配则跳过下载",
+    "adminLibRequirePerfectMatch": "要求完美字幕匹配",
+    "adminLibSaveSubtitlesWithMedia": "将字幕保存到媒体文件夹",
+    "adminLibTrickplayExtraction": "启用 trickplay 图片提取",
+    "adminLibTrickplayDuringScan": "在媒体库扫描期间提取 trickplay 图片",
+    "adminLibSaveTrickplayWithMedia": "将 trickplay 图片保存到媒体文件夹",
+    "adminLibAutomaticSeriesGrouping": "自动合并分布在多个文件夹中的剧集",
+    "adminLibAutoAddToCollection": "自动将电影添加到合集",
+    "adminUnratedBook": "图书",
+    "adminUnratedChannelContent": "频道",
+    "adminUnratedLiveTvChannel": "直播电视",
+    "adminUnratedMovie": "电影",
+    "adminUnratedMusic": "音乐",
+    "adminUnratedSeries": "剧集",
+    "adminAccessSchedules": "访问时间表",
+    "adminAccessSchedulesHint": "仅允许在下方计划的时间段内访问。未设置时间表时，全天允许访问。",
+    "adminScheduleDay": "天",
+    "adminScheduleStart": "开始",
+    "adminScheduleEnd": "结束",
+    "adminDayEveryday": "每天",
+    "adminDayWeekday": "工作日",
+    "adminDayWeekend": "周末",
+    "adminDayMonday": "周一",
+    "adminDayTuesday": "周二",
+    "adminDayWednesday": "周三",
+    "adminDayThursday": "周四",
+    "adminDayFriday": "周五",
+    "adminBlockedTagsHint": "带有这些标签的内容对该用户隐藏。",
+    "adminEnabledDevices": "启用的设备",
+    "adminAuthProvider": "认证提供商",
+    "adminPasswordResetProvider": "密码重置提供商",
+    "adminLoginAttemptsBeforeLockout": "锁定前的最大失败登录尝试次数",
+    "adminLoginAttemptsHint": "设为0使用默认值，或设为-1禁用锁定。",
+    "adminSyncPlayJoin": "允许加入群组",
+    "adminSyncPlayNone": "无访问权限",
+    "adminContentDeletionFolders": "允许从以下位置删除内容",
+    "adminBackupInclude": "选择要包含在备份中的内容。",
+    "adminBackupDatabase": "数据库",
+    "adminBackupDatabaseAlways": "始终包含",
+    "adminBackupMetadata": "元数据",
+    "adminBackupSubtitles": "字幕",
+    "adminBackupTrickplay": "Trickplay 图片",
+    "adminTunerResetNotSupported": "此调谐器类型不支持重置。",
+    "adminMovieRecordingPath": "电影录制路径",
+    "adminGuideDays": "节目指南数据天数",
+    "adminGuideDaysAuto": "自动",
+    "adminRecordingPostProcessorArgs": "后处理器参数",
+    "adminSaveRecordingNfo": "保存录制 NFO 元数据",
+    "adminSaveRecordingImages": "保存录制图片",
+    "adminLiveTvSectionTiming": "时序",
+    "adminLiveTvSectionPaths": "录制路径",
+    "adminLiveTvSectionPostProcessing": "后处理",
+    "adminGuideDaysDisplay": "节目指南数据: {value}",
+    "@adminGuideDaysDisplay": {
+        "placeholders": {
+            "value": {
+                "type": "String"
+            }
+        }
+    },
+    "adminRefreshGuideData": "刷新节目指南数据",
+    "adminGuideRefreshStarted": "节目指南数据刷新已开始",
+    "adminGuideRefreshUnavailable": "此服务器不支持节目指南刷新任务。",
+    "adminMetadataIdentify": "识别",
+    "adminBrandingSplashUpload": "上传图片",
+    "adminBrandingNoSplash": "无自定义启动画面",
+    "adminPlaybackQsvDevice": "QSV 设备",
+    "adminPlaybackEnhancedNvdec": "启用增强型 NVDEC 解码器",
+    "adminPlaybackColorDepth": "硬件解码色深",
+    "adminPlaybackColorDepth10Hevc": "10位 HEVC 解码",
+    "adminPlaybackColorDepth10Vp9": "10位 VP9 解码",
+    "adminPlaybackColorDepth10HevcRext": "HEVC RExt 8/10位解码",
+    "adminPlaybackHwEncodingSection": "硬件编码",
+    "adminPlaybackAllowHevcEncoding": "允许 HEVC 编码",
+    "adminPlaybackAllowAv1Encoding": "允许 AV1 编码",
+    "adminPlaybackIntelLowPowerH264": "启用 Intel 低功耗 H.264 编码器",
+    "adminPlaybackEnableTonemapping": "启用色调映射",
+    "adminPlaybackPresetsQuality": "预设与画质",
+    "adminPlaybackEncoderPreset": "编码器预设",
+    "adminPlaybackH264Crf": "H.264 编码 CRF",
+    "adminPlaybackDownmixBoost": "音频下混增益",
+    "adminPlaybackDownmixAlgorithm": "立体声下混算法",
+    "adminRunningTasks": "正在运行的任务",
+    "adminNetworkingPublicHttpPort": "公共 HTTP 端口",
+    "adminNetworkingRequireHttpsHint": "将所有远程请求重定向到 HTTPS。如果服务器没有有效证书则无效。",
+    "adminGeneralQuickConnect": "启用快速连接",
+    "adminGeneralSectionPaths": "路径",
+    "adminGeneralSectionPerformance": "性能",
+    "settingsConnectionSection": "连接",
+    "@settingsConnectionSection": {
+        "description": "Section header for server connection settings"
+    },
+    "settingsAllowSelfSignedCertsSubtitle": "信任使用自签名或私有 CA TLS 证书的服务器。仅对您控制的服务器启用。这会禁用所有连接的证书验证。",
+    "@settingsAllowSelfSignedCertsSubtitle": {
+        "description": "Description for the allow self-signed certificates setting"
+    },
+    "audiobookNotes": "笔记",
+    "audiobookQueue": "队列",
+    "audiobookTimeline": "时间轴",
+    "audiobookWholeBook": "整本书",
+    "audiobookFocusedTimeline": "聚焦时间轴",
+    "audiobookExportBookmarks": "导出书签",
+    "audiobookExportNotes": "导出笔记",
+    "audiobookExportAll": "导出全部",
+    "audiobookExportSuccess": "已导出到 {path}",
+    "@audiobookExportSuccess": {
+        "placeholders": {
+            "path": {
+                "type": "String"
+            }
+        }
+    },
+    "audiobookExportFailed": "导出失败: {error}",
+    "@audiobookExportFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "audiobookLyrics": "歌词",
+    "audiobookAddBookmark": "添加书签",
+    "audiobookAddNote": "添加笔记",
+    "audiobookNoteHint": "为此刻写一条笔记",
+    "audiobookSleepEndOfChapter": "章节结束",
+    "audiobookSleepRemaining": "剩余 {remaining}",
+    "@audiobookSleepRemaining": {
+        "placeholders": {
+            "remaining": {
+                "type": "String"
+            }
+        }
+    },
+    "audiobookSleepMinutes": "{count, plural, =1{1 分钟} other{{count} 分钟}}",
+    "@audiobookSleepMinutes": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "audiobookPlaybackSpeed": "播放速度",
+    "audiobookRemainingTime": "剩余时间",
+    "audiobookChapterIndicator": "第 {current} / {total} 章",
+    "@audiobookChapterIndicator": {
+        "placeholders": {
+            "current": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "audiobookNoBookmarks": "还没有书签",
+    "audiobookBookmarkAdded": "已在 {position} 添加书签",
+    "@audiobookBookmarkAdded": {
+        "placeholders": {
+            "position": {
+                "type": "String"
+            }
+        }
+    },
+    "audiobookSpeedReset": "重置为 1.0x",
+    "fileInformation": "文件信息",
+    "fileSizeFormat": "大小: {size}  •  格式: {format}",
+    "@fileSizeFormat": {
+        "placeholders": {
+            "size": {},
+            "format": {}
+        }
+    },
+    "showAllAudioTracks": "显示全部 ({count}) 音轨",
+    "@showAllAudioTracks": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "showAllSubtitleTracks": "显示全部 ({count}) 字幕轨道",
+    "@showAllSubtitleTracks": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "checkingDirectPlay": "正在检查直接播放能力...",
+    "directPlayCapabilityLabel": "直接播放能力: ",
+    "transcodeContainerNotSupported": "容器格式不受播放器支持。",
+    "transcodeVideoCodecNotSupported": "视频编解码器不受支持。",
+    "transcodeAudioCodecNotSupported": "音频编解码器不受支持。",
+    "transcodeContainerBitrateExceedsLimit": "文件比特率超过播放器流式传输限制。",
+    "transcodeVideoBitrateExceedsLimit": "视频比特率超过流式传输限制。",
+    "transcodeAudioBitrateExceedsLimit": "音频比特率超过流式传输限制。",
+    "sortReleaseAscending": "发行顺序（升序）",
+    "sortCustomDragDrop": "自定义（拖放）",
+    "rewatchSeasonEpisode": "重播 S{season}:E{episode}",
+    "@rewatchSeasonEpisode": {
+        "placeholders": {
+            "season": {
+                "type": "int"
+            },
+            "episode": {
+                "type": "int"
+            }
+        }
+    },
+    "impellerRenderingSubtitle": "Impeller 是 Flutter 的现代 GPU 渲染器，可实现更流畅的动画和更少的卡顿。在某些电视盒子和旧款 GPU 上可能会导致故障或黑屏；如果遇到这些问题，请将其关闭。自动会为你的设备选择最佳默认值。重启 Moonfin 以应用。",
+    "@impellerRenderingSubtitle": {
+        "description": "Explanatory description under the rendering engine setting."
+    },
+    "impellerCloseNow": "立即关闭应用",
+    "@impellerCloseNow": {
+        "description": "Button that closes the app so the new rendering engine takes effect on next launch."
+    },
+    "adminRefreshLibrary": "刷新媒体库",
+    "@adminRefreshLibrary": {
+        "description": "Dropdown option to refresh/rescan a single library"
+    },
+    "adminRepoSortDateOldest": "添加日期（最旧优先）",
+    "@adminRepoSortDateOldest": {
+        "description": "Repository sort option, oldest added first"
+    },
+    "adminRepoSortDateNewest": "添加日期（最新优先）",
+    "@adminRepoSortDateNewest": {
+        "description": "Repository sort option, newest added first"
+    },
+    "adminLibrarySectionSeries": "剧集",
+    "adminLibChapterImageResolutionMatchSource": "匹配源",
+    "@adminLibChapterImageResolutionMatchSource": {
+        "description": "Chapter image resolution option that matches the source resolution"
+    },
+    "adminUnratedTrailer": "预告片",
+    "adminPlaybackDeinterlaceMethod": "去隔行方法",
+    "adminPlaybackAudioSection": "音频",
+    "gameEmulatorSettings": "模拟器设置",
+    "@gameEmulatorSettings": {
+        "description": "In-game menu action opening the emulator settings"
+    },
+    "audiobookEditNote": "编辑笔记",
+    "audiobookElapsedTime": "已播放",
+    "audiobookSkipBackSeconds": "后退 {seconds}秒",
+    "@audiobookSkipBackSeconds": {
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "adminLibEmbeddedAllowText": "仅文本",
+    "guideNextProgram": "下一集 ：{time} {title}",
+    "@guideNextProgram": {
+        "description": "Guide card line for the upcoming program, e.g. 'Next: 9:00 PM  The News'",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            },
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "adminNetworkingAutoDiscovery": "启用自动端口映射",
+    "adminNetworkingLocalSubnets": "局域网",
+    "glassQuality": "玻璃质感",
+    "@glassQuality": {
+        "description": "Label for the glass rendering quality setting"
+    },
+    "adminLibPathSubstitution": "启用 NFO 图片路径的路径替换",
+    "adminAnalyticsLoadingProgress": "正在加载服务器分析... {percentage}%",
+    "@adminAnalyticsLoadingProgress": {
+        "description": "Progress label shown while server analytics load",
+        "placeholders": {
+            "percentage": {
+                "type": "int"
+            }
+        }
+    },
+    "adminPlaybackTonemappingMode": "色调映射模式",
+    "adminPlaybackTonemappingRange": "色调映射范围",
+    "adminPlaybackTonemappingDesat": "色调映射去饱和",
+    "adminPlaybackH265Crf": "H.265 (HEVC) 编码 CRF",
+    "adminNetworkingCertPassword": "证书密码",
+    "adminLibDateAddedFile": "文件创建日期",
+    "adminLibMetadataTitle": "元数据和图片",
+    "adminLibMetadataLangSection": "首选元数据语言",
+    "adminLibChaptersSection": "章节",
+    "adminLibDummyChapterDuration": "虚拟章节时长（秒）",
+    "adminLibDummyChapterDurationHint": "为没有章节的媒体生成的章节长度。设为0以禁用。",
+    "adminLibChapterImageResolution": "章节图片分辨率",
+    "adminLibEmbeddedTitles": "使用内嵌标题",
+    "adminLibEmbeddedExtrasTitles": "使用内嵌标题作为额外内容标题",
+    "adminLibEmbeddedEpisodeInfos": "使用内嵌剧集信息",
+    "adminLibAllowEmbeddedSubtitles": "允许内嵌字幕",
+    "adminLibSkipIfEmbeddedSubs": "如果存在内嵌字幕则跳过下载",
+    "adminLibChapterImageExtraction": "提取章节图片",
+    "adminLibChapterImagesDuringScan": "在媒体库扫描期间提取章节图片",
+    "impellerAuto": "自动",
+    "impellerOn": "开启",
+    "impellerRestartTitle": "需要重启",
+    "@impellerRestartTitle": {
+        "description": "Title of the dialog shown after changing the rendering engine."
+    },
+    "shuffleAllMusic": "随机播放所有音乐",
+    "@shuffleAllMusic": {
+        "description": "Car browse action that shuffles the whole music library"
+    },
+    "carSignInPrompt": "在手机上登录 Moonfin",
+    "@carSignInPrompt": {
+        "description": "Shown in the car when no account is signed in"
+    },
+    "adminRefreshAllLibraries": "刷新所有媒体库",
+    "@adminRefreshAllLibraries": {
+        "description": "Floating action button text to refresh all libraries"
+    },
+    "recommendationsApplyParentalRatingCapSubtitle": "按目标媒体的家长分级限制 Moonfin 推荐内容",
+    "@recommendationsApplyParentalRatingCapSubtitle": {
+        "description": "Explanation under the parental rating cap setting toggle"
+    },
+    "customThemeSubtitle": "自定义主题可更改 Moonfin 全部视觉元素，从中挑选一款贴合你的使用风格。",
+    "@customThemeSubtitle": {
+        "description": "Description under custom themes section"
+    },
+    "gameFastForward": "快进",
+    "@gameFastForward": {
+        "description": "In-game menu action to toggle fast-forward"
+    },
+    "gameHoldToOpenMenu": "按住打开菜单",
+    "@gameHoldToOpenMenu": {
+        "description": "Hint shown while holding the gamepad combo to open the in-game menu"
+    },
+    "gamePlaybackUnsupported": "此设备暂不支持游戏播放。",
+    "@gamePlaybackUnsupported": {
+        "description": "Shown when the device cannot run the retro-game emulator"
+    },
+    "deletedScenes": "删除场景",
+    "@deletedScenes": {
+        "description": "Tab label for deleted scenes special features"
+    },
+    "recommendationSystemMoonfin": "Moonfin 智能推荐",
+    "@recommendationSystemMoonfin": {
+        "description": "Recommendation system option: Moonfin Recommends"
+    },
+    "recommendationSystem": "推荐系统",
+    "@recommendationSystem": {
+        "description": "Label for the Recommendation System setting"
+    },
+    "items": "项目",
+    "@items": {
+        "description": "Tab label for the items in a collection/box set"
+    },
+    "timeRemaining": "剩余 {time}",
+    "@timeRemaining": {
+        "description": "Label showing remaining playback time, e.g. '42m remaining'",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "audiobookNoChapters": "无章节",
+    "settingsAlwaysExpandNavbarLabels": "始终显示顶部导航栏中的文本标签",
+    "detailScreenStyleSubtitle": "Moonfin 是经典布局；Modern 是自适应影院风布局。",
+    "@detailScreenStyleSubtitle": {
+        "description": "Explanation under the detail screen style setting"
+    },
+    "settingsAllowSelfSignedCerts": "允许自签名证书",
+    "@settingsAllowSelfSignedCerts": {
+        "description": "Setting to trust self-signed TLS certificates"
+    },
+    "settingsAudioRouteHeadphones": "耳机",
+    "@settingsAudioRouteHeadphones": {
+        "description": "Audio route type wired or USB headphones"
+    },
+    "adminDrawerNfo": "NFO 设置",
+    "adminLibEmbeddedAllowAll": "允许全部",
+    "adminEnabledChannels": "启用的频道",
+    "adminSyncPlayAccess": "SyncPlay 访问权限",
+    "adminSyncPlayCreateAndJoin": "允许创建和加入群组",
+    "adminLibKodiUser": "在 NFO 文件中存储观看数据的用户",
+    "adminPlaybackPreferNativeDecoder": "首选系统原生硬件解码器",
+    "adminPlaybackToneMapping": "色调映射",
+    "adminPlaybackEnableVtTonemapping": "启用 VideoToolbox 色调映射",
+    "adminPlaybackTonemappingAlgorithm": "色调映射算法",
+    "adminPlaybackEnableAudioVbr": "启用音频 VBR 编码",
+    "adminGeneralSectionMetadata": "元数据",
+    "glassQualitySubtitle": "自动为该设备选择最佳玻璃效果。完整会强制使用真实模糊；简化使用轻量级玻璃效果以节省 GPU 资源。",
+    "@glassQualitySubtitle": {
+        "description": "Explanation under the glass quality setting"
+    },
+    "seerrNotifyNewRequestsSubtitle": "有人提交请求时通知我",
+    "@seerrNotifyNewRequestsSubtitle": {
+        "description": "Subtitle for the new request notifications toggle"
+    },
+    "adminLibraryTabOptions": "选项",
+    "audiobookSleepTimer": "睡眠定时",
+    "audiobookSleepOff": "关闭",
+    "audiobookNoNotes": "还没有笔记",
+    "adminLibRefreshNever": "从不",
+    "adminAddSchedule": "添加时间表",
+    "adminGuideDaysValue": "{days} 天",
+    "@adminGuideDaysValue": {
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
+    },
+    "adminPlaybackAutoOption": "自动",
+    "adminGeneralEnableSlowResponse": "启用慢速响应警告",
+    "audiobookCancel": "取消",
+    "adminRepoSortNameDesc": "字母顺序（Z 到 A）",
+    "@adminRepoSortNameDesc": {
+        "description": "Repository sort option, alphabetical descending"
+    },
+    "scenes": "场景",
+    "@scenes": {
+        "description": "Tab label for scenes special features"
+    },
+    "adminActivitySeverityAll": "所有级别",
+    "adminMaxParentalRating": "最大允许的家长评级",
+    "playlistSortOptions": "播放列表排序选项",
+    "resetSort": "重置排序",
+    "adminDevicesDeletedPartial": "已移除部分设备；{count} 个无法移除。",
+    "@adminDevicesDeletedPartial": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "adminLibraryTabPaths": "路径",
+    "adminLibMetadataSavers": "元数据保存器",
+    "adminLibSubtitleDownloaders": "字幕下载器",
+    "adminLibLyricDownloaders": "歌词下载器",
+    "adminLibrarySectionGeneral": "常规",
+    "adminLibSeasonZeroName": "第零季显示名称",
+    "adminLibLufsScan": "启用 LUFS 扫描进行音频归一化",
+    "adminLibPreferNonstandardArtist": "首选非标准艺人标签",
+    "adminMaxParentalRatingHint": "评级较高的内容将对该用户隐藏。",
+    "adminParentalRatingNone": "无",
+    "adminBlockUnratedItems": "阻止无评级或评级信息无法识别的内容",
+    "adminDaySaturday": "周六",
+    "adminAllowedTags": "允许的标签",
+    "adminAllowedTagsHint": "仅显示带有这些标签的内容。留空则允许全部。",
+    "adminBlockedTags": "阻止的标签",
+    "adminAddTag": "添加标签",
+    "adminBrandingSplashUploaded": "启动画面已更新",
+    "adminBrandingSplashUploadFailed": "上传启动画面失败",
+    "adminBrandingSplashDeleted": "启动画面已移除",
+    "adminPlaybackColorDepth12HevcRext": "HEVC RExt 12位解码",
+    "audiobookTimelineEmpty": "时间轴为空",
+    "impellerRendering": "渲染引擎（Impeller）",
+    "@impellerRendering": {
+        "description": "Title of the setting that selects the Flutter rendering engine (Impeller vs. legacy)."
+    },
+    "noSubtitlesFound": "未找到字幕。",
+    "adminControls": "管理控制",
+    "shorts": "短片",
+    "@shorts": {
+        "description": "Tab label for shorts special features"
+    },
+    "seerrNotifyNewRequestsTitle": "新请求通知",
+    "@seerrNotifyNewRequestsTitle": {
+        "description": "Title for the toggle that notifies approvers of new Seerr requests"
+    },
+    "adminActivityDateRange": "日期范围",
+    "adminPlaybackMaxMuxingQueue": "最大混合队列大小",
+    "adminNetworkingIpSettings": "IP 设置",
+    "adminNetworkingEnableIpv4": "启用 IPv4",
+    "adminNetworkingEnableIpv6": "启用 IPv6",
+    "adminNetworkingLocalSubnetsHint": "逗号或换行分隔的 IP 地址或 CIDR 子网列表，视为本地网络。",
+    "adminNetworkingPublishedUris": "发布的服务器 URI",
+    "recommendationsApplyParentalRatingCap": "是否启用家长分级上限限制？",
+    "@recommendationsApplyParentalRatingCap": {
+        "description": "Label for the toggle that controls whether similar suggestions are capped by target media parental rating"
+    },
+    "audiobookSleepCustom": "自定义",
+    "rewatchPlaylist": "重播播放列表",
+    "gameLoadState": "读取存档",
+    "@gameLoadState": {
+        "description": "In-game menu action to load the saved game state"
+    },
+    "behindTheScenes": "幕后花絮",
+    "@behindTheScenes": {
+        "description": "Tab label for behind the scenes special features"
+    },
+    "featurettes": "短片",
+    "@featurettes": {
+        "description": "Tab label for featurettes special features"
+    },
+    "interviews": "访谈",
+    "@interviews": {
+        "description": "Tab label for interviews special features"
+    },
+    "impellerOff": "关闭",
+    "externalLists": "外部首页栏目列表",
+    "forced": "强制",
+    "transcodeVideoResolutionNotSupported": "视频分辨率不受此设备支持。",
+    "theme8BitHero": "8位英雄",
+    "@theme8BitHero": {
+        "description": "Display name for the 8-bit Hero theme"
+    },
+    "gameMenu": "菜单",
+    "@gameMenu": {
+        "description": "Tooltip for the in-game menu button"
+    },
+    "audiobookDelete": "删除"
 }
