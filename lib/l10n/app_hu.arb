@@ -1,14 +1,14 @@
 {
     "@@locale": "hu",
-    "appTitle": "Holdfin",
+    "appTitle": "Moonfin",
     "@appTitle": {
         "description": "The application title"
     },
-    "signIn": "Jelentkezzen be",
+    "signIn": "Bejelentkezés",
     "@signIn": {
         "description": "Sign in heading and button label"
     },
-    "connectingToServer": "Connecting to {serverName}",
+    "connectingToServer": "Csatlakozás {serverName}-hez",
     "@connectingToServer": {
         "description": "Subtitle showing which server the user is connecting to",
         "placeholders": {
@@ -70,7 +70,7 @@
             }
         }
     },
-    "whosWatching": "Ki figyel?",
+    "whosWatching": "Ki néz?",
     "@whosWatching": {
         "description": "Server user selection heading"
     },
@@ -82,7 +82,7 @@
     "@selectServer": {
         "description": "Button to navigate back to server selection"
     },
-    "appVersionFooter": "Moonfin version {version}",
+    "appVersionFooter": "Moonfin verzió {version}",
     "@appVersionFooter": {
         "description": "App version shown in footer",
         "placeholders": {
@@ -132,7 +132,7 @@
     "@cancel": {
         "description": "Generic cancel button label"
     },
-    "remove": "Távolítsa el",
+    "remove": "Eltávolítás",
     "@remove": {
         "description": "Remove button label in confirmation dialogs"
     },
@@ -144,7 +144,7 @@
     "@serverAddress": {
         "description": "Label for the server URL input field"
     },
-    "serverAddressHint": "https://your-server.example.com",
+    "serverAddressHint": "https://te-szervered.pelda.com",
     "@serverAddressHint": {
         "description": "Hint text for the server URL input field"
     },
@@ -7345,11 +7345,11 @@
     "@accountPreferences": {
         "description": "Section header for account preferences settings"
     },
-    "systemLanguageDefault": "",
+    "systemLanguageDefault": "Alapértelmezett",
     "@systemLanguageDefault": {
         "description": "Label for using the system default language in settings"
     },
-    "empty": "",
+    "empty": "Üres",
     "@empty": {
         "description": "Label indicating a section or category is empty"
     },
@@ -7365,11 +7365,11 @@
     "@settingsAudioFallbackCodecMp3": {
         "description": "Fallback codec option: MP3"
     },
-    "themeGlass": "",
+    "themeGlass": "Áttetsző",
     "@themeGlass": {
         "description": "Display name for the Glass theme"
     },
-    "themeGlassSubtitle": "",
+    "themeGlassSubtitle": "Liquid-glass stílus színátmenetes háttérrel, jeges felülettel, és Apple-kék kiemelő színnel",
     "@themeGlassSubtitle": {
         "description": "Preview description for the Glass theme"
     },
@@ -7382,7 +7382,7 @@
             }
         }
     },
-    "directors": "",
+    "directors": "RENDEZŐK",
     "@directors": {
         "description": "Metadata label for directors"
     },
@@ -7394,23 +7394,23 @@
     "@settingsScrollWheelAction": {
         "description": "Setting title for the mouse scroll wheel action during playback"
     },
-    "settingsScrollWheelActionDescription": "",
+    "settingsScrollWheelActionDescription": "Válaszd ki, mit tegyen az egér görgetése a videó lejátszása közben.",
     "@settingsScrollWheelActionDescription": {
         "description": "Description for the mouse scroll wheel action setting"
     },
-    "scrollWheelActionOff": "",
+    "scrollWheelActionOff": "Ki",
     "@scrollWheelActionOff": {
         "description": "Scroll wheel action option: do nothing"
     },
-    "scrollWheelActionSeek": "",
+    "scrollWheelActionSeek": "Pörgetés (előre / hátra)",
     "@scrollWheelActionSeek": {
         "description": "Scroll wheel action option: seek forward and back"
     },
-    "scrollWheelActionVolume": "",
+    "scrollWheelActionVolume": "Hangerő",
     "@scrollWheelActionVolume": {
         "description": "Scroll wheel action option: adjust volume"
     },
-    "playerTooltipVolume": "",
+    "playerTooltipVolume": "Hangerő",
     "@playerTooltipVolume": {
         "description": "Tooltip for the volume control button in the player OSD"
     },
@@ -7748,15 +7748,15 @@
     "@interfaceStyleSubtitle": {
         "description": "Explanation under the interface style setting"
     },
-    "interfaceStyleAutomatic": "",
+    "interfaceStyleAutomatic": "Automatikus",
     "@interfaceStyleAutomatic": {
         "description": "Interface style option: follow the platform"
     },
-    "interfaceStyleApple": "",
+    "interfaceStyleApple": "Apple",
     "@interfaceStyleApple": {
         "description": "Interface style option: Apple native look"
     },
-    "interfaceStyleMaterial": "",
+    "interfaceStyleMaterial": "Material",
     "@interfaceStyleMaterial": {
         "description": "Interface style option: Material look"
     },
