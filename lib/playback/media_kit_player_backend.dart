@@ -1022,6 +1022,12 @@ class MediaKitPlayerBackend extends PlayerBackend {
     'audio-spdif',
     'audio-channels',
     'audio-normalize-downmix',
+    'volume-gain',
+    'volume-max',
+    'replaygain',
+    'replaygain-preamp',
+    'replaygain-clip',
+    'replaygain-fallback',
     'deinterlace',
     'keep-open',
   };
