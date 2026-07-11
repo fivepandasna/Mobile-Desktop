@@ -6922,6 +6922,18 @@ abstract class AppLocalizations {
   /// **'Requested'**
   String get seerrRequestedStatus;
 
+  /// Label above the Seerr download progress bar
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading · {percent}%'**
+  String seerrDownloadingPercent(int percent);
+
+  /// Label when a Seerr download has finished and is importing
+  ///
+  /// In en, this message translates to:
+  /// **'Importing'**
+  String get seerrImportingStatus;
+
   /// Status bar item count
   ///
   /// In en, this message translates to:

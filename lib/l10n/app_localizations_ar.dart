@@ -3773,6 +3773,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get seerrRequestedStatus => 'مطلوب';
 
   @override
+  String seerrDownloadingPercent(int percent) {
+    return 'Downloading · $percent%';
+  }
+
+  @override
+  String get seerrImportingStatus => 'Importing';
+
+  @override
   String itemsCount(int count) {
     return '$count العناصر';
   }

@@ -3792,6 +3792,14 @@ class AppLocalizationsDa extends AppLocalizations {
   String get seerrRequestedStatus => 'Anmodet';
 
   @override
+  String seerrDownloadingPercent(int percent) {
+    return 'Downloading · $percent%';
+  }
+
+  @override
+  String get seerrImportingStatus => 'Importing';
+
+  @override
   String itemsCount(int count) {
     return '$count Elementer';
   }

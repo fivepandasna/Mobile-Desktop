@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../preference/seerr_preferences.dart';
 import '../repositories/seerr_repository.dart';
 import '../services/seerr/seerr_api_models.dart';
+import '../services/seerr/seerr_download_progress.dart';
 import '../services/seerr/seerr_models.dart';
 
 enum SeerrRequestFilter { all, pending, approved, processing, available, failed }
@@ -91,7 +94,68 @@ class SeerrRequestsViewModel extends ChangeNotifier {
   SeerrRequestsState _state = const SeerrRequestsState();
   SeerrRequestsState get state => _state;
 
+  Timer? _downloadPollTimer;
+
   SeerrRequestsViewModel(this._repo, [this._prefs]);
+
+  @override
+  void dispose() {
+    _downloadPollTimer?.cancel();
+    super.dispose();
+  }
+
+  bool get _hasActiveDownloads => _state.requests
+      .any((r) => SeerrDownloadSummary.forRequest(r) != null);
+
+  /// Keep a refresh timer running only while something is downloading, so the
+  /// progress bars advance without the user pulling to refresh.
+  void _syncDownloadPolling() {
+    if (_hasActiveDownloads) {
+      _downloadPollTimer ??= Timer.periodic(
+        const Duration(seconds: 15),
+        (_) => _pollDownloads(),
+      );
+    } else {
+      _downloadPollTimer?.cancel();
+      _downloadPollTimer = null;
+    }
+  }
+
+  /// Quiet refresh of the first page that merges results into the current
+  /// list. Poll failures are ignored so a flaky tick never surfaces error UI.
+  Future<void> _pollDownloads() async {
+    final user = _state.currentUser;
+    if (user == null ||
+        _state.isLoading ||
+        _state.isRefreshing ||
+        _state.isLoadingMore) {
+      return;
+    }
+    try {
+      final response = await _repo.getRequests(
+        filter: _state.filter.apiValue,
+        sort: _state.sort,
+        requestedBy: user.canViewAllRequests ? null : user.id,
+        limit: _pageSize,
+        offset: 0,
+      );
+      final fresh = {for (final r in response.results) r.id: r};
+      var changed = false;
+      final requests = _state.requests.map((r) {
+        final updated = fresh[r.id];
+        if (updated == null) return r;
+        changed = true;
+        return updated;
+      }).toList();
+      if (changed) {
+        _state = _state.copyWith(requests: requests);
+        notifyListeners();
+      }
+    } catch (_) {
+      // Leave the list as-is and let the next tick retry.
+    }
+    _syncDownloadPolling();
+  }
 
   SeerrRequestFilter _restoreFilter(SeerrUser user) {
     final stored = _prefs?.requestsFilter ?? '';
@@ -137,6 +201,7 @@ class SeerrRequestsViewModel extends ChangeNotifier {
         summaries: _state.summaries,
       );
       notifyListeners();
+      _syncDownloadPolling();
 
       _hydrateSummaries(_state.requests);
       await _loadCounts(user);
@@ -147,6 +212,7 @@ class SeerrRequestsViewModel extends ChangeNotifier {
         error: e.toString(),
       );
       notifyListeners();
+      _syncDownloadPolling();
     }
   }
 
@@ -187,6 +253,7 @@ class SeerrRequestsViewModel extends ChangeNotifier {
       _state = _state.copyWith(isLoadingMore: false, hasMore: false);
     }
     notifyListeners();
+    _syncDownloadPolling();
   }
 
   /// The list endpoint's media objects only carry ids, so titles and posters
@@ -307,6 +374,7 @@ class SeerrRequestsViewModel extends ChangeNotifier {
         actioningRequestId: null,
       );
       notifyListeners();
+      _syncDownloadPolling();
     } catch (_) {
       await load(isRefresh: true);
     }

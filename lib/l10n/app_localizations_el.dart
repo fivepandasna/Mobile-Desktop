@@ -3831,6 +3831,14 @@ class AppLocalizationsEl extends AppLocalizations {
   String get seerrRequestedStatus => 'Ζητήθηκε';
 
   @override
+  String seerrDownloadingPercent(int percent) {
+    return 'Downloading · $percent%';
+  }
+
+  @override
+  String get seerrImportingStatus => 'Importing';
+
+  @override
   String itemsCount(int count) {
     return '$count Είδη';
   }

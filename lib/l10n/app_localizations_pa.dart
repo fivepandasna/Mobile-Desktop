@@ -3785,6 +3785,14 @@ class AppLocalizationsPa extends AppLocalizations {
   String get seerrRequestedStatus => 'ਬੇਨਤੀ ਕੀਤੀ';
 
   @override
+  String seerrDownloadingPercent(int percent) {
+    return 'Downloading · $percent%';
+  }
+
+  @override
+  String get seerrImportingStatus => 'Importing';
+
+  @override
   String itemsCount(int count) {
     return '$count Items';
   }

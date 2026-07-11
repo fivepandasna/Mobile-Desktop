@@ -75,6 +75,8 @@ class SeerrMedia {
   final String? imdbId;
   final int? status;
   final int? status4k;
+  final List<SeerrDownloadingItem>? downloadStatus;
+  final List<SeerrDownloadingItem>? downloadStatus4k;
   final String? mediaAddedAt;
   final int? serviceId;
   final int? serviceId4k;
@@ -106,6 +108,8 @@ class SeerrMedia {
     this.imdbId,
     this.status,
     this.status4k,
+    this.downloadStatus,
+    this.downloadStatus4k,
     this.mediaAddedAt,
     this.serviceId,
     this.serviceId4k,
@@ -133,6 +137,21 @@ class SeerrMedia {
       _$SeerrMediaFromJson(json);
 
   Map<String, dynamic> toJson() => _$SeerrMediaToJson(this);
+}
+
+/// One Radarr/Sonarr queue entry, reported by Seerr while a request downloads.
+/// Only the byte counts are kept since that is all the progress bars need.
+@JsonSerializable()
+class SeerrDownloadingItem {
+  final int? size;
+  final int? sizeLeft;
+
+  const SeerrDownloadingItem({this.size, this.sizeLeft});
+
+  factory SeerrDownloadingItem.fromJson(Map<String, dynamic> json) =>
+      _$SeerrDownloadingItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SeerrDownloadingItemToJson(this);
 }
 
 @JsonSerializable()
@@ -588,6 +607,8 @@ class SeerrMediaInfo {
   final int? tvdbId;
   final int? status;
   final int? status4k;
+  final List<SeerrDownloadingItem>? downloadStatus;
+  final List<SeerrDownloadingItem>? downloadStatus4k;
   final List<SeerrRequest>? requests;
   final String? jellyfinMediaId;
   final String? jellyfinMediaId4k;
@@ -598,6 +619,8 @@ class SeerrMediaInfo {
     this.tvdbId,
     this.status,
     this.status4k,
+    this.downloadStatus,
+    this.downloadStatus4k,
     this.requests,
     this.jellyfinMediaId,
     this.jellyfinMediaId4k,

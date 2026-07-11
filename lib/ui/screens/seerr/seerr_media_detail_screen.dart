@@ -24,6 +24,7 @@ import '../../widgets/seerr/seerr_tv_controls.dart';
 import '../../widgets/media_card.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/overlay_sheet.dart';
+import '../../widgets/seerr_download_progress_bar.dart';
 import '../../widgets/focus/focusable_wrapper.dart';
 import '../../widgets/track_selector_dialog.dart';
 import '../../../l10n/app_localizations.dart';
@@ -1011,6 +1012,26 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
           ],
           const SizedBox(height: 12),
           _buildStatusBadge(s),
+          if (s.hdDownload != null) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 280,
+              child: SeerrDownloadProgressBar(
+                summary: s.hdDownload!,
+                prefixLabel: s.download4k != null ? 'HD' : null,
+              ),
+            ),
+          ],
+          if (s.download4k != null) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 280,
+              child: SeerrDownloadProgressBar(
+                summary: s.download4k!,
+                prefixLabel: '4K',
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -5211,6 +5211,19 @@
   "@seerrRequestedStatus": {
     "description": "Seerr media status when item has been requested"
   },
+  "seerrDownloadingPercent": "Downloading · {percent}%",
+  "@seerrDownloadingPercent": {
+    "description": "Label above the Seerr download progress bar",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "seerrImportingStatus": "Importing",
+  "@seerrImportingStatus": {
+    "description": "Label when a Seerr download has finished and is importing"
+  },
   "itemsCount": "{count} Items",
   "@itemsCount": {
     "description": "Status bar item count",

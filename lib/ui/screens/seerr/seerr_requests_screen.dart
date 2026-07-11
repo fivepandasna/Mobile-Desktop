@@ -7,6 +7,7 @@ import 'package:moonfin_design/moonfin_design.dart';
 
 import '../../../data/repositories/seerr_repository.dart';
 import '../../../data/services/seerr/seerr_api_models.dart';
+import '../../../data/services/seerr/seerr_download_progress.dart';
 import '../../../data/services/seerr/seerr_models.dart';
 import '../../../data/viewmodels/seerr_issues_view_model.dart';
 import '../../../data/viewmodels/seerr_requests_view_model.dart';
@@ -20,6 +21,7 @@ import '../../../util/platform_detection.dart';
 import '../../widgets/adaptive/adaptive_glass.dart';
 import '../../widgets/navigation_layout.dart';
 import '../../widgets/overlay_sheet.dart';
+import '../../widgets/seerr_download_progress_bar.dart';
 import '../../widgets/seerr/seerr_text_field.dart';
 import '../../widgets/seerr/seerr_tv_controls.dart';
 import '../../widgets/track_selector_dialog.dart';
@@ -1156,6 +1158,7 @@ class _RequestCardState extends State<_RequestCard> with FocusStateMixin {
     final isTv = request.type == 'tv';
     final typeLabel = (isTv ? l10n.series : l10n.movie).toUpperCase();
     final modifier = request.modifiedBy?.bestName;
+    final downloadSummary = SeerrDownloadSummary.forRequest(request);
 
     return InkWell(
       onTap: widget.onTap,
@@ -1226,6 +1229,13 @@ class _RequestCardState extends State<_RequestCard> with FocusStateMixin {
                           ),
                       ],
                     ),
+                    if (downloadSummary != null) ...[
+                      SizedBox(height: 4 * scale),
+                      SeerrDownloadProgressBar(
+                        summary: downloadSummary,
+                        scale: scale,
+                      ),
+                    ],
                     SizedBox(height: 4 * scale),
                     Row(
                       children: [

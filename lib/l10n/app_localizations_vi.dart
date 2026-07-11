@@ -3796,6 +3796,14 @@ class AppLocalizationsVi extends AppLocalizations {
   String get seerrRequestedStatus => 'Đã yêu cầu';
 
   @override
+  String seerrDownloadingPercent(int percent) {
+    return 'Downloading · $percent%';
+  }
+
+  @override
+  String get seerrImportingStatus => 'Importing';
+
+  @override
   String itemsCount(int count) {
     return '$count Vật phẩm';
   }

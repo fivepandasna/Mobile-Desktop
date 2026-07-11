@@ -3813,6 +3813,14 @@ class AppLocalizationsBg extends AppLocalizations {
   String get seerrRequestedStatus => 'Поискано';
 
   @override
+  String seerrDownloadingPercent(int percent) {
+    return 'Downloading · $percent%';
+  }
+
+  @override
+  String get seerrImportingStatus => 'Importing';
+
+  @override
   String itemsCount(int count) {
     return '$count Елементи';
   }

@@ -71,6 +71,12 @@ SeerrMedia _$SeerrMediaFromJson(Map<String, dynamic> json) => SeerrMedia(
   imdbId: json['imdbId'] as String?,
   status: (json['status'] as num?)?.toInt(),
   status4k: (json['status4k'] as num?)?.toInt(),
+  downloadStatus: (json['downloadStatus'] as List<dynamic>?)
+      ?.map((e) => SeerrDownloadingItem.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  downloadStatus4k: (json['downloadStatus4k'] as List<dynamic>?)
+      ?.map((e) => SeerrDownloadingItem.fromJson(e as Map<String, dynamic>))
+      .toList(),
   mediaAddedAt: json['mediaAddedAt'] as String?,
   serviceId: (json['serviceId'] as num?)?.toInt(),
   serviceId4k: (json['serviceId4k'] as num?)?.toInt(),
@@ -109,6 +115,8 @@ Map<String, dynamic> _$SeerrMediaToJson(SeerrMedia instance) =>
       'imdbId': instance.imdbId,
       'status': instance.status,
       'status4k': instance.status4k,
+      'downloadStatus': instance.downloadStatus,
+      'downloadStatus4k': instance.downloadStatus4k,
       'mediaAddedAt': instance.mediaAddedAt,
       'serviceId': instance.serviceId,
       'serviceId4k': instance.serviceId4k,
@@ -131,6 +139,17 @@ Map<String, dynamic> _$SeerrMediaToJson(SeerrMedia instance) =>
       'externalIds': instance.externalIds,
       'requests': instance.requestList,
     };
+
+SeerrDownloadingItem _$SeerrDownloadingItemFromJson(
+  Map<String, dynamic> json,
+) => SeerrDownloadingItem(
+  size: (json['size'] as num?)?.toInt(),
+  sizeLeft: (json['sizeLeft'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$SeerrDownloadingItemToJson(
+  SeerrDownloadingItem instance,
+) => <String, dynamic>{'size': instance.size, 'sizeLeft': instance.sizeLeft};
 
 SeerrExternalIds _$SeerrExternalIdsFromJson(Map<String, dynamic> json) =>
     SeerrExternalIds(
@@ -524,6 +543,12 @@ SeerrMediaInfo _$SeerrMediaInfoFromJson(Map<String, dynamic> json) =>
       tvdbId: (json['tvdbId'] as num?)?.toInt(),
       status: (json['status'] as num?)?.toInt(),
       status4k: (json['status4k'] as num?)?.toInt(),
+      downloadStatus: (json['downloadStatus'] as List<dynamic>?)
+          ?.map((e) => SeerrDownloadingItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      downloadStatus4k: (json['downloadStatus4k'] as List<dynamic>?)
+          ?.map((e) => SeerrDownloadingItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
       requests: (json['requests'] as List<dynamic>?)
           ?.map((e) => SeerrRequest.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -538,6 +563,8 @@ Map<String, dynamic> _$SeerrMediaInfoToJson(SeerrMediaInfo instance) =>
       'tvdbId': instance.tvdbId,
       'status': instance.status,
       'status4k': instance.status4k,
+      'downloadStatus': instance.downloadStatus,
+      'downloadStatus4k': instance.downloadStatus4k,
       'requests': instance.requests,
       'jellyfinMediaId': instance.jellyfinMediaId,
       'jellyfinMediaId4k': instance.jellyfinMediaId4k,

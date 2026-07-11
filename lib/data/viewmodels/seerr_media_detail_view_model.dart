@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../preference/seerr_preferences.dart';
 import '../repositories/seerr_repository.dart';
 import '../services/seerr/seerr_api_models.dart';
+import '../services/seerr/seerr_download_progress.dart';
 import '../services/seerr/seerr_error.dart';
 
 class SeerrMediaDetailState {
@@ -103,6 +106,15 @@ class SeerrMediaDetailState {
   bool get isBlacklisted => mediaStatus == 6;
   bool get isDeleted => mediaStatus == 7;
 
+  SeerrDownloadSummary? get hdDownload => SeerrDownloadSummary.forMedia(
+        status: mediaInfo?.status,
+        items: mediaInfo?.downloadStatus,
+      );
+  SeerrDownloadSummary? get download4k => SeerrDownloadSummary.forMedia(
+        status: mediaInfo?.status4k,
+        items: mediaInfo?.downloadStatus4k,
+      );
+
   List<SeerrRequest> get pendingRequests {
     final requests = mediaInfo?.requests;
     if (requests == null) return [];
@@ -184,7 +196,51 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
   SeerrMediaDetailState _state = const SeerrMediaDetailState();
   SeerrMediaDetailState get state => _state;
 
+  Timer? _downloadPollTimer;
+
   SeerrMediaDetailViewModel(this._repo, this._prefs);
+
+  @override
+  void dispose() {
+    _downloadPollTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Keep a refresh timer running only while a download is active, so the
+  /// progress bars advance without leaving and reopening the screen.
+  void _syncDownloadPolling() {
+    if (_state.hdDownload != null || _state.download4k != null) {
+      _downloadPollTimer ??= Timer.periodic(
+        const Duration(seconds: 15),
+        (_) => _pollDownloadStatus(),
+      );
+    } else {
+      _downloadPollTimer?.cancel();
+      _downloadPollTimer = null;
+    }
+  }
+
+  /// Quiet details refetch that only swaps the media payload. It never touches
+  /// isRequesting or requestSuccess, so no snackbar fires, and failures are
+  /// ignored so a flaky tick never surfaces error UI.
+  Future<void> _pollDownloadStatus() async {
+    if (_state.isLoading || _state.isRequesting || _state.tmdbId == 0) return;
+    try {
+      if (_state.isTv) {
+        final details = await _repo.getTvDetails(_state.tmdbId);
+        _state = _state.copyWith(tv: details);
+      } else if (_state.isMovie) {
+        final details = await _repo.getMovieDetails(_state.tmdbId);
+        _state = _state.copyWith(movie: details);
+      } else {
+        return;
+      }
+      notifyListeners();
+    } catch (_) {
+      // Leave the details as-is and let the next tick retry.
+    }
+    _syncDownloadPolling();
+  }
 
   void clearFeedback() {
     _state = _state.copyWith(requestSuccess: null, requestError: null);
@@ -272,6 +328,7 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
       _state = SeerrMediaDetailState(error: e.toString());
     }
     notifyListeners();
+    _syncDownloadPolling();
   }
 
   Future<void> _loadRelated(int tmdbId, String mediaType) async {
@@ -468,6 +525,7 @@ class SeerrMediaDetailViewModel extends ChangeNotifier {
         requestSuccess: successMessage,
       );
     }
+    _syncDownloadPolling();
   }
 
   bool get canManageRequests {

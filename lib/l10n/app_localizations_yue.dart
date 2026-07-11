@@ -3687,6 +3687,14 @@ class AppLocalizationsYue extends AppLocalizations {
   String get seerrRequestedStatus => '已請求';
 
   @override
+  String seerrDownloadingPercent(int percent) {
+    return 'Downloading · $percent%';
+  }
+
+  @override
+  String get seerrImportingStatus => 'Importing';
+
+  @override
   String itemsCount(int count) {
     return '$count Items';
   }

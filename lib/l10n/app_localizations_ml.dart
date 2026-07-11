@@ -3818,6 +3818,14 @@ class AppLocalizationsMl extends AppLocalizations {
   String get seerrRequestedStatus => 'അഭ്യർത്ഥിച്ചു';
 
   @override
+  String seerrDownloadingPercent(int percent) {
+    return 'Downloading · $percent%';
+  }
+
+  @override
+  String get seerrImportingStatus => 'Importing';
+
+  @override
   String itemsCount(int count) {
     return '$count ഇനങ്ങൾ';
   }

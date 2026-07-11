@@ -3799,6 +3799,14 @@ class AppLocalizationsCy extends AppLocalizations {
   String get seerrRequestedStatus => 'Gofynwyd';
 
   @override
+  String seerrDownloadingPercent(int percent) {
+    return 'Downloading · $percent%';
+  }
+
+  @override
+  String get seerrImportingStatus => 'Importing';
+
+  @override
   String itemsCount(int count) {
     return '$count Eitemau';
   }

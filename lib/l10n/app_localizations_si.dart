@@ -3789,6 +3789,14 @@ class AppLocalizationsSi extends AppLocalizations {
   String get seerrRequestedStatus => 'ඉල්ලා ඇත';
 
   @override
+  String seerrDownloadingPercent(int percent) {
+    return 'Downloading · $percent%';
+  }
+
+  @override
+  String get seerrImportingStatus => 'Importing';
+
+  @override
   String itemsCount(int count) {
     return '$count Items';
   }
