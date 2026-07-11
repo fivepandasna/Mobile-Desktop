@@ -1269,35 +1269,7 @@ class Media3VideoView(
                 }
 
                 "setSubtitleTrack" -> {
-                    val args = call.arguments as? Map<*, *>
-                    val index = (args?.get("index") as? Number)?.toInt() ?: 0
-                    val codec = args?.get("codec")?.toString()
-                    val isExternal = args?.get("isExternalSubtitle") as? Boolean ?: false
-                    val isBitmap = args?.get("isBitmapSubtitle") as? Boolean ?: false
-                    val externalUrl = args?.get("externalSubtitleUrl")?.toString()
-
-                    pendingSubtitleIndex = index
-                    pendingSubtitleCodec = codec
-                    pendingSubtitleIsExternal = isExternal
-                    pendingSubtitleIsBitmap = isBitmap
-                    pendingExternalSubtitleUrl = externalUrl
-
-                    val selected = selectTextTrack(index, externalUrl)
-                    if (selected) {
-                        selectedSubtitleCodec = codec?.trim()?.lowercase()
-                        selectedSubtitleIsExternal = isExternal
-                        selectedSubtitleIsBitmap = isBitmap
-                        selectedExternalSubtitleUrl = externalUrl?.takeIf { it.isNotBlank() }
-                        subtitleTrackEnabled = true
-                        applyTrackSelectorForCurrentSource()
-                        refreshSubtitleRendererMode()
-
-                        pendingSubtitleIndex = null
-                        pendingSubtitleCodec = null
-                        pendingSubtitleIsExternal = null
-                        pendingSubtitleIsBitmap = null
-                        pendingExternalSubtitleUrl = null
-                    }
+                    handleSetSubtitleTrack(call.arguments as? Map<*, *>)
                     result.success(null)
                 }
 
@@ -1453,22 +1425,7 @@ class Media3VideoView(
                 }
 
                 "setSubtitleTrack" -> {
-                    val subtitleArgs = args as? Map<*, *> ?: return
-                    val index = subtitleArgs["index"] as? Number ?: return
-                    val codec = subtitleArgs["codec"]?.toString()
-                    val isExternal = subtitleArgs["isExternalSubtitle"] as? Boolean ?: false
-                    val isBitmap = subtitleArgs["isBitmapSubtitle"] as? Boolean ?: false
-                    val externalUrl = subtitleArgs["externalSubtitleUrl"]?.toString()
-                    val selected = selectTrack(C.TRACK_TYPE_TEXT, index.toInt())
-                    if (selected) {
-                        selectedSubtitleCodec = codec?.trim()?.lowercase()
-                        selectedSubtitleIsExternal = isExternal
-                        selectedSubtitleIsBitmap = isBitmap
-                        selectedExternalSubtitleUrl = externalUrl?.takeIf { it.isNotBlank() }
-                        subtitleTrackEnabled = true
-                        applyTrackSelectorForCurrentSource()
-                        refreshSubtitleRendererMode()
-                    }
+                    handleSetSubtitleTrack(args as? Map<*, *>)
                 }
 
                 "disableSubtitleTrack" -> {
@@ -2889,6 +2846,42 @@ class Media3VideoView(
     // Resolves an external file by the URL it was added from (through the
     // deterministic SubtitleConfiguration id), which is immune to ExoPlayer
     // group-ordering surprises, and falls back to positional selection.
+    // Applies a subtitle selection request from either the live channel
+    // (handleControlCall) or a replayed queued call (handleQueuedCall). Both
+    // must resolve externals through selectTextTrack (by SubtitleConfiguration
+    // id), and both keep the request pending so onTracksChanged retries once the
+    // tracks are ready.
+    private fun handleSetSubtitleTrack(args: Map<*, *>?) {
+        val index = (args?.get("index") as? Number)?.toInt() ?: 0
+        val codec = args?.get("codec")?.toString()
+        val isExternal = args?.get("isExternalSubtitle") as? Boolean ?: false
+        val isBitmap = args?.get("isBitmapSubtitle") as? Boolean ?: false
+        val externalUrl = args?.get("externalSubtitleUrl")?.toString()
+
+        pendingSubtitleIndex = index
+        pendingSubtitleCodec = codec
+        pendingSubtitleIsExternal = isExternal
+        pendingSubtitleIsBitmap = isBitmap
+        pendingExternalSubtitleUrl = externalUrl
+
+        val selected = selectTextTrack(index, externalUrl)
+        if (selected) {
+            selectedSubtitleCodec = codec?.trim()?.lowercase()
+            selectedSubtitleIsExternal = isExternal
+            selectedSubtitleIsBitmap = isBitmap
+            selectedExternalSubtitleUrl = externalUrl?.takeIf { it.isNotBlank() }
+            subtitleTrackEnabled = true
+            applyTrackSelectorForCurrentSource()
+            refreshSubtitleRendererMode()
+
+            pendingSubtitleIndex = null
+            pendingSubtitleCodec = null
+            pendingSubtitleIsExternal = null
+            pendingSubtitleIsBitmap = null
+            pendingExternalSubtitleUrl = null
+        }
+    }
+
     private fun selectTextTrack(oneBasedIndex: Int, externalUrl: String?): Boolean {
         if (!externalUrl.isNullOrBlank() && selectExternalSubtitleByUrl(externalUrl)) {
             return true
@@ -2897,8 +2890,13 @@ class Media3VideoView(
     }
 
     private fun selectExternalSubtitleByUrl(url: String): Boolean {
+        // The configuration uri was built with Uri.parse at add time, so parse
+        // the request the same way. Comparing a parsed uri to the raw string
+        // misses whenever Android normalizes it, dropping us to positional
+        // selection which is off for externals.
+        val target = Uri.parse(url)
         val configIndex = externalSubtitleConfigurations.indexOfFirst {
-            it.uri.toString() == url
+            it.uri == target
         }
         if (configIndex < 0) return false
         val targetId = (EXTERNAL_SUBTITLE_ID_BASE + configIndex).toString()

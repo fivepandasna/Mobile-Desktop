@@ -653,6 +653,19 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
         currentSubtitleTrackIndex = requestedIndex
     }
 
+    // Whether an mpv external track was sub-added from the requested URL. mpv
+    // can re-encode the URL it reports, so an exact compare misses. Jellyfin
+    // external subtitle URLs carry the unique subtitle stream index in the
+    // path, so a decoded-path match still identifies the sub.
+    private static func externalFilenameMatches(_ mpvFilename: String?, _ requestedUrl: String) -> Bool {
+        guard let mpvFilename, !mpvFilename.isEmpty else { return false }
+        if mpvFilename == requestedUrl { return true }
+        guard let a = URL(string: mpvFilename), let b = URL(string: requestedUrl) else { return false }
+        let pathA = a.path.removingPercentEncoding ?? a.path
+        let pathB = b.path.removingPercentEncoding ?? b.path
+        return pathA == pathB
+    }
+
     /// Selects a subtitle track by its 1-based position. External tracks are
     /// already sub-added unselected at playback start and are matched by the
     /// URL they were loaded from, so a scrambled add order can't select the
@@ -674,19 +687,31 @@ class MpvPlayerWrapper: NSObject, ObservableObject {
             setSubtitleTrack(trackIndex)
             return
         }
-        if let match = subtitleTracks.first(where: { $0.isExternal && $0.externalFilename == externalUrl }) {
+        if let match = subtitleTracks.first(where: {
+            $0.isExternal && Self.externalFilenameMatches($0.externalFilename, externalUrl)
+        }) {
             subtitleDebug(
                 "subtitle_mpv_select_external_by_url track_id=\(trackIndex) sid=\(match.id) tracks=\(self.subtitleTrackDebugSummary(self.subtitleTracks))"
             )
             applySubtitleSid(match.id, requestedIndex: trackIndex)
             return
         }
-        // No URL match. If some external is already loaded this is likely a
-        // filename normalization mismatch, so select positionally to avoid a
-        // duplicate add. Otherwise the intended file was never loaded.
-        let hasExternalTrack = subtitleTracks.contains { $0.isExternal }
-        guard Int(trackIndex) > subtitleTracks.count || !hasExternalTrack,
-              let url = URL(string: externalUrl) else {
+        // No URL match, often mpv normalizing the filename it reports. Prefer
+        // selecting among the already-loaded external tracks by position, using
+        // the live embedded count so the ordinal can't cross into embedded
+        // tracks.
+        let embeddedCount = subtitleTracks.filter { !$0.isExternal }.count
+        let externals = subtitleTracks.filter { $0.isExternal }
+        let externalPos = Int(trackIndex) - 1 - embeddedCount
+        if externals.indices.contains(externalPos) {
+            subtitleDebug(
+                "subtitle_mpv_select_external_positional track_id=\(trackIndex) sid=\(externals[externalPos].id) tracks=\(self.subtitleTrackDebugSummary(self.subtitleTracks))"
+            )
+            applySubtitleSid(externals[externalPos].id, requestedIndex: trackIndex)
+            return
+        }
+        // The intended external file was never loaded, so add it with select.
+        guard let url = URL(string: externalUrl) else {
             setSubtitleTrack(trackIndex)
             return
         }

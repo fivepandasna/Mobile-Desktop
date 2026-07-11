@@ -283,6 +283,19 @@ class MediaKitPlayerBackend extends PlayerBackend {
     }
   }
 
+  // Whether an mpv external track was sub-added from the requested URL. mpv can
+  // re-encode the URL it reports in `external-filename`, so an exact compare
+  // misses. Jellyfin external subtitle URLs carry the unique subtitle stream
+  // index in the path, so a decoded-path match still identifies the sub.
+  static bool _externalFilenameMatches(String? mpvFilename, String requestedUrl) {
+    if (mpvFilename == null || mpvFilename.isEmpty) return false;
+    if (mpvFilename == requestedUrl) return true;
+    final a = Uri.tryParse(mpvFilename);
+    final b = Uri.tryParse(requestedUrl);
+    if (a == null || b == null) return false;
+    return Uri.decodeFull(a.path) == Uri.decodeFull(b.path);
+  }
+
   static Future<void> _nativeSetProperty(
     Object native,
     String key,
@@ -1354,9 +1367,22 @@ class MediaKitPlayerBackend extends PlayerBackend {
       String? resolvedSid;
       if (isExternalSubtitle && externalSubtitleUrl != null) {
         for (final entry in subEntries) {
-          if (entry.external && entry.externalFilename == externalSubtitleUrl) {
+          if (entry.external &&
+              _externalFilenameMatches(
+                  entry.externalFilename, externalSubtitleUrl)) {
             resolvedSid = entry.id.toString();
             break;
+          }
+        }
+        // If the URL match missed, pick among external tracks only, using the
+        // live demuxed embedded count so a miscounted ordinal can't shift into
+        // or across embedded tracks.
+        if (resolvedSid == null) {
+          final liveEmbedded = subEntries.where((e) => !e.external).length;
+          final externals = subEntries.where((e) => e.external).toList();
+          final externalPos = mpvTrackId - 1 - liveEmbedded;
+          if (externalPos >= 0 && externalPos < externals.length) {
+            resolvedSid = externals[externalPos].id.toString();
           }
         }
       } else if (!isExternalSubtitle) {
