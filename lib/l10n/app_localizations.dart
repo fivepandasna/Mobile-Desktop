@@ -6652,6 +6652,18 @@ abstract class AppLocalizations {
   /// **'Approved, declined, and added to your library'**
   String get seerrNotifyLibraryAddedSubtitle;
 
+  /// Title for the issue notifications toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Issue updates'**
+  String get seerrNotifyIssuesTitle;
+
+  /// Subtitle for the issue notifications toggle
+  ///
+  /// In en, this message translates to:
+  /// **'New issues, replies, and resolutions'**
+  String get seerrNotifyIssuesSubtitle;
+
   /// Label showing logged in username
   ///
   /// In en, this message translates to:

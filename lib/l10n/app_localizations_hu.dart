@@ -3654,6 +3654,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Approved, declined, and added to your library';
 
   @override
+  String get seerrNotifyIssuesTitle => 'Issue updates';
+
+  @override
+  String get seerrNotifyIssuesSubtitle =>
+      'New issues, replies, and resolutions';
+
+  @override
   String loggedInAs(String username) {
     return 'Logged in as: $username';
   }

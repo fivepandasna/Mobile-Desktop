@@ -40,7 +40,9 @@ Color _onStatusColor(Color background) =>
     : Colors.white;
 
 class SeerrRequestsScreen extends StatefulWidget {
-  const SeerrRequestsScreen({super.key});
+  final int initialTab;
+
+  const SeerrRequestsScreen({super.key, this.initialTab = 0});
 
   @override
   State<SeerrRequestsScreen> createState() => _SeerrRequestsScreenState();
@@ -61,6 +63,8 @@ class _SeerrRequestsScreenState extends State<SeerrRequestsScreen>
   @override
   void initState() {
     super.initState();
+    _tab = widget.initialTab;
+    _issuesLoaded = _tab == 1;
     _requestsScroll.addListener(_onRequestsScroll);
     _issuesScroll.addListener(_onIssuesScroll);
     _init();
@@ -87,7 +91,11 @@ class _SeerrRequestsScreenState extends State<SeerrRequestsScreen>
     });
 
     requestsVm.load();
-    issuesVm.loadCounts();
+    if (_issuesLoaded) {
+      issuesVm.load();
+    } else {
+      issuesVm.loadCounts();
+    }
   }
 
   @override

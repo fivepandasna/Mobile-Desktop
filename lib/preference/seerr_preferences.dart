@@ -84,6 +84,10 @@ class SeerrPreferences {
   Future<void> setNotifyOnLibraryAdded(bool value) =>
       _store.setBool(_userKey('notify_library_added'), value);
 
+  bool get notifyOnIssues => _store.getBool(_userKey('notify_issues')) ?? true;
+  Future<void> setNotifyOnIssues(bool value) =>
+      _store.setBool(_userKey('notify_issues'), value);
+
   SeerrFetchLimit get fetchLimit {
     final stored = _store.getString(_userKey('fetch_limit'));
     if (stored == null || stored.isEmpty) return SeerrFetchLimit.medium;
@@ -200,6 +204,7 @@ class SeerrPreferences {
       'show_in_navigation', 'show_in_toolbar', 'show_request_status',
       'requests_filter',
       'block_nsfw', 'notify_new_requests', 'notify_library_added',
+      'notify_issues',
       'fetch_limit', 'rows_config', 'home_rows_config',
       'hd_movie_profile_id', '4k_movie_profile_id',
       'hd_tv_profile_id', '4k_tv_profile_id',

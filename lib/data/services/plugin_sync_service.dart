@@ -589,6 +589,7 @@ class PluginSyncService extends ChangeNotifier {
         data: {
           'notifyOnNewRequests': _seerrPrefs.notifyOnNewRequests,
           'notifyOnLibraryAdded': _seerrPrefs.notifyOnLibraryAdded,
+          'notifyOnIssues': _seerrPrefs.notifyOnIssues,
         },
         options: Options(
           headers: {...headers, 'Content-Type': 'application/json'},

@@ -4993,6 +4993,14 @@
   "@seerrNotifyLibraryAddedSubtitle": {
     "description": "Subtitle for the library-added notifications toggle"
   },
+  "seerrNotifyIssuesTitle": "Issue updates",
+  "@seerrNotifyIssuesTitle": {
+    "description": "Title for the issue notifications toggle"
+  },
+  "seerrNotifyIssuesSubtitle": "New issues, replies, and resolutions",
+  "@seerrNotifyIssuesSubtitle": {
+    "description": "Subtitle for the issue notifications toggle"
+  },
   "loggedInAs": "Logged in as: {username}",
   "@loggedInAs": {
     "description": "Label showing logged in username",
