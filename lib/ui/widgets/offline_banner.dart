@@ -9,6 +9,7 @@ import '../../l10n/app_localizations.dart';
 import '../../util/platform_detection.dart';
 import '../navigation/app_router.dart';
 import '../navigation/destinations.dart';
+import '../screens/downloads/downloads_panel.dart';
 
 class OfflineBanner extends ConsumerStatefulWidget {
   const OfflineBanner({super.key});
@@ -63,9 +64,11 @@ class _OfflineBannerState extends ConsumerState<OfflineBanner> {
         : l10n.offlineNoInternet;
     final showAction = !isTv;
     final actionLabel = isServerUnavailable ? l10n.offlineSwitchServer : l10n.offlineSavedMedia;
+    // The regular UI already shows only downloaded items when offline, so
+    // the banner action just opens the downloads dialog.
     final action = isServerUnavailable
         ? () => appRouter.go(Destinations.serverSelect)
-        : () => appRouter.go(Destinations.downloads);
+        : () => showDownloadsDialog(context);
 
     if (isTv && _autoDismissTimer == null) {
       _scheduleTvAutoDismiss();

@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'offline_aware_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:server_core/server_core.dart';
@@ -569,7 +569,7 @@ class _InfoAreaContentState extends State<_InfoAreaContent> {
               padding: EdgeInsets.only(left: widget.headerLeftInset),
               child: hasLogo
                   ? Image(
-                      image: CachedNetworkImageProvider(
+                      image: offlineAwareImageProvider(
                         imageApi.getLogoImageUrl(
                           logoItemId,
                           maxWidth: isMobile ? 300 : 400,

@@ -149,13 +149,6 @@ class Destinations {
   static const seerrPersonDetail = '/seerr/person/:personId';
   static const seerrCollectionDetail = '/seerr/collection/:collectionId';
 
-  // Downloads / Saved Media
-  static const downloads = '/downloads';
-  static const storageManagement = '/downloads/storage';
-  static const downloadsSeries = '/downloads/series/:seriesId';
-  static const downloadsSeason = '/downloads/series/:seriesId/season/:seasonId';
-  static const downloadsAlbum = '/downloads/music/:albumId';
-
   static String library(
     String libraryId, {
     List<String>? includeItemTypes,
@@ -281,19 +274,6 @@ class Destinations {
   static String seerrPerson(String personId) => '/seerr/person/$personId';
   static String seerrCollection(String collectionId) =>
       '/seerr/collection/$collectionId';
-
-  static String downloadedSeries(String seriesId) =>
-      '/downloads/series/$seriesId';
-  static String downloadedSeason(String seriesId, String seasonId) =>
-      '/downloads/series/$seriesId/season/$seasonId';
-  static String downloadedAlbum(String albumId, {String? albumName}) {
-    final base = '/downloads/music/${Uri.encodeComponent(albumId)}';
-    if (albumName == null || albumName.isEmpty) {
-      return base;
-    }
-
-    return '$base?name=${Uri.encodeComponent(albumName)}';
-  }
 
   static String adminUser(String userId) => '/admin/users/$userId';
   static String adminLibrary(String libraryId) => '/admin/libraries/$libraryId';

@@ -11,6 +11,7 @@ import 'package:server_core/server_core.dart';
 import '../../../data/models/aggregated_item.dart';
 import '../../../data/models/home_row.dart';
 import '../../../data/repositories/multi_server_repository.dart';
+import '../../../data/services/connectivity_service.dart';
 import '../../../data/services/home_row_cache_store.dart';
 import '../../../data/services/row_data_source.dart';
 import '../../../data/services/topshelf_service.dart';
@@ -57,8 +58,12 @@ class HomeViewModel extends ChangeNotifier {
   String get _serverId => _client.baseUrl;
   MediaBarViewModel get mediaBarViewModel => _mediaBarViewModel;
 
+  bool get _isOffline =>
+      GetIt.instance.isRegistered<ConnectivityService>() &&
+      !GetIt.instance<ConnectivityService>().canReachServer;
+
   bool get _multiServerEnabled =>
-      _prefs.get(UserPreferences.enableMultiServerLibraries);
+      !_isOffline && _prefs.get(UserPreferences.enableMultiServerLibraries);
 
   String _homeCacheKey() {
     final userId = _ownerUserId;
@@ -66,7 +71,10 @@ class HomeViewModel extends ChangeNotifier {
     final multiServer = _prefs.get(UserPreferences.enableMultiServerLibraries);
     final merge = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
     final blocked = _prefs.get(UserPreferences.blockedParentalRatings);
-    return '$_serverId|$userId|$sections|$multiServer|$merge|$blocked';
+    // Offline rows are cached separately so cached online rows never hydrate
+    // an offline home (and vice versa).
+    final offline = _isOffline;
+    return '$_serverId|$userId|$sections|$multiServer|$merge|$blocked|offline:$offline';
   }
 
   static bool _isFavoriteSectionType(HomeSectionType type) {
@@ -101,6 +109,24 @@ class HomeViewModel extends ChangeNotifier {
       HomeSectionType.audioAlbums ||
       HomeSectionType.audioPlaylists => true,
       _ => false,
+    };
+  }
+
+  /// Sections the offline downloads catalog can answer. Everything else
+  /// (live TV, seerr/tmdb/arr externals, server plugin rows) is skipped when
+  /// the server is unreachable.
+  static bool _isOfflineCapableSection(HomeSectionConfig c) {
+    if (!c.isBuiltin) return false;
+    return switch (c.type) {
+      HomeSectionType.liveTv ||
+      HomeSectionType.activeRecordings ||
+      HomeSectionType.playlists ||
+      HomeSectionType.audioPlaylists ||
+      HomeSectionType.radarrCalendar ||
+      HomeSectionType.sonarrCalendar =>
+        false,
+      final t when _isSeerrSectionType(t) || _isTmdbSectionType(t) => false,
+      _ => true,
     };
   }
 
@@ -284,9 +310,13 @@ class HomeViewModel extends ChangeNotifier {
       final showRewatch = _prefs.get(UserPreferences.displayRewatchRow);
 
       // Plugin-dynamic sections only make sense on the active server.
+      final offline = _isOffline;
       final visibleConfigsRaw = configs
           .where(
             (c) =>
+                // When offline, only sections the downloads catalog can
+                // answer are shown.
+                (!offline || _isOfflineCapableSection(c)) &&
                 (c.isBuiltin ||
                     c.pluginSource == HomeSectionPluginSource.custom ||
                     (c.serverId != null && c.serverId == _serverId)) &&

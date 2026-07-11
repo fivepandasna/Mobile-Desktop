@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../widgets/offline_aware_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -57,7 +57,6 @@ import '../../widgets/focus/focusable_button.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 import '../../widgets/overlay_sheet.dart';
 import '../../widgets/playback/player_loading_overlay.dart';
-import '../../../playback/offline_playback_launcher.dart';
 import '../../../playback/hdr_stream_capability.dart';
 import '../../../playback/known_defects.dart';
 import '../../../syncplay/syncplay_manager.dart';
@@ -1053,7 +1052,7 @@ class _DetailContentState extends State<_DetailContent> {
         radius: avatarRadius,
         backgroundColor: Colors.white.withValues(alpha: 0.1),
         backgroundImage: imageUrl != null
-            ? CachedNetworkImageProvider(imageUrl)
+            ? offlineAwareImageProvider(imageUrl)
             : null,
         child: imageUrl == null
             ? const AdaptiveIcon(Icons.person, color: Colors.white54, size: 64)
@@ -1456,7 +1455,7 @@ class _DetailContentState extends State<_DetailContent> {
                           size: 30,
                         ),
                       )
-                    : CachedNetworkImage(
+                    : OfflineAwareImage(
                         imageUrl: coverUrl,
                         fit: BoxFit.cover,
                         errorWidget: (_, _, _) => Container(
@@ -3526,7 +3525,7 @@ class _Backdrop extends StatelessWidget {
 
   Widget _blurredImage(String imageUrl, double blur) {
     final blurred = blur > 0;
-    final image = CachedNetworkImage(
+    final image = OfflineAwareImage(
       imageUrl: imageUrl,
       fit: BoxFit.cover,
       fadeInDuration: Duration.zero,
@@ -3946,7 +3945,7 @@ class DetailPosterImage extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: AppRadius.circular(8),
-            child: CachedNetworkImage(
+            child: OfflineAwareImage(
               imageUrl: imageApi.getPrimaryImageUrl(
                 item.id,
                 maxHeight: isMobile ? 360 : (500 * desktopScale).round(),
@@ -4040,7 +4039,7 @@ class _EpisodeThumbnail extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: AppRadius.circular(8),
-            child: CachedNetworkImage(
+            child: OfflineAwareImage(
               imageUrl: imageApi.getPrimaryImageUrl(
                 item.id,
                 maxWidth: isMobile ? 400 : (560 * desktopScale).round(),
@@ -4837,7 +4836,7 @@ class _AuthorHeader extends StatelessWidget {
                       size: 36,
                       color: Color(0xFFE4F0FA),
                     )
-                  : CachedNetworkImage(
+                  : OfflineAwareImage(
                       imageUrl: photoUrl!,
                       fit: BoxFit.cover,
                       errorWidget: (_, _, _) => const AdaptiveIcon(
@@ -4895,7 +4894,7 @@ class _AuthorBookTile extends StatelessWidget {
                             size: 28,
                           ),
                         )
-                      : CachedNetworkImage(
+                      : OfflineAwareImage(
                           imageUrl: book.coverUrl!,
                           fit: BoxFit.contain,
                           alignment: Alignment.center,
@@ -5157,9 +5156,6 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
 
   bool _playLaunchInFlight = false;
   bool _autoPlayTriggered = false;
-  DownloadedItem? _offlineRow;
-  List<DownloadedItem>? _offlineQueue;
-  DownloadService? _downloadService;
   StreamSubscription<Object?>? _userSub;
   final FocusNode _localTvPlayFocusNode = FocusNode(
     debugLabel: 'detail_play_button',
@@ -5257,21 +5253,15 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
   @override
   void initState() {
     super.initState();
-    if (GetIt.instance.isRegistered<DownloadService>()) {
-      _downloadService = GetIt.instance<DownloadService>();
-      _downloadService!.addListener(_onDownloadChanged);
-    }
     _userSub = GetIt.instance<UserRepository>().currentUserStream.listen((_) {
       if (!mounted) return;
       setState(() {});
     });
-    _checkOffline();
     _maybeTriggerAutoPlay();
   }
 
   @override
   void dispose() {
-    _downloadService?.removeListener(_onDownloadChanged);
     _userSub?.cancel();
     _localTvPlayFocusNode.dispose();
     _overflowMoreFocusNode.dispose();
@@ -5500,8 +5490,6 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     });
   }
 
-  void _onDownloadChanged() => _checkOffline();
-
   int _calculateMaxVisibleButtons(BuildContext context) {
     final override = widget.maxVisibleButtonsOverride;
     if (override != null) return override > 2 ? override : 2;
@@ -5528,39 +5516,6 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         .floor();
 
     return maxButtons > 2 ? maxButtons : 2;
-  }
-
-  Future<void> _checkOffline() async {
-    final item = viewModel.item;
-    if (item == null || !_isDownloadable(item.type)) return;
-    final repo = GetIt.instance<OfflineRepository>();
-    final type = item.type;
-
-    if (type == 'Season' || type == 'Series') {
-      final episodes = type == 'Season'
-          ? await repo.getSeasonEpisodes(item.id)
-          : await repo.getSeriesEpisodes(item.id);
-      final playable = episodes
-          .where((e) => e.downloadStatus == 2 && e.localFilePath != null)
-          .toList();
-      final newRow = playable.isNotEmpty ? playable.first : null;
-      final newQueue = playable.isNotEmpty ? playable : null;
-      // The download service notifies on every progress tick; only rebuild the
-      // button row when the resolved offline state actually changes.
-      if (mounted &&
-          (newRow != _offlineRow || !listEquals(newQueue, _offlineQueue))) {
-        setState(() {
-          _offlineRow = newRow;
-          _offlineQueue = newQueue;
-        });
-      }
-    } else {
-      final row = await repo.getItem(item.id);
-      final newRow = (row != null && row.downloadStatus == 2) ? row : null;
-      if (mounted && newRow != _offlineRow) {
-        setState(() => _offlineRow = newRow);
-      }
-    }
   }
 
   @override
@@ -5955,28 +5910,6 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                   forceStartOver: true,
                 )
               : null,
-        ),
-      if (_offlineRow != null)
-        _DetailActionButton(
-          label: isBook ? l10n.readOffline : l10n.playOffline,
-          icon: isBook ? Icons.menu_book : Icons.offline_pin,
-          onPressed: () async {
-            if (context.mounted) {
-              if (isBook) {
-                await context.push(
-                  Destinations.book(item.id, serverId: item.serverId),
-                );
-              } else {
-                await launchOfflinePlayback(
-                  context,
-                  _offlineRow!,
-                  episodeQueue: _offlineQueue,
-                );
-              }
-            }
-          },
-          isActive: true,
-          activeColor: const Color(0xFF4CAF50),
         ),
       if (isPlayableVideo) ...[
         if (audioStreams.length > 1)
@@ -8971,7 +8904,10 @@ bool _isDownloadable(String? type) {
       type == 'Episode' ||
       type == 'Season' ||
       type == 'Series' ||
-      type == 'BoxSet';
+      type == 'BoxSet' ||
+      type == 'MusicVideo' ||
+      type == 'Video' ||
+      type == 'MusicAlbum';
 }
 
 bool _canUserDownload() {
@@ -9264,8 +9200,11 @@ class _DownloadButtonState extends State<_DownloadButton> {
     final item = widget.item;
     final isMulti =
         item.type == 'Season' || item.type == 'Series' || item.type == 'BoxSet';
-    final supportsTranscoding =
-        item.type == 'Movie' || item.type == 'Episode' || isMulti;
+    final supportsTranscoding = item.type == 'Movie' ||
+        item.type == 'Episode' ||
+        item.type == 'MusicVideo' ||
+        item.type == 'Video' ||
+        isMulti;
     final estimationItems = item.type == 'BoxSet'
         ? widget.viewModel.collectionItems
         : widget.viewModel.episodes;
@@ -9366,7 +9305,11 @@ class _DownloadButtonState extends State<_DownloadButton> {
       case 'Audio':
       case 'AudioBook':
       case 'Book':
+      case 'MusicVideo':
+      case 'Video':
         service.downloadItem(item, quality: quality);
+      case 'MusicAlbum':
+        service.downloadAlbum(item.id, quality: quality);
       case 'Season':
         final episodes = widget.viewModel.episodes;
         if (episodes.isEmpty) {
@@ -10314,7 +10257,7 @@ class _CastPersonCardState extends State<_CastPersonCard> with FocusStateMixin {
                       radius: widget.avatarRadius,
                       backgroundColor: Colors.white.withValues(alpha: 0.1),
                       backgroundImage: widget.imageUrl != null
-                          ? CachedNetworkImageProvider(widget.imageUrl!)
+                          ? offlineAwareImageProvider(widget.imageUrl!)
                           : null,
                       child: widget.imageUrl == null
                           ? AdaptiveIcon(
@@ -11699,7 +11642,7 @@ class _EpisodeListCardState extends State<_EpisodeListCard>
                     fit: StackFit.expand,
                     children: [
                       if (ep.primaryImageTag != null)
-                        CachedNetworkImage(
+                        OfflineAwareImage(
                           imageUrl: widget.imageApi.getPrimaryImageUrl(
                             ep.id,
                             maxHeight: widget.isMobile
@@ -11890,7 +11833,7 @@ class DetailNextUpCardState extends State<DetailNextUpCard>
                       fit: StackFit.expand,
                       children: [
                         if (episode.primaryImageTag != null)
-                          CachedNetworkImage(
+                          OfflineAwareImage(
                             imageUrl: widget.imageApi.getPrimaryImageUrl(
                               episode.id,
                               maxHeight: isMobile
@@ -12088,7 +12031,7 @@ class DetailEpisodeCardState extends State<DetailEpisodeCard>
                         fit: StackFit.expand,
                         children: [
                           if (episode.primaryImageTag != null)
-                            CachedNetworkImage(
+                            OfflineAwareImage(
                               imageUrl: widget.imageApi.getPrimaryImageUrl(
                                 episode.id,
                                 maxHeight: isMobile
@@ -12238,7 +12181,7 @@ class PersonHeader extends StatelessWidget {
       radius: avatarRadius,
       backgroundColor: Colors.white.withValues(alpha: 0.1),
       backgroundImage: imageUrl != null
-          ? CachedNetworkImageProvider(imageUrl)
+          ? offlineAwareImageProvider(imageUrl)
           : null,
       child: imageUrl == null
           ? AdaptiveIcon(
@@ -13055,7 +12998,7 @@ class _ArtistHeader extends StatelessWidget {
       radius: avatarRadius,
       backgroundColor: Colors.white.withValues(alpha: 0.1),
       backgroundImage: imageUrl != null
-          ? CachedNetworkImageProvider(imageUrl)
+          ? offlineAwareImageProvider(imageUrl)
           : null,
       child: imageUrl == null
           ? AdaptiveIcon(
@@ -13138,7 +13081,7 @@ class _AlbumHeader extends StatelessWidget {
     final albumArt = ClipRRect(
       borderRadius: AppRadius.circular(8),
       child: item.primaryImageTag != null
-          ? CachedNetworkImage(
+          ? OfflineAwareImage(
               imageUrl: imageApi.getPrimaryImageUrl(
                 item.id,
                 maxHeight: 400,
@@ -13868,7 +13811,7 @@ class _TrackTileState extends State<_TrackTile> with FocusStateMixin {
         ),
         child: ClipRRect(
           borderRadius: AppRadius.circular(2.5),
-          child: CachedNetworkImage(
+          child: OfflineAwareImage(
             imageUrl: imageUrl,
             fit: fit,
             errorWidget: (context, url, error) => Container(

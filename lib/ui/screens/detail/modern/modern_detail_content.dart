@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math' show Random;
 import 'dart:ui' show ImageFilter;
 import 'package:collection/collection.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../../widgets/offline_aware_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1987,7 +1987,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                   child: ClipRRect(
                     borderRadius: AppRadius.circular(12),
                     child: imageUrl != null
-                        ? CachedNetworkImage(
+                        ? OfflineAwareImage(
                             imageUrl: imageUrl,
                             fit: BoxFit.contain,
                             placeholder: (context, url) => _buildStudioFallback(context, name),
@@ -3125,7 +3125,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
           radius: 60.0,
           backgroundColor: Colors.white.withValues(alpha: 0.1),
           backgroundImage: profileUrl != null
-              ? CachedNetworkImageProvider(profileUrl)
+              ? offlineAwareImageProvider(profileUrl)
               : null,
           child: profileUrl == null
               ? const Icon(Icons.person, color: Colors.white54, size: 48)
@@ -3260,7 +3260,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
         child: ClipRRect(
           borderRadius: AppRadius.circular(10),
           child: coverUrl != null
-              ? CachedNetworkImage(
+              ? OfflineAwareImage(
                   imageUrl: coverUrl,
                   fit: BoxFit.cover,
                 )
@@ -3942,7 +3942,7 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
       children: [
         ColoredBox(color: base),
         if (url != null && url.isNotEmpty) ...[
-          CachedNetworkImage(
+          OfflineAwareImage(
             imageUrl: url,
             fit: BoxFit.cover,
             alignment:
