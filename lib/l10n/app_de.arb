@@ -7398,5 +7398,29 @@
     "writer": "DREHBUCH",
     "@writer": {
         "description": "Metadata label for writer"
+    },
+    "showTechnicalDetails": "Technische Details anzeigen?",
+    "@showTechnicalDetails": {
+        "description": "Label for the detail screen setting to show stream/codec technical details"
+    },
+    "recommendationSystemTmdb": "TMDb-Ähnlichkeit",
+    "@recommendationSystemTmdb": {
+        "description": "Recommendation system option: TMDb Similarity"
+    },
+    "expandedTabs": "Erweiterte Tabs",
+    "@expandedTabs": {
+        "description": "Label for the detail screen expanded tabs setting"
+    },
+    "expandedTabsSubtitle": "Tab-Inhalte beim Wechseln zwischen den Tabs automatisch anzeigen. Deaktivieren, um jeden Tab manuell zu öffnen und zu schließen.",
+    "@expandedTabsSubtitle": {
+        "description": "Explanation under the expanded tabs setting"
+    },
+    "recommendationsApplyParentalRatingCap": "Begrenzung nach Altersfreigabe anwenden?",
+    "@recommendationsApplyParentalRatingCap": {
+        "description": "Label for the toggle that controls whether similar suggestions are capped by target media parental rating"
+    },
+    "customThemeTitle": "Benutzerdefiniertes Theme",
+    "@customThemeTitle": {
+        "description": "Title for the custom theme settings section"
     }
 }
