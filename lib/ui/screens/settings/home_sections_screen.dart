@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:animated_reorderable_list/animated_reorderable_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
@@ -88,7 +89,8 @@ class HomeSectionsScreen extends StatefulWidget {
   State<HomeSectionsScreen> createState() => _HomeSectionsScreenState();
 }
 
-class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware {
+class _HomeSectionsScreenState extends State<HomeSectionsScreen>
+    with RouteAware {
   final _prefs = GetIt.instance<UserPreferences>();
   ModalRoute<dynamic>? _observedRoute;
   static const _rowsTypeDescription =
@@ -407,12 +409,18 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
 
   int _getSinceYouWatchedIndex(HomeSectionType type) {
     switch (type) {
-      case HomeSectionType.sinceYouWatched1: return 1;
-      case HomeSectionType.sinceYouWatched2: return 2;
-      case HomeSectionType.sinceYouWatched3: return 3;
-      case HomeSectionType.sinceYouWatched4: return 4;
-      case HomeSectionType.sinceYouWatched5: return 5;
-      default: return 0;
+      case HomeSectionType.sinceYouWatched1:
+        return 1;
+      case HomeSectionType.sinceYouWatched2:
+        return 2;
+      case HomeSectionType.sinceYouWatched3:
+        return 3;
+      case HomeSectionType.sinceYouWatched4:
+        return 4;
+      case HomeSectionType.sinceYouWatched5:
+        return 5;
+      default:
+        return 0;
     }
   }
 
@@ -508,19 +516,29 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
 
   bool _isTmdbRowEnabled(HomeSectionType type) {
     final prefKey = switch (type) {
-      HomeSectionType.tmdbPopularMovies => UserPreferences.tmdbPopularMoviesEnabled,
-      HomeSectionType.tmdbTopRatedMovies => UserPreferences.tmdbTopRatedMoviesEnabled,
-      HomeSectionType.tmdbNowPlayingMovies => UserPreferences.tmdbNowPlayingMoviesEnabled,
-      HomeSectionType.tmdbUpcomingMovies => UserPreferences.tmdbUpcomingMoviesEnabled,
+      HomeSectionType.tmdbPopularMovies =>
+        UserPreferences.tmdbPopularMoviesEnabled,
+      HomeSectionType.tmdbTopRatedMovies =>
+        UserPreferences.tmdbTopRatedMoviesEnabled,
+      HomeSectionType.tmdbNowPlayingMovies =>
+        UserPreferences.tmdbNowPlayingMoviesEnabled,
+      HomeSectionType.tmdbUpcomingMovies =>
+        UserPreferences.tmdbUpcomingMoviesEnabled,
       HomeSectionType.tmdbPopularTv => UserPreferences.tmdbPopularTvEnabled,
       HomeSectionType.tmdbTopRatedTv => UserPreferences.tmdbTopRatedTvEnabled,
-      HomeSectionType.tmdbAiringTodayTv => UserPreferences.tmdbAiringTodayTvEnabled,
+      HomeSectionType.tmdbAiringTodayTv =>
+        UserPreferences.tmdbAiringTodayTvEnabled,
       HomeSectionType.tmdbOnTheAirTv => UserPreferences.tmdbOnTheAirTvEnabled,
-      HomeSectionType.tmdbTrendingMovieDaily => UserPreferences.tmdbTrendingMovieDailyEnabled,
-      HomeSectionType.tmdbTrendingMovieWeekly => UserPreferences.tmdbTrendingMovieWeeklyEnabled,
-      HomeSectionType.tmdbTrendingTvDaily => UserPreferences.tmdbTrendingTvDailyEnabled,
-      HomeSectionType.tmdbTrendingTvWeekly => UserPreferences.tmdbTrendingTvWeeklyEnabled,
-      HomeSectionType.tmdbTrendingAllWeekly => UserPreferences.tmdbTrendingAllWeeklyEnabled,
+      HomeSectionType.tmdbTrendingMovieDaily =>
+        UserPreferences.tmdbTrendingMovieDailyEnabled,
+      HomeSectionType.tmdbTrendingMovieWeekly =>
+        UserPreferences.tmdbTrendingMovieWeeklyEnabled,
+      HomeSectionType.tmdbTrendingTvDaily =>
+        UserPreferences.tmdbTrendingTvDailyEnabled,
+      HomeSectionType.tmdbTrendingTvWeekly =>
+        UserPreferences.tmdbTrendingTvWeeklyEnabled,
+      HomeSectionType.tmdbTrendingAllWeekly =>
+        UserPreferences.tmdbTrendingAllWeeklyEnabled,
       _ => null,
     };
     if (prefKey == null) return false;
@@ -537,7 +555,9 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
       configs[idx] = configs[idx].copyWith(enabled: false);
       seerrPrefs.setHomeRowsConfig(configs);
     } else {
-      configs.add(SeerrRowConfig(type: seerrType, enabled: false, order: configs.length));
+      configs.add(
+        SeerrRowConfig(type: seerrType, enabled: false, order: configs.length),
+      );
       seerrPrefs.setHomeRowsConfig(configs);
     }
   }
@@ -553,12 +573,18 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
 
   bool _isImdbRowEnabled(HomeSectionType type) {
     final prefKey = switch (type) {
-      HomeSectionType.imdbTop250Movies => UserPreferences.imdbTop250MoviesEnabled,
-      HomeSectionType.imdbTop250TvShows => UserPreferences.imdbTop250TvShowsEnabled,
-      HomeSectionType.imdbMostPopularMovies => UserPreferences.imdbMostPopularMoviesEnabled,
-      HomeSectionType.imdbMostPopularTvShows => UserPreferences.imdbMostPopularTvShowsEnabled,
-      HomeSectionType.imdbLowestRatedMovies => UserPreferences.imdbLowestRatedMoviesEnabled,
-      HomeSectionType.imdbTopEnglishMovies => UserPreferences.imdbTopEnglishMoviesEnabled,
+      HomeSectionType.imdbTop250Movies =>
+        UserPreferences.imdbTop250MoviesEnabled,
+      HomeSectionType.imdbTop250TvShows =>
+        UserPreferences.imdbTop250TvShowsEnabled,
+      HomeSectionType.imdbMostPopularMovies =>
+        UserPreferences.imdbMostPopularMoviesEnabled,
+      HomeSectionType.imdbMostPopularTvShows =>
+        UserPreferences.imdbMostPopularTvShowsEnabled,
+      HomeSectionType.imdbLowestRatedMovies =>
+        UserPreferences.imdbLowestRatedMoviesEnabled,
+      HomeSectionType.imdbTopEnglishMovies =>
+        UserPreferences.imdbTopEnglishMoviesEnabled,
       _ => null,
     };
     return prefKey != null ? _prefs.get(prefKey) : false;
@@ -617,25 +643,37 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
         ((section.isBuiltin && _isPlaylistsSectionType(section.type)) ||
             (section.isPluginDynamic &&
                 section.pluginSource == HomeSectionPluginSource.playlists));
-    final hiddenBySeerr = _isSeerrSectionType(section.type) &&
+    final hiddenBySeerr =
+        _isSeerrSectionType(section.type) &&
         (!showSeerrRows ||
-            !GetIt.instance<SeerrPreferences>().isSeerrHomeRowEnabled(section.type));
-    final hiddenByImdb = _isImdbSectionType(section.type) &&
+            !GetIt.instance<SeerrPreferences>().isSeerrHomeRowEnabled(
+              section.type,
+            ));
+    final hiddenByImdb =
+        _isImdbSectionType(section.type) &&
         (!showImdbRows || !_isImdbRowEnabled(section.type));
-    final hiddenByTmdb = _isTmdbSectionType(section.type) &&
+    final hiddenByTmdb =
+        _isTmdbSectionType(section.type) &&
         (!showTmdbRows || !_isTmdbRowEnabled(section.type));
 
     final showAudioRows = _prefs.get(UserPreferences.displayAudioRows);
     final hiddenByAudio = !showAudioRows && _isAudioSectionType(section.type);
 
-    final showSinceYouWatched = _prefs.get(UserPreferences.displaySinceYouWatchedRows);
-    final sinceYouWatchedNum = _prefs.get(UserPreferences.sinceYouWatchedNumRows).value;
+    final showSinceYouWatched = _prefs.get(
+      UserPreferences.displaySinceYouWatchedRows,
+    );
+    final sinceYouWatchedNum = _prefs
+        .get(UserPreferences.sinceYouWatchedNumRows)
+        .value;
     final showRewatch = _prefs.get(UserPreferences.displayRewatchRow);
 
-    final hiddenBySinceYouWatched = _isSinceYouWatchedSectionType(section.type) &&
-        (!showSinceYouWatched || _getSinceYouWatchedIndex(section.type) > sinceYouWatchedNum);
+    final hiddenBySinceYouWatched =
+        _isSinceYouWatchedSectionType(section.type) &&
+        (!showSinceYouWatched ||
+            _getSinceYouWatchedIndex(section.type) > sinceYouWatchedNum);
 
-    final hiddenByRewatch = section.type == HomeSectionType.rewatch && !showRewatch;
+    final hiddenByRewatch =
+        section.type == HomeSectionType.rewatch && !showRewatch;
 
     return hiddenByFavorites ||
         hiddenByCollections ||
@@ -651,14 +689,19 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
 
   List<int> _visibleSectionIndices() {
     final visible = <int>[];
-    final mergeEnabled = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
-    final mergeCalendarsEnabled = _prefs.get(UserPreferences.mergeRadarrSonarrCalendars);
+    final mergeEnabled = _prefs.get(
+      UserPreferences.mergeContinueWatchingNextUp,
+    );
+    final mergeCalendarsEnabled = _prefs.get(
+      UserPreferences.mergeRadarrSonarrCalendars,
+    );
     for (var i = 0; i < _sections.length; i++) {
       if (_isHiddenByRowVisibilityGates(_sections[i])) continue;
       if (mergeEnabled && _sections[i].type == HomeSectionType.nextUp) {
         continue;
       }
-      if (mergeCalendarsEnabled && _sections[i].type == HomeSectionType.sonarrCalendar) {
+      if (mergeCalendarsEnabled &&
+          _sections[i].type == HomeSectionType.sonarrCalendar) {
         continue;
       }
       visible.add(i);
@@ -674,10 +717,12 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
         .where((s) => s.type == HomeSectionType.mediaBar)
         .firstOrNull;
     _sections = all.where((s) => s.type != HomeSectionType.mediaBar).toList()
-        ..sort((a, b) => a.order.compareTo(b.order));
+      ..sort((a, b) => a.order.compareTo(b.order));
     for (var i = 0; i < _sections.length; i++) {
       if (_isImdbSectionType(_sections[i].type)) {
-        _sections[i] = _sections[i].copyWith(enabled: _isImdbRowEnabled(_sections[i].type));
+        _sections[i] = _sections[i].copyWith(
+          enabled: _isImdbRowEnabled(_sections[i].type),
+        );
       }
     }
     final addedBuiltins = _ensureBuiltinSectionsPresent();
@@ -1174,8 +1219,6 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
     return changed;
   }
 
-
-
   void _rebuildFocusNodes() {
     final activeIds = _sections.map((s) => s.stableId).toSet();
 
@@ -1242,31 +1285,52 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
   void _syncIndividualPreferences() {
     Preference<bool>? mapToPref(HomeSectionType type) {
       return switch (type) {
-        HomeSectionType.tmdbPopularMovies => UserPreferences.tmdbPopularMoviesEnabled,
-        HomeSectionType.tmdbTopRatedMovies => UserPreferences.tmdbTopRatedMoviesEnabled,
-        HomeSectionType.tmdbNowPlayingMovies => UserPreferences.tmdbNowPlayingMoviesEnabled,
-        HomeSectionType.tmdbUpcomingMovies => UserPreferences.tmdbUpcomingMoviesEnabled,
+        HomeSectionType.tmdbPopularMovies =>
+          UserPreferences.tmdbPopularMoviesEnabled,
+        HomeSectionType.tmdbTopRatedMovies =>
+          UserPreferences.tmdbTopRatedMoviesEnabled,
+        HomeSectionType.tmdbNowPlayingMovies =>
+          UserPreferences.tmdbNowPlayingMoviesEnabled,
+        HomeSectionType.tmdbUpcomingMovies =>
+          UserPreferences.tmdbUpcomingMoviesEnabled,
         HomeSectionType.tmdbPopularTv => UserPreferences.tmdbPopularTvEnabled,
         HomeSectionType.tmdbTopRatedTv => UserPreferences.tmdbTopRatedTvEnabled,
-        HomeSectionType.tmdbAiringTodayTv => UserPreferences.tmdbAiringTodayTvEnabled,
+        HomeSectionType.tmdbAiringTodayTv =>
+          UserPreferences.tmdbAiringTodayTvEnabled,
         HomeSectionType.tmdbOnTheAirTv => UserPreferences.tmdbOnTheAirTvEnabled,
-        HomeSectionType.tmdbTrendingMovieDaily => UserPreferences.tmdbTrendingMovieDailyEnabled,
-        HomeSectionType.tmdbTrendingMovieWeekly => UserPreferences.tmdbTrendingMovieWeeklyEnabled,
-        HomeSectionType.tmdbTrendingTvDaily => UserPreferences.tmdbTrendingTvDailyEnabled,
-        HomeSectionType.tmdbTrendingTvWeekly => UserPreferences.tmdbTrendingTvWeeklyEnabled,
-        HomeSectionType.tmdbTrendingAllWeekly => UserPreferences.tmdbTrendingAllWeeklyEnabled,
-        HomeSectionType.imdbTop250Movies => UserPreferences.imdbTop250MoviesEnabled,
-        HomeSectionType.imdbTop250TvShows => UserPreferences.imdbTop250TvShowsEnabled,
-        HomeSectionType.imdbMostPopularMovies => UserPreferences.imdbMostPopularMoviesEnabled,
-        HomeSectionType.imdbMostPopularTvShows => UserPreferences.imdbMostPopularTvShowsEnabled,
-        HomeSectionType.imdbLowestRatedMovies => UserPreferences.imdbLowestRatedMoviesEnabled,
-        HomeSectionType.imdbTopEnglishMovies => UserPreferences.imdbTopEnglishMoviesEnabled,
+        HomeSectionType.tmdbTrendingMovieDaily =>
+          UserPreferences.tmdbTrendingMovieDailyEnabled,
+        HomeSectionType.tmdbTrendingMovieWeekly =>
+          UserPreferences.tmdbTrendingMovieWeeklyEnabled,
+        HomeSectionType.tmdbTrendingTvDaily =>
+          UserPreferences.tmdbTrendingTvDailyEnabled,
+        HomeSectionType.tmdbTrendingTvWeekly =>
+          UserPreferences.tmdbTrendingTvWeeklyEnabled,
+        HomeSectionType.tmdbTrendingAllWeekly =>
+          UserPreferences.tmdbTrendingAllWeeklyEnabled,
+        HomeSectionType.imdbTop250Movies =>
+          UserPreferences.imdbTop250MoviesEnabled,
+        HomeSectionType.imdbTop250TvShows =>
+          UserPreferences.imdbTop250TvShowsEnabled,
+        HomeSectionType.imdbMostPopularMovies =>
+          UserPreferences.imdbMostPopularMoviesEnabled,
+        HomeSectionType.imdbMostPopularTvShows =>
+          UserPreferences.imdbMostPopularTvShowsEnabled,
+        HomeSectionType.imdbLowestRatedMovies =>
+          UserPreferences.imdbLowestRatedMoviesEnabled,
+        HomeSectionType.imdbTopEnglishMovies =>
+          UserPreferences.imdbTopEnglishMoviesEnabled,
         HomeSectionType.rewatch => UserPreferences.displayRewatchRow,
-        HomeSectionType.sinceYouWatched1 => UserPreferences.sinceYouWatched1Enabled,
-        HomeSectionType.sinceYouWatched2 => UserPreferences.sinceYouWatched2Enabled,
-        HomeSectionType.sinceYouWatched3 => UserPreferences.sinceYouWatched3Enabled,
-        HomeSectionType.sinceYouWatched4 => UserPreferences.sinceYouWatched4Enabled,
-        HomeSectionType.sinceYouWatched5 => UserPreferences.sinceYouWatched5Enabled,
+        HomeSectionType.sinceYouWatched1 =>
+          UserPreferences.sinceYouWatched1Enabled,
+        HomeSectionType.sinceYouWatched2 =>
+          UserPreferences.sinceYouWatched2Enabled,
+        HomeSectionType.sinceYouWatched3 =>
+          UserPreferences.sinceYouWatched3Enabled,
+        HomeSectionType.sinceYouWatched4 =>
+          UserPreferences.sinceYouWatched4Enabled,
+        HomeSectionType.sinceYouWatched5 =>
+          UserPreferences.sinceYouWatched5Enabled,
         _ => null,
       };
     }
@@ -1349,9 +1413,16 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
     // was the last visible row), step to the previous neighbor instead.
     final visibleIndicesAfter = _visibleSectionIndices();
     if (visibleIndex >= 0 && visibleIndicesAfter.isNotEmpty) {
-      var targetVisibleIndex = visibleIndex.clamp(0, visibleIndicesAfter.length - 1);
-      final toggledActualAfter = _sections.indexWhere((s) => s.stableId == toggledStableId);
-      final toggledVisibleAfter = visibleIndicesAfter.indexOf(toggledActualAfter);
+      var targetVisibleIndex = visibleIndex.clamp(
+        0,
+        visibleIndicesAfter.length - 1,
+      );
+      final toggledActualAfter = _sections.indexWhere(
+        (s) => s.stableId == toggledStableId,
+      );
+      final toggledVisibleAfter = visibleIndicesAfter.indexOf(
+        toggledActualAfter,
+      );
       if (toggledVisibleAfter == targetVisibleIndex && targetVisibleIndex > 0) {
         targetVisibleIndex -= 1;
       }
@@ -1366,27 +1437,45 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
   void _enforceMergeAdjacency() {
     final merge = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
     if (merge) {
-      final resumeIdx = _sections.indexWhere((s) => s.type == HomeSectionType.resume);
-      final nextUpIdx = _sections.indexWhere((s) => s.type == HomeSectionType.nextUp);
-      if (resumeIdx >= 0 && nextUpIdx >= 0 && (resumeIdx - nextUpIdx).abs() != 1) {
+      final resumeIdx = _sections.indexWhere(
+        (s) => s.type == HomeSectionType.resume,
+      );
+      final nextUpIdx = _sections.indexWhere(
+        (s) => s.type == HomeSectionType.nextUp,
+      );
+      if (resumeIdx >= 0 &&
+          nextUpIdx >= 0 &&
+          (resumeIdx - nextUpIdx).abs() != 1) {
         final nextUpItem = _sections.removeAt(nextUpIdx);
         final nextUpNode = _focusNodes.removeAt(nextUpIdx);
 
-        final newResumeIdx = _sections.indexWhere((s) => s.type == HomeSectionType.resume);
+        final newResumeIdx = _sections.indexWhere(
+          (s) => s.type == HomeSectionType.resume,
+        );
         _sections.insert(newResumeIdx + 1, nextUpItem);
         _focusNodes.insert(newResumeIdx + 1, nextUpNode);
       }
     }
 
-    final mergeCalendars = _prefs.get(UserPreferences.mergeRadarrSonarrCalendars);
+    final mergeCalendars = _prefs.get(
+      UserPreferences.mergeRadarrSonarrCalendars,
+    );
     if (mergeCalendars) {
-      final radarrIdx = _sections.indexWhere((s) => s.type == HomeSectionType.radarrCalendar);
-      final sonarrIdx = _sections.indexWhere((s) => s.type == HomeSectionType.sonarrCalendar);
-      if (radarrIdx >= 0 && sonarrIdx >= 0 && (radarrIdx - sonarrIdx).abs() != 1) {
+      final radarrIdx = _sections.indexWhere(
+        (s) => s.type == HomeSectionType.radarrCalendar,
+      );
+      final sonarrIdx = _sections.indexWhere(
+        (s) => s.type == HomeSectionType.sonarrCalendar,
+      );
+      if (radarrIdx >= 0 &&
+          sonarrIdx >= 0 &&
+          (radarrIdx - sonarrIdx).abs() != 1) {
         final sonarrItem = _sections.removeAt(sonarrIdx);
         final sonarrNode = _focusNodes.removeAt(sonarrIdx);
 
-        final newRadarrIdx = _sections.indexWhere((s) => s.type == HomeSectionType.radarrCalendar);
+        final newRadarrIdx = _sections.indexWhere(
+          (s) => s.type == HomeSectionType.radarrCalendar,
+        );
         _sections.insert(newRadarrIdx + 1, sonarrItem);
         _focusNodes.insert(newRadarrIdx + 1, sonarrNode);
       }
@@ -1399,14 +1488,32 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
     if (fromIndex == toIndex) return;
 
     final merge = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
-    final resumeIdx = _sections.indexWhere((s) => s.type == HomeSectionType.resume);
-    final nextUpIdx = _sections.indexWhere((s) => s.type == HomeSectionType.nextUp);
-    final isMergeActive = merge && resumeIdx >= 0 && nextUpIdx >= 0 && (resumeIdx - nextUpIdx).abs() == 1;
+    final resumeIdx = _sections.indexWhere(
+      (s) => s.type == HomeSectionType.resume,
+    );
+    final nextUpIdx = _sections.indexWhere(
+      (s) => s.type == HomeSectionType.nextUp,
+    );
+    final isMergeActive =
+        merge &&
+        resumeIdx >= 0 &&
+        nextUpIdx >= 0 &&
+        (resumeIdx - nextUpIdx).abs() == 1;
 
-    final mergeCalendars = _prefs.get(UserPreferences.mergeRadarrSonarrCalendars);
-    final radarrIdx = _sections.indexWhere((s) => s.type == HomeSectionType.radarrCalendar);
-    final sonarrIdx = _sections.indexWhere((s) => s.type == HomeSectionType.sonarrCalendar);
-    final isMergeCalendarsActive = mergeCalendars && radarrIdx >= 0 && sonarrIdx >= 0 && (radarrIdx - sonarrIdx).abs() == 1;
+    final mergeCalendars = _prefs.get(
+      UserPreferences.mergeRadarrSonarrCalendars,
+    );
+    final radarrIdx = _sections.indexWhere(
+      (s) => s.type == HomeSectionType.radarrCalendar,
+    );
+    final sonarrIdx = _sections.indexWhere(
+      (s) => s.type == HomeSectionType.sonarrCalendar,
+    );
+    final isMergeCalendarsActive =
+        mergeCalendars &&
+        radarrIdx >= 0 &&
+        sonarrIdx >= 0 &&
+        (radarrIdx - sonarrIdx).abs() == 1;
 
     setState(() {
       if (isMergeActive && (fromIndex == resumeIdx || fromIndex == nextUpIdx)) {
@@ -1425,7 +1532,8 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
         _focusNodes.insert(targetIndex, node1);
         _sections.insert(targetIndex + 1, item2);
         _focusNodes.insert(targetIndex + 1, node2);
-      } else if (isMergeCalendarsActive && (fromIndex == radarrIdx || fromIndex == sonarrIdx)) {
+      } else if (isMergeCalendarsActive &&
+          (fromIndex == radarrIdx || fromIndex == sonarrIdx)) {
         final first = radarrIdx < sonarrIdx ? radarrIdx : sonarrIdx;
         final item1 = _sections.removeAt(first);
         final node1 = _focusNodes.removeAt(first);
@@ -1473,7 +1581,8 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
           targetIndex -= 1;
         }
         focusIndex = targetIndex;
-      } else if (isMergeCalendarsActive && (fromIndex == radarrIdx || fromIndex == sonarrIdx)) {
+      } else if (isMergeCalendarsActive &&
+          (fromIndex == radarrIdx || fromIndex == sonarrIdx)) {
         final first = radarrIdx < sonarrIdx ? radarrIdx : sonarrIdx;
         var targetIndex = toIndex;
         if (targetIndex > first) {
@@ -1639,7 +1748,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
                   _sections = HomeSectionConfig.defaults();
                   _sortSectionsEnabledAboveDisabled();
                   _rebuildFocusNodes();
-                   _setMergeContinueWatchingNextUp(
+                  _setMergeContinueWatchingNextUp(
                     UserPreferences.mergeContinueWatchingNextUp.defaultValue,
                     pushSync: false,
                   );
@@ -1707,485 +1816,593 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
             }
           },
         ),
-
       ],
     );
   }
 
   Widget _buildReorderableList(AppLocalizations l10n) {
     final visibleIndices = _visibleSectionIndices();
-    return ReorderableListView.builder(
-      buildDefaultDragHandles: false,
-      header: widget.showGeneralOptions ? _buildHeader(l10n) : null,
-      itemCount: visibleIndices.length,
-      onReorder: (oldIndex, newIndex) {
-        if (newIndex > oldIndex) newIndex--;
-        if (oldIndex < 0 || oldIndex >= visibleIndices.length) return;
-        if (newIndex < 0 || newIndex > visibleIndices.length) return;
+    final items = [for (final i in visibleIndices) _sections[i]];
+    return CustomScrollView(
+      slivers: [
+        if (widget.showGeneralOptions)
+          SliverToBoxAdapter(child: _buildHeader(l10n)),
+        ReorderableAnimatedListImpl<HomeSectionConfig>(
+          items: items,
+          scrollDirection: Axis.vertical,
+          buildDefaultDragHandles: true,
+          // Comparing the enabled state and turning off swap detection makes a
+          // toggled row read as a removal from its old slot and an insert at
+          // its sorted slot, so it animates instead of jumping.
+          isSameItem: (a, b) =>
+              a.stableId == b.stableId && a.enabled == b.enabled,
+          enableSwap: false,
+          enterTransition: [FadeIn(), SizeAnimation()],
+          exitTransition: [FadeIn(), SizeAnimation()],
+          onReorder: (oldIndex, newIndex) {
+            // The list reports newIndex as the final target position, so it
+            // does not need an index shift.
+            if (oldIndex < 0 || oldIndex >= visibleIndices.length) return;
+            if (newIndex < 0 || newIndex > visibleIndices.length) return;
 
-        final fromActual = visibleIndices[oldIndex];
-        var toActual = newIndex >= visibleIndices.length
-            ? _sections.length
-            : visibleIndices[newIndex];
+            final fromActual = visibleIndices[oldIndex];
+            var toActual = newIndex >= visibleIndices.length
+                ? _sections.length
+                : visibleIndices[newIndex];
 
-        if (toActual > fromActual) {
-          toActual--;
-        }
+            if (toActual > fromActual) {
+              toActual--;
+            }
 
-        if (toActual == fromActual) return;
+            if (toActual == fromActual) return;
 
-        _moveSection(fromActual, toActual);
-      },
-      itemBuilder: (context, index) {
-        final sectionIndex = visibleIndices[index];
-        final section = _sections[sectionIndex];
-        final isEmpty = _emptySectionIds.contains(section.stableId);
+            _moveSection(fromActual, toActual);
+          },
+          itemBuilder: (context, index) {
+            final sectionIndex = visibleIndices[index];
+            final section = _sections[sectionIndex];
+            final isEmpty = _emptySectionIds.contains(section.stableId);
 
-        final mergeEnabled = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
-        final isMergedResume = mergeEnabled && section.type == HomeSectionType.resume;
+            final mergeEnabled = _prefs.get(
+              UserPreferences.mergeContinueWatchingNextUp,
+            );
+            final isMergedResume =
+                mergeEnabled && section.type == HomeSectionType.resume;
 
-        if (isMergedResume) {
-          final nextUpIndex = _sections.indexWhere((s) => s.type == HomeSectionType.nextUp);
-          if (nextUpIndex >= 0) {
-            final nextUpSection = _sections[nextUpIndex];
-            final isNextUpEmpty = _emptySectionIds.contains(nextUpSection.stableId);
+            if (isMergedResume) {
+              final nextUpIndex = _sections.indexWhere(
+                (s) => s.type == HomeSectionType.nextUp,
+              );
+              if (nextUpIndex >= 0) {
+                final nextUpSection = _sections[nextUpIndex];
+                final isNextUpEmpty = _emptySectionIds.contains(
+                  nextUpSection.stableId,
+                );
+
+                return Padding(
+                  key: const ValueKey('merged_resume_nextup'),
+                  padding: _kHomeSectionTileOuterPadding,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerLow.withValues(alpha: 0.82),
+                      borderRadius: AppRadius.circular(_kHomeSectionTileRadius),
+                      border: Border.all(
+                        color: const Color(0xFF00F0FF), // Neon cyan border
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // 1. Continue Watching Tile
+                              Opacity(
+                                opacity: isEmpty ? 0.45 : 1.0,
+                                child: ListTile(
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  contentPadding: const EdgeInsets.only(
+                                    left: 16,
+                                    right: 8,
+                                    top: 4,
+                                    bottom: 4,
+                                  ),
+                                  minLeadingWidth: 44,
+                                  horizontalTitleGap: 14,
+                                  leading: buildSettingsLeadingIconShell(
+                                    context,
+                                    icon: Icon(
+                                      (section.enabled && !isEmpty)
+                                          ? Icons.check_box
+                                          : Icons.check_box_outline_blank,
+                                    ),
+                                    focused: false,
+                                    iconColor: AppColorScheme.onSurface
+                                        .withValues(alpha: 0.78),
+                                  ),
+                                  title: Text(
+                                    _labelFor(section, l10n),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: kCleanSettingsFontFamily,
+                                    ),
+                                  ),
+                                  onTap: isEmpty
+                                      ? null
+                                      : () => _toggleSection(
+                                          sectionIndex,
+                                          !section.enabled,
+                                        ),
+                                ),
+                              ),
+                              const Divider(
+                                height: 1,
+                                color: Color(0xFF00F0FF),
+                                indent: 16,
+                                endIndent: 16,
+                              ),
+                              // 2. Next Up Tile
+                              Opacity(
+                                opacity: isNextUpEmpty ? 0.45 : 1.0,
+                                child: ListTile(
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  contentPadding: const EdgeInsets.only(
+                                    left: 16,
+                                    right: 8,
+                                    top: 4,
+                                    bottom: 4,
+                                  ),
+                                  minLeadingWidth: 44,
+                                  horizontalTitleGap: 14,
+                                  leading: buildSettingsLeadingIconShell(
+                                    context,
+                                    icon: Icon(
+                                      (nextUpSection.enabled && !isNextUpEmpty)
+                                          ? Icons.check_box
+                                          : Icons.check_box_outline_blank,
+                                    ),
+                                    focused: false,
+                                    iconColor: AppColorScheme.onSurface
+                                        .withValues(alpha: 0.78),
+                                  ),
+                                  title: Text(
+                                    _labelFor(nextUpSection, l10n),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: kCleanSettingsFontFamily,
+                                    ),
+                                  ),
+                                  onTap: isNextUpEmpty
+                                      ? null
+                                      : () => _toggleSection(
+                                          nextUpIndex,
+                                          !nextUpSection.enabled,
+                                        ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Centered unified drag handle
+                        Padding(
+                          padding: const EdgeInsets.only(right: 16),
+                          child: ReorderableDragStartListener(
+                            index: index,
+                            child: const Icon(
+                              Icons.drag_handle,
+                              color: Color(0xFF00F0FF), // Neon cyan handle
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+            }
+
+            final mergeCalendarsEnabled = _prefs.get(
+              UserPreferences.mergeRadarrSonarrCalendars,
+            );
+            final isMergedCalendars =
+                mergeCalendarsEnabled &&
+                section.type == HomeSectionType.radarrCalendar;
+
+            if (isMergedCalendars) {
+              final sonarrIndex = _sections.indexWhere(
+                (s) => s.type == HomeSectionType.sonarrCalendar,
+              );
+              if (sonarrIndex >= 0) {
+                final sonarrSection = _sections[sonarrIndex];
+                final isSonarrEmpty = _emptySectionIds.contains(
+                  sonarrSection.stableId,
+                );
+
+                return Padding(
+                  key: const ValueKey('merged_radarr_sonarr_calendars'),
+                  padding: _kHomeSectionTileOuterPadding,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerLow.withValues(alpha: 0.82),
+                      borderRadius: AppRadius.circular(_kHomeSectionTileRadius),
+                      border: Border.all(
+                        color: const Color(0xFF00F0FF), // Neon cyan border
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // 1. Radarr Calendar Tile
+                              Opacity(
+                                opacity: isEmpty ? 0.45 : 1.0,
+                                child: ListTile(
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  contentPadding: const EdgeInsets.only(
+                                    left: 16,
+                                    right: 8,
+                                    top: 4,
+                                    bottom: 4,
+                                  ),
+                                  minLeadingWidth: 44,
+                                  horizontalTitleGap: 14,
+                                  leading: buildSettingsLeadingIconShell(
+                                    context,
+                                    icon: Icon(
+                                      (section.enabled && !isEmpty)
+                                          ? Icons.check_box
+                                          : Icons.check_box_outline_blank,
+                                    ),
+                                    focused: false,
+                                    iconColor: AppColorScheme.onSurface
+                                        .withValues(alpha: 0.78),
+                                  ),
+                                  title: Text(
+                                    _labelFor(section, l10n),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: kCleanSettingsFontFamily,
+                                    ),
+                                  ),
+                                  onTap: isEmpty
+                                      ? null
+                                      : () => _toggleSection(
+                                          sectionIndex,
+                                          !section.enabled,
+                                        ),
+                                ),
+                              ),
+                              const Divider(
+                                height: 1,
+                                color: Color(0xFF00F0FF),
+                                indent: 16,
+                                endIndent: 16,
+                              ),
+                              // 2. Sonarr Calendar Tile
+                              Opacity(
+                                opacity: isSonarrEmpty ? 0.45 : 1.0,
+                                child: ListTile(
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  contentPadding: const EdgeInsets.only(
+                                    left: 16,
+                                    right: 8,
+                                    top: 4,
+                                    bottom: 4,
+                                  ),
+                                  minLeadingWidth: 44,
+                                  horizontalTitleGap: 14,
+                                  leading: buildSettingsLeadingIconShell(
+                                    context,
+                                    icon: Icon(
+                                      (sonarrSection.enabled && !isSonarrEmpty)
+                                          ? Icons.check_box
+                                          : Icons.check_box_outline_blank,
+                                    ),
+                                    focused: false,
+                                    iconColor: AppColorScheme.onSurface
+                                        .withValues(alpha: 0.78),
+                                  ),
+                                  title: Text(
+                                    _labelFor(sonarrSection, l10n),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: kCleanSettingsFontFamily,
+                                    ),
+                                  ),
+                                  onTap: isSonarrEmpty
+                                      ? null
+                                      : () => _toggleSection(
+                                          sonarrIndex,
+                                          !sonarrSection.enabled,
+                                        ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Centered unified drag handle
+                        Padding(
+                          padding: const EdgeInsets.only(right: 16),
+                          child: ReorderableDragStartListener(
+                            index: index,
+                            child: const Icon(
+                              Icons.drag_handle,
+                              color: Color(0xFF00F0FF), // Neon cyan handle
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+            }
 
             return Padding(
-              key: const ValueKey('merged_resume_nextup'),
+              key: ValueKey('${section.stableId}:${section.enabled}'),
               padding: _kHomeSectionTileOuterPadding,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerLow.withValues(alpha: 0.82),
-                  borderRadius: AppRadius.circular(_kHomeSectionTileRadius),
-                  border: Border.all(
-                    color: const Color(0xFF00F0FF), // Neon cyan border
-                    width: 1.5,
+              child: Opacity(
+                opacity: isEmpty ? 0.45 : 1.0,
+                child: Container(
+                  decoration: _homeSectionTileDecoration(
+                    context,
+                    focused: false,
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // 1. Continue Watching Tile
-                          Opacity(
-                            opacity: isEmpty ? 0.45 : 1.0,
-                            child: ListTile(
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              contentPadding: const EdgeInsets.only(left: 16, right: 8, top: 4, bottom: 4),
-                              minLeadingWidth: 44,
-                              horizontalTitleGap: 14,
-                              leading: buildSettingsLeadingIconShell(
-                                context,
-                                icon: Icon(
-                                  (section.enabled && !isEmpty)
-                                      ? Icons.check_box
-                                      : Icons.check_box_outline_blank,
-                                ),
-                                focused: false,
-                                iconColor: AppColorScheme.onSurface.withValues(alpha: 0.78),
-                              ),
-                              title: Text(
-                                _labelFor(section, l10n),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: kCleanSettingsFontFamily,
-                                ),
-                              ),
-                              onTap: isEmpty
-                                  ? null
-                                  : () => _toggleSection(sectionIndex, !section.enabled),
-                            ),
-                          ),
-                          const Divider(height: 1, color: Color(0xFF00F0FF), indent: 16, endIndent: 16),
-                          // 2. Next Up Tile
-                          Opacity(
-                            opacity: isNextUpEmpty ? 0.45 : 1.0,
-                            child: ListTile(
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              contentPadding: const EdgeInsets.only(left: 16, right: 8, top: 4, bottom: 4),
-                              minLeadingWidth: 44,
-                              horizontalTitleGap: 14,
-                              leading: buildSettingsLeadingIconShell(
-                                context,
-                                icon: Icon(
-                                  (nextUpSection.enabled && !isNextUpEmpty)
-                                      ? Icons.check_box
-                                      : Icons.check_box_outline_blank,
-                                ),
-                                focused: false,
-                                iconColor: AppColorScheme.onSurface.withValues(alpha: 0.78),
-                              ),
-                              title: Text(
-                                _labelFor(nextUpSection, l10n),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: kCleanSettingsFontFamily,
-                                ),
-                              ),
-                              onTap: isNextUpEmpty
-                                  ? null
-                                  : () => _toggleSection(nextUpIndex, !nextUpSection.enabled),
-                            ),
-                          ),
-                        ],
+                  child: ListTile(
+                    focusColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    contentPadding: _kHomeSectionTileContentPadding,
+                    minLeadingWidth: 44,
+                    horizontalTitleGap: 14,
+                    leading: buildSettingsLeadingIconShell(
+                      context,
+                      icon: Icon(
+                        (section.enabled && !isEmpty)
+                            ? Icons.check_box
+                            : Icons.check_box_outline_blank,
+                      ),
+                      focused: false,
+                      iconColor: AppColorScheme.onSurface.withValues(
+                        alpha: 0.78,
                       ),
                     ),
-                    // Centered unified drag handle
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: ReorderableDragStartListener(
-                        index: index,
-                        child: const Icon(
-                          Icons.drag_handle,
-                          color: Color(0xFF00F0FF), // Neon cyan handle
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-        }
-
-        final mergeCalendarsEnabled = _prefs.get(UserPreferences.mergeRadarrSonarrCalendars);
-        final isMergedCalendars = mergeCalendarsEnabled && section.type == HomeSectionType.radarrCalendar;
-
-        if (isMergedCalendars) {
-          final sonarrIndex = _sections.indexWhere((s) => s.type == HomeSectionType.sonarrCalendar);
-          if (sonarrIndex >= 0) {
-            final sonarrSection = _sections[sonarrIndex];
-            final isSonarrEmpty = _emptySectionIds.contains(sonarrSection.stableId);
-
-            return Padding(
-              key: const ValueKey('merged_radarr_sonarr_calendars'),
-              padding: _kHomeSectionTileOuterPadding,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerLow.withValues(alpha: 0.82),
-                  borderRadius: AppRadius.circular(_kHomeSectionTileRadius),
-                  border: Border.all(
-                    color: const Color(0xFF00F0FF), // Neon cyan border
-                    width: 1.5,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // 1. Radarr Calendar Tile
-                          Opacity(
-                            opacity: isEmpty ? 0.45 : 1.0,
-                            child: ListTile(
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              contentPadding: const EdgeInsets.only(left: 16, right: 8, top: 4, bottom: 4),
-                              minLeadingWidth: 44,
-                              horizontalTitleGap: 14,
-                              leading: buildSettingsLeadingIconShell(
-                                context,
-                                icon: Icon(
-                                  (section.enabled && !isEmpty)
-                                      ? Icons.check_box
-                                      : Icons.check_box_outline_blank,
-                                ),
-                                focused: false,
-                                iconColor: AppColorScheme.onSurface.withValues(alpha: 0.78),
-                              ),
-                              title: Text(
-                                _labelFor(section, l10n),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: kCleanSettingsFontFamily,
-                                ),
-                              ),
-                              onTap: isEmpty
-                                  ? null
-                                  : () => _toggleSection(sectionIndex, !section.enabled),
-                            ),
-                          ),
-                          const Divider(height: 1, color: Color(0xFF00F0FF), indent: 16, endIndent: 16),
-                          // 2. Sonarr Calendar Tile
-                          Opacity(
-                            opacity: isSonarrEmpty ? 0.45 : 1.0,
-                            child: ListTile(
-                              focusColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              contentPadding: const EdgeInsets.only(left: 16, right: 8, top: 4, bottom: 4),
-                              minLeadingWidth: 44,
-                              horizontalTitleGap: 14,
-                              leading: buildSettingsLeadingIconShell(
-                                context,
-                                icon: Icon(
-                                  (sonarrSection.enabled && !isSonarrEmpty)
-                                      ? Icons.check_box
-                                      : Icons.check_box_outline_blank,
-                                ),
-                                focused: false,
-                                iconColor: AppColorScheme.onSurface.withValues(alpha: 0.78),
-                              ),
-                              title: Text(
-                                _labelFor(sonarrSection, l10n),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: kCleanSettingsFontFamily,
-                                ),
-                              ),
-                              onTap: isSonarrEmpty
-                                  ? null
-                                  : () => _toggleSection(sonarrIndex, !sonarrSection.enabled),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Centered unified drag handle
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: ReorderableDragStartListener(
-                        index: index,
-                        child: const Icon(
-                          Icons.drag_handle,
-                          color: Color(0xFF00F0FF), // Neon cyan handle
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-        }
-
-        return Padding(
-          key: ValueKey(section.stableId),
-          padding: _kHomeSectionTileOuterPadding,
-          child: Opacity(
-            opacity: isEmpty ? 0.45 : 1.0,
-            child: Container(
-              decoration: _homeSectionTileDecoration(context, focused: false),
-              child: ListTile(
-                focusColor: Colors.transparent,
-                hoverColor: Colors.transparent,
-                contentPadding: _kHomeSectionTileContentPadding,
-                minLeadingWidth: 44,
-                horizontalTitleGap: 14,
-                leading: buildSettingsLeadingIconShell(
-                  context,
-                  icon: Icon(
-                    (section.enabled && !isEmpty)
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank,
-                  ),
-                  focused: false,
-                  iconColor: AppColorScheme.onSurface.withValues(alpha: 0.78),
-                ),
-                title: Row(
-                  children: [
-                    Text(
-                      _labelFor(section, l10n),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: kCleanSettingsFontFamily,
-                      ),
-                    ),
-                    if (isEmpty) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.15),
-                          borderRadius: AppRadius.circular(4),
-                          border: Border.all(
-                            color: Colors.red.withValues(alpha: 0.5),
-                            width: 0.8,
-                          ),
-                        ),
-                        child: Text(
-                          l10n.empty,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
+                    title: Row(
+                      children: [
+                        Text(
+                          _labelFor(section, l10n),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
                             fontFamily: kCleanSettingsFontFamily,
                           ),
                         ),
-                      ),
-                    ],
-                  ],
-                ),
-                subtitle: section.isPluginDynamic
-                    ? Text(
-                        _pluginSubtitle(section),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: kCleanSettingsFontFamily,
-                          color: AppColorScheme.onSurface.withValues(
-                            alpha: 0.7,
+                        if (isEmpty) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.15),
+                              borderRadius: AppRadius.circular(4),
+                              border: Border.all(
+                                color: Colors.red.withValues(alpha: 0.5),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              l10n.empty,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: kCleanSettingsFontFamily,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    subtitle: section.isPluginDynamic
+                        ? Text(
+                            _pluginSubtitle(section),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFamily: kCleanSettingsFontFamily,
+                              color: AppColorScheme.onSurface.withValues(
+                                alpha: 0.7,
+                              ),
+                            ),
+                          )
+                        : (_isAudioSectionType(section.type)
+                              ? Text(
+                                  'Audio row',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: kCleanSettingsFontFamily,
+                                    color: AppColorScheme.onSurface.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                  ),
+                                )
+                              : (_isSeerrSectionType(section.type)
+                                    ? Text(
+                                        'Seerr Discovery Rows',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontFamily: kCleanSettingsFontFamily,
+                                          color: AppColorScheme.onSurface
+                                              .withValues(alpha: 0.7),
+                                        ),
+                                      )
+                                    : (_isImdbSectionType(section.type)
+                                          ? Text(
+                                              'IMDb List',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontFamily:
+                                                    kCleanSettingsFontFamily,
+                                                color: AppColorScheme.onSurface
+                                                    .withValues(alpha: 0.7),
+                                              ),
+                                            )
+                                          : (_isTmdbSectionType(section.type)
+                                                ? Text(
+                                                    'TMDB Lists',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontFamily:
+                                                          kCleanSettingsFontFamily,
+                                                      color: AppColorScheme
+                                                          .onSurface
+                                                          .withValues(
+                                                            alpha: 0.7,
+                                                          ),
+                                                    ),
+                                                  )
+                                                : null)))),
+                    onTap: isEmpty
+                        ? null
+                        : () => _toggleSection(sectionIndex, !section.enabled),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ReorderableDragStartListener(
+                          index: index,
+                          child: Icon(
+                            Icons.drag_handle,
+                            color: AppColorScheme.onSurface.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                         ),
-                      )
-                    : (_isAudioSectionType(section.type)
-                          ? Text(
-                              'Audio row',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontFamily: kCleanSettingsFontFamily,
-                                color: AppColorScheme.onSurface.withValues(
-                                  alpha: 0.7,
-                                ),
-                              ),
-                            )
-                          : (_isSeerrSectionType(section.type)
-                                ? Text(
-                                    'Seerr Discovery Rows',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontFamily: kCleanSettingsFontFamily,
-                                      color: AppColorScheme.onSurface
-                                          .withValues(alpha: 0.7),
-                                    ),
-                                  )
-                                : (_isImdbSectionType(section.type)
-                                      ? Text(
-                                          'IMDb List',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontFamily: kCleanSettingsFontFamily,
-                                            color: AppColorScheme.onSurface
-                                                .withValues(alpha: 0.7),
-                                          ),
-                                        )
-                                      : (_isTmdbSectionType(section.type)
-                                            ? Text(
-                                                'TMDB Lists',
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontFamily: kCleanSettingsFontFamily,
-                                                  color: AppColorScheme.onSurface
-                                                      .withValues(alpha: 0.7),
-                                                ),
-                                              )
-                                            : null)))),
-                onTap: isEmpty
-                    ? null
-                    : () => _toggleSection(sectionIndex, !section.enabled),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ReorderableDragStartListener(
-                      index: index,
-                      child: Icon(
-                        Icons.drag_handle,
-                        color: AppColorScheme.onSurface.withValues(alpha: 0.7),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ],
     );
   }
 
   Widget _buildTvList(AppLocalizations l10n) {
     final visibleIndices = _visibleSectionIndices();
-    return ListView.builder(
+    final items = [for (final i in visibleIndices) _sections[i]];
+    return CustomScrollView(
       cacheExtent: 3000.0,
-      itemCount: visibleIndices.length + (widget.showGeneralOptions ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (widget.showGeneralOptions && index == 0) {
-          return _buildHeader(l10n);
-        }
-        final visibleIndex = index - (widget.showGeneralOptions ? 1 : 0);
-        final sectionIndex = visibleIndices[visibleIndex];
-        final section = _sections[sectionIndex];
-        final isEmpty = _emptySectionIds.contains(section.stableId);
-        final mergeEnabled = _prefs.get(UserPreferences.mergeContinueWatchingNextUp);
-        final mergeCalendarsEnabled = _prefs.get(UserPreferences.mergeRadarrSonarrCalendars);
-
-        if (mergeEnabled && section.type == HomeSectionType.resume) {
-          final nextUpIndex = _sections.indexWhere((s) => s.type == HomeSectionType.nextUp);
-          if (nextUpIndex >= 0) {
-            return _buildMergedTvTile(
-              context,
-              sectionIndex,
-              nextUpIndex,
-              l10n,
-              visibleIndex == 0,
-              visibleIndex == visibleIndices.length - 1,
+      slivers: [
+        if (widget.showGeneralOptions)
+          SliverToBoxAdapter(child: _buildHeader(l10n)),
+        ReorderableAnimatedListImpl<HomeSectionConfig>(
+          items: items,
+          scrollDirection: Axis.vertical,
+          // Comparing the enabled state and turning off swap detection makes a
+          // toggled row read as a removal from its old slot and an insert at
+          // its sorted slot, so it animates instead of jumping.
+          isSameItem: (a, b) =>
+              a.stableId == b.stableId && a.enabled == b.enabled,
+          enableSwap: false,
+          enterTransition: [FadeIn(), SizeAnimation()],
+          exitTransition: [FadeIn(), SizeAnimation()],
+          itemBuilder: (context, index) {
+            final visibleIndex = index;
+            final sectionIndex = visibleIndices[visibleIndex];
+            final section = _sections[sectionIndex];
+            final isEmpty = _emptySectionIds.contains(section.stableId);
+            final mergeEnabled = _prefs.get(
+              UserPreferences.mergeContinueWatchingNextUp,
             );
-          }
-        }
-
-        if (mergeCalendarsEnabled && section.type == HomeSectionType.radarrCalendar) {
-          final sonarrIndex = _sections.indexWhere((s) => s.type == HomeSectionType.sonarrCalendar);
-          if (sonarrIndex >= 0) {
-            return _buildMergedTvTile(
-              context,
-              sectionIndex,
-              sonarrIndex,
-              l10n,
-              visibleIndex == 0,
-              visibleIndex == visibleIndices.length - 1,
+            final mergeCalendarsEnabled = _prefs.get(
+              UserPreferences.mergeRadarrSonarrCalendars,
             );
-          }
-        }
 
-        return _HomeSectionTile(
-          key: ValueKey(section.stableId),
-          focusNode: _focusNodes[sectionIndex],
-          type: section.type,
-          autofocus: visibleIndex == 0,
-          label: _labelFor(section, l10n),
-          subtitle: section.isPluginDynamic
-              ? _pluginSubtitle(section)
-              : (_isAudioSectionType(section.type)
-                    ? 'Audio row'
-                    : (_isSeerrSectionType(section.type)
-                          ? 'Seerr Discovery Rows'
-                          : (_isImdbSectionType(section.type)
-                                ? 'IMDb List'
-                                : (_isTmdbSectionType(section.type)
-                                      ? 'TMDB Lists'
-                                      : null)))),
-          enabled: section.enabled,
-          isFirst: visibleIndex == 0,
-          isLast: visibleIndex == visibleIndices.length - 1,
-          isEmpty: isEmpty,
-          onToggle: (enabled) => _toggleSection(sectionIndex, enabled),
-          onMoveUp: () {
-            if (visibleIndex == 0) return;
-            _moveSection(
-              sectionIndex,
-              visibleIndices[visibleIndex - 1],
+            if (mergeEnabled && section.type == HomeSectionType.resume) {
+              final nextUpIndex = _sections.indexWhere(
+                (s) => s.type == HomeSectionType.nextUp,
+              );
+              if (nextUpIndex >= 0) {
+                return _buildMergedTvTile(
+                  context,
+                  sectionIndex,
+                  nextUpIndex,
+                  l10n,
+                  visibleIndex == 0,
+                  visibleIndex == visibleIndices.length - 1,
+                );
+              }
+            }
+
+            if (mergeCalendarsEnabled &&
+                section.type == HomeSectionType.radarrCalendar) {
+              final sonarrIndex = _sections.indexWhere(
+                (s) => s.type == HomeSectionType.sonarrCalendar,
+              );
+              if (sonarrIndex >= 0) {
+                return _buildMergedTvTile(
+                  context,
+                  sectionIndex,
+                  sonarrIndex,
+                  l10n,
+                  visibleIndex == 0,
+                  visibleIndex == visibleIndices.length - 1,
+                );
+              }
+            }
+
+            return _HomeSectionTile(
+              key: ValueKey('${section.stableId}:${section.enabled}'),
+              focusNode: _focusNodes[sectionIndex],
+              type: section.type,
+              autofocus: visibleIndex == 0,
+              label: _labelFor(section, l10n),
+              subtitle: section.isPluginDynamic
+                  ? _pluginSubtitle(section)
+                  : (_isAudioSectionType(section.type)
+                        ? 'Audio row'
+                        : (_isSeerrSectionType(section.type)
+                              ? 'Seerr Discovery Rows'
+                              : (_isImdbSectionType(section.type)
+                                    ? 'IMDb List'
+                                    : (_isTmdbSectionType(section.type)
+                                          ? 'TMDB Lists'
+                                          : null)))),
+              enabled: section.enabled,
+              isFirst: visibleIndex == 0,
+              isLast: visibleIndex == visibleIndices.length - 1,
+              isEmpty: isEmpty,
+              onToggle: (enabled) => _toggleSection(sectionIndex, enabled),
+              onMoveUp: () {
+                if (visibleIndex == 0) return;
+                _moveSection(sectionIndex, visibleIndices[visibleIndex - 1]);
+              },
+              onMoveDown: () {
+                if (visibleIndex >= visibleIndices.length - 1) return;
+                _moveSection(sectionIndex, visibleIndices[visibleIndex + 1]);
+              },
             );
           },
-          onMoveDown: () {
-            if (visibleIndex >= visibleIndices.length - 1) return;
-            _moveSection(
-              sectionIndex,
-              visibleIndices[visibleIndex + 1],
-            );
-          },
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -2206,7 +2423,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
     final nextUpNode = _focusNodes[nextUpSectionIndex];
 
     return AnimatedBuilder(
-      key: ValueKey(resumeSection.stableId),
+      key: ValueKey('${resumeSection.stableId}:${resumeSection.enabled}'),
       animation: Listenable.merge([resumeNode, nextUpNode]),
       builder: (context, _) {
         final resumeFocused = resumeNode.hasFocus;
@@ -2231,10 +2448,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainerLow.withValues(alpha: 0.82),
               borderRadius: AppRadius.circular(_kHomeSectionTileRadius),
-              border: Border.all(
-                color: borderColor,
-                width: borderWidth,
-              ),
+              border: Border.all(color: borderColor, width: borderWidth),
               boxShadow: anyFocused
                   ? [
                       BoxShadow(
@@ -2259,20 +2473,32 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
                   isFirst: isFirst,
                   isLast: isLast,
                   autofocus: isFirst,
-                  showArrows: resumeFocused || (!resumeFocused && !nextUpFocused),
-                  onToggle: (enabled) => _toggleSection(resumeSectionIndex, enabled),
+                  showArrows:
+                      resumeFocused || (!resumeFocused && !nextUpFocused),
+                  onToggle: (enabled) =>
+                      _toggleSection(resumeSectionIndex, enabled),
                   onMoveUp: () {
                     if (isFirst) return;
                     final visibleIndices = _visibleSectionIndices();
-                    final currentIdx = visibleIndices.indexOf(resumeSectionIndex);
-                    _moveSection(resumeSectionIndex, visibleIndices[currentIdx - 1]);
+                    final currentIdx = visibleIndices.indexOf(
+                      resumeSectionIndex,
+                    );
+                    _moveSection(
+                      resumeSectionIndex,
+                      visibleIndices[currentIdx - 1],
+                    );
                   },
                   onMoveDown: () {
                     if (isLast) return;
                     final visibleIndices = _visibleSectionIndices();
-                    final currentIdx = visibleIndices.indexOf(resumeSectionIndex);
+                    final currentIdx = visibleIndices.indexOf(
+                      resumeSectionIndex,
+                    );
                     if (currentIdx >= visibleIndices.length - 1) return;
-                    _moveSection(resumeSectionIndex, visibleIndices[currentIdx + 1]);
+                    _moveSection(
+                      resumeSectionIndex,
+                      visibleIndices[currentIdx + 1],
+                    );
                   },
                 ),
                 Divider(
@@ -2291,19 +2517,30 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
                   isFirst: isFirst,
                   isLast: isLast,
                   showArrows: nextUpFocused,
-                  onToggle: (enabled) => _toggleSection(nextUpSectionIndex, enabled),
+                  onToggle: (enabled) =>
+                      _toggleSection(nextUpSectionIndex, enabled),
                   onMoveUp: () {
                     if (isFirst) return;
                     final visibleIndices = _visibleSectionIndices();
-                    final currentIdx = visibleIndices.indexOf(resumeSectionIndex);
-                    _moveSection(resumeSectionIndex, visibleIndices[currentIdx - 1]);
+                    final currentIdx = visibleIndices.indexOf(
+                      resumeSectionIndex,
+                    );
+                    _moveSection(
+                      resumeSectionIndex,
+                      visibleIndices[currentIdx - 1],
+                    );
                   },
                   onMoveDown: () {
                     if (isLast) return;
                     final visibleIndices = _visibleSectionIndices();
-                    final currentIdx = visibleIndices.indexOf(resumeSectionIndex);
+                    final currentIdx = visibleIndices.indexOf(
+                      resumeSectionIndex,
+                    );
                     if (currentIdx >= visibleIndices.length - 1) return;
-                    _moveSection(resumeSectionIndex, visibleIndices[currentIdx + 1]);
+                    _moveSection(
+                      resumeSectionIndex,
+                      visibleIndices[currentIdx + 1],
+                    );
                   },
                 ),
               ],
@@ -2371,9 +2608,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
         opacity: isEmpty ? 0.45 : 1.0,
         child: Container(
           decoration: BoxDecoration(
-            color: focused
-                ? AppColorScheme.onSurface
-                : Colors.transparent,
+            color: focused ? AppColorScheme.onSurface : Colors.transparent,
             borderRadius: AppRadius.circular(12),
           ),
           child: ListTile(
@@ -2410,7 +2645,10 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
                 if (isEmpty) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.red.withValues(alpha: 0.15),
                       borderRadius: AppRadius.circular(4),
@@ -2478,29 +2716,31 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen> with RouteAware
       HomeSectionPluginSource.genres => 'Genres row',
       HomeSectionPluginSource.playlists => 'Playlists row',
       HomeSectionPluginSource.custom => (() {
-          Map<String, dynamic> rowConfig = {};
-          try {
-            rowConfig = jsonDecode(section.pluginAdditionalData ?? '{}') as Map<String, dynamic>;
-          } catch (_) {}
-          final source = rowConfig['source'] as String? ?? 'imdb';
-          final type = rowConfig['type'] as String? ?? 'user_list';
-          final sourceLabel = switch (source) {
-            'imdb' => 'IMDb',
-            'tmdb' => 'TMDB',
-            'letterboxd' => 'Letterboxd',
-            'mdblist' => 'MDBList',
-            _ => source.toUpperCase(),
-          };
-          final typeLabel = switch (type) {
-            'user_list' => 'Custom List',
-            'watchlist' => 'Watchlist',
-            'films' => 'Films',
-            'awards_events' => 'Awards/Events',
-            'movie_collection' => 'Movie Collection',
-            _ => type,
-          };
-          return '$sourceLabel $typeLabel';
-        })(),
+        Map<String, dynamic> rowConfig = {};
+        try {
+          rowConfig =
+              jsonDecode(section.pluginAdditionalData ?? '{}')
+                  as Map<String, dynamic>;
+        } catch (_) {}
+        final source = rowConfig['source'] as String? ?? 'imdb';
+        final type = rowConfig['type'] as String? ?? 'user_list';
+        final sourceLabel = switch (source) {
+          'imdb' => 'IMDb',
+          'tmdb' => 'TMDB',
+          'letterboxd' => 'Letterboxd',
+          'mdblist' => 'MDBList',
+          _ => source.toUpperCase(),
+        };
+        final typeLabel = switch (type) {
+          'user_list' => 'Custom List',
+          'watchlist' => 'Watchlist',
+          'films' => 'Films',
+          'awards_events' => 'Awards/Events',
+          'movie_collection' => 'Movie Collection',
+          _ => type,
+        };
+        return '$sourceLabel $typeLabel';
+      })(),
     };
   }
 }
