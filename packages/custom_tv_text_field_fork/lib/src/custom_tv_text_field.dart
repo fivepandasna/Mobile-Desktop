@@ -112,6 +112,7 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
   final FocusNode _keyboardFocusNode = FocusNode();
   final FocusNode _systemInputFocusNode = FocusNode();
   FocusNode? _focusToRestoreAfterOverlay;
+  BuildContext? _keyboardOverlayContext;
 
   bool _useSystemImeSession = false;
 
@@ -235,12 +236,24 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
           mounted &&
           Navigator.canPop(context)) {
         Navigator.pop(context);
+      } else {
+        _dismissKeyboardOverlay();
       }
     }
     if (mounted) {
       setState(() {});
     }
     _notifyVisibilityChanged();
+  }
+
+  void _dismissKeyboardOverlay() {
+    final overlayContext = _keyboardOverlayContext;
+    _keyboardOverlayContext = null;
+    if (overlayContext != null &&
+        overlayContext.mounted &&
+        Navigator.canPop(overlayContext)) {
+      Navigator.pop(overlayContext);
+    }
   }
 
   void _onSystemInputFocusChanged() {
@@ -396,19 +409,23 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withValues(alpha: 0.01),
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.zero,
-        child: CustomKeyboard(
-          keyboardController: _keyboardController,
-          focusNode: _keyboardFocusNode,
-          keyboardType: widget.keyboardType,
-          inputPurpose: widget.inputPurpose,
-          suggestionsBuilder: widget.suggestionsBuilder,
-          recentSuggestions: widget.recentSuggestions,
-        ),
-      ),
+      builder: (dialogContext) {
+        _keyboardOverlayContext = dialogContext;
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.zero,
+          child: CustomKeyboard(
+            keyboardController: _keyboardController,
+            focusNode: _keyboardFocusNode,
+            keyboardType: widget.keyboardType,
+            inputPurpose: widget.inputPurpose,
+            suggestionsBuilder: widget.suggestionsBuilder,
+            recentSuggestions: widget.recentSuggestions,
+          ),
+        );
+      },
     ).whenComplete(() {
+      _keyboardOverlayContext = null;
       _isOverlayOpen.value = false;
       if (_keyboardController.isVisible) {
         _keyboardController.hide(false);

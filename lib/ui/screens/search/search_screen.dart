@@ -67,6 +67,8 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
   List<String> _recentSearches = const [];
   static const _tmdbPosterBase = 'https://image.tmdb.org/t/p/w342';
   int _selectedTab = 0;
+  String? _tabSelectionQuery;
+  bool _focusTabsAfterResults = false;
 
   // Tracks the current grid tab's content so async refreshes can restore focus
   // without stealing it from the search field.
@@ -129,7 +131,22 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
   }
 
   void _onViewModelChanged() {
-    if (_selectedTab >= _tabCount) _selectedTab = 0;
+    final query = _searchController.text.trim();
+    if (_tabCount > 0 && query != _tabSelectionQuery) {
+      _tabSelectionQuery = query;
+      _selectedTab = _seerrTabOffset;
+    } else if (_selectedTab >= _tabCount) {
+      _selectedTab = _tabCount == 0 ? 0 : _seerrTabOffset;
+    }
+    if (_focusTabsAfterResults && _tabCount > 0) {
+      _focusTabsAfterResults = false;
+      _selectedTab = _seerrTabOffset;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _tabsFocusNode.canRequestFocus) {
+          _tabsFocusNode.requestFocus();
+        }
+      });
+    }
     _maybeBumpGridVersion();
     if (mounted) setState(() {});
   }
@@ -204,12 +221,7 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
     unawaited(_saveRecentSearch(trimmed));
 
     if (PlatformDetection.isTV) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        if (_searchFocus.canRequestFocus) {
-          _searchFocus.requestFocus();
-        }
-      });
+      _focusTabsAfterResults = true;
     }
   }
 
@@ -236,19 +248,23 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
     );
   }
 
-  // Tab 0 is the "All" tab (row layout); groups follow, then the Seerr tab.
+  // Seerr is the first tab when it has results, then the All tab, then the
+  // group tabs.
   int get _tabCount {
     final content = _vm.results.length + (_vm.seerrResults.isNotEmpty ? 1 : 0);
     return content == 0 ? 0 : content + 1;
   }
 
-  bool _tabIsAll(int index) => index == 0;
+  // How many tabs sit before the All tab, which is just the Seerr tab when it
+  // is shown. This is also the index of the All tab.
+  int get _seerrTabOffset => _vm.seerrResults.isNotEmpty ? 1 : 0;
 
-  bool _tabIsSeerr(int index) =>
-      _vm.seerrResults.isNotEmpty && index == _tabCount - 1;
+  bool _tabIsSeerr(int index) => _vm.seerrResults.isNotEmpty && index == 0;
 
-  // The _vm.results index for a group tab (tabs 1.._vm.results.length).
-  int _groupIndex(int tab) => tab - 1;
+  bool _tabIsAll(int index) => index == _seerrTabOffset;
+
+  // The _vm.results index for a group tab, which follow the All tab.
+  int _groupIndex(int tab) => tab - _seerrTabOffset - 1;
 
   void _selectTab(int index) {
     if (index == _selectedTab) return;
@@ -987,11 +1003,11 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
         _vm.results.fold<int>(0, (s, g) => s + g.items.length) +
         _vm.seerrResults.length;
     final labels = <String>[
+      if (_vm.seerrResults.isNotEmpty)
+        '$seerrLabel: ${_vm.seerrResults.length}',
       '${l10n.all}: $totalCount',
       for (final group in _vm.results)
         '${localizeSearchGroupTitle(group.title, l10n)}: ${group.items.length}',
-      if (_vm.seerrResults.isNotEmpty)
-        '$seerrLabel: ${_vm.seerrResults.length}',
     ];
 
     final isMobile = PlatformDetection.useMobileUi;
@@ -1162,6 +1178,7 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
     final groups = _vm.results;
 
     final hasSeerr = _vm.seerrResults.isNotEmpty;
+    // Library groups come first, then the Seerr row last when it has results.
     final rowLens = <int>[
       for (final g in groups) g.items.length,
       if (hasSeerr) _vm.seerrResults.length,
@@ -1181,6 +1198,7 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
             for (var c = 0; c < group.items.length; c++)
               _buildAllItemCard(
                 r,
+                r,
                 c,
                 cardWidth,
                 ar,
@@ -1193,19 +1211,20 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
       );
     }
     if (hasSeerr) {
+      final seerrRow = groups.length;
       final cardWidth = 108.0;
       final seerrLabel = GetIt.instance<SeerrPreferences>().labelOrDefault(
         l10n.seerr,
       );
       rows.add(
         LibraryRow(
-          key: _allRowKey(groups.length),
+          key: _allRowKey(seerrRow),
           title: seerrLabel,
           rowHeight: cardWidth / (2 / 3) + 56,
           children: [
             for (var c = 0; c < _vm.seerrResults.length; c++)
               _buildAllSeerrCard(
-                groups.length,
+                seerrRow,
                 c,
                 cardWidth,
                 rowLens,
@@ -1226,6 +1245,7 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
 
   Widget _buildAllItemCard(
     int row,
+    int groupIndex,
     int col,
     double cardWidth,
     double ar,
@@ -1234,7 +1254,7 @@ class _SearchScreenState extends State<SearchScreen> with GridFocusNodeMixin {
     bool cardFocusExpansion,
   ) {
     return _resultItemCard(
-      item: _vm.results[row].items[col],
+      item: _vm.results[groupIndex].items[col],
       width: cardWidth,
       ar: ar,
       focusColor: focusColor,
