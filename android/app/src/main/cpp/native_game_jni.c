@@ -7,10 +7,12 @@
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
 #include <jni.h>
+#include <pthread.h>
 #include <stdatomic.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "libretro_host.h"
 
@@ -26,14 +28,19 @@ typedef struct {
   JavaVM *vm;
   jobject bridge;
   jmethodID on_geometry;
+  pthread_t render_thread;
+  int has_render_thread;
+  atomic_int render_running;
+  atomic_int frame_dirty;
 } native_ctx;
 
 // libretro allows one session per process, so the context is a single global.
 static native_ctx g_ctx;
 
-// Copies the host's latest frame into the output surface.
-static void frame_ready(void *user) {
-  native_ctx *c = (native_ctx *)user;
+// Copies the host's latest frame into the output surface. ANativeWindow_lock
+// blocks while the compositor holds the buffers, so this runs on its own thread
+// rather than the emulation thread, which stays paced by audio.
+static void blit_frame(native_ctx *c) {
   ANativeWindow *window = c->window;
   if (!window) return;
 
@@ -41,7 +48,7 @@ static void frame_ready(void *user) {
   int width, height, stride;
   if (!lh_get_frame(c->host, &data, &width, &height, &stride)) return;
 
-  // Renegotiating the buffer queue every frame stalls emulation, so only set
+  // Renegotiating the buffer queue every frame stalls rendering, so only set
   // the geometry when the frame size changes.
   if (width != c->window_width || height != c->window_height) {
     ANativeWindow_setBuffersGeometry(window, width, height,
@@ -61,6 +68,24 @@ static void frame_ready(void *user) {
     memcpy(dst + (size_t)y * dst_stride, src + (size_t)y * stride, row_bytes);
   }
   ANativeWindow_unlockAndPost(window);
+}
+
+static void *render_loop(void *arg) {
+  native_ctx *c = (native_ctx *)arg;
+  while (atomic_load(&c->render_running)) {
+    if (atomic_exchange(&c->frame_dirty, 0)) {
+      blit_frame(c);
+    } else {
+      usleep(2000);
+    }
+  }
+  return NULL;
+}
+
+// Signals the render thread from the emulation thread without blocking it.
+static void frame_ready(void *user) {
+  native_ctx *c = (native_ctx *)user;
+  atomic_store(&c->frame_dirty, 1);
 }
 
 static uint16_t poll_input(void *user, int port) {
@@ -84,6 +109,11 @@ static void geometry_changed(void *user, int width, int height, double aspect) {
 }
 
 static void teardown(JNIEnv *env) {
+  if (g_ctx.has_render_thread) {
+    atomic_store(&g_ctx.render_running, 0);
+    pthread_join(g_ctx.render_thread, NULL);
+    g_ctx.has_render_thread = 0;
+  }
   if (g_ctx.host) {
     lh_stop(g_ctx.host);
     lh_destroy(g_ctx.host);
@@ -196,10 +226,14 @@ JNI(void, nativeSetSurface)(JNIEnv *env, jobject thiz, jobject surface) {
 JNI(void, nativeStart)(JNIEnv *env, jobject thiz) {
   (void)env;
   (void)thiz;
-  if (g_ctx.host) {
-    lh_set_audio_paced(g_ctx.host, 1);
-    lh_start(g_ctx.host);
+  if (!g_ctx.host) return;
+  lh_set_audio_paced(g_ctx.host, 1);
+  atomic_store(&g_ctx.frame_dirty, 0);
+  atomic_store(&g_ctx.render_running, 1);
+  if (pthread_create(&g_ctx.render_thread, NULL, render_loop, &g_ctx) == 0) {
+    g_ctx.has_render_thread = 1;
   }
+  lh_start(g_ctx.host);
 }
 
 JNI(void, nativePause)(JNIEnv *env, jobject thiz) {

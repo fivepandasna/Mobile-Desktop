@@ -136,6 +136,15 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen> {
 
   void _onRemotePress(String? key) => _nav(key == 'select' ? 'confirm' : key);
 
+  // On-screen touch gamepad: each button toggles its RetroPad bit and the mask
+  // is sent to the core. The buttons have no pressed state to redraw, so this
+  // skips setState.
+  int _touchMask = 0;
+  void _touchPress(int bit, bool down) {
+    _touchMask = down ? _touchMask | bit : _touchMask & ~bit;
+    _player.setInput(0, _touchMask);
+  }
+
   // Desktop keyboard: Escape opens the overlay, arrows and Enter drive it while
   // open, and everything else feeds the RetroPad mask to the core.
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
@@ -594,8 +603,110 @@ class _NativeGamePlayerScreenState extends State<NativeGamePlayerScreen> {
                 ),
               ),
             ),
+          if (_textureId != null && !_overlayOpen && usesOnScreenControls)
+            _buildTouchControls(),
           if (_overlayOpen) _buildOverlay(),
         ],
+      ),
+    );
+  }
+
+  Widget _touchButton(int bit, Widget label, {double size = 56}) {
+    return GestureDetector(
+      onTapDown: (_) => _touchPress(bit, true),
+      onTapUp: (_) => _touchPress(bit, false),
+      onTapCancel: () => _touchPress(bit, false),
+      child: Container(
+        width: size,
+        height: size,
+        margin: const EdgeInsets.all(6),
+        decoration: const BoxDecoration(
+          color: Colors.white24,
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: DefaultTextStyle(
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          child: label,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTouchControls() {
+    const white = Colors.white;
+    return Positioned.fill(
+      child: SafeArea(
+        child: Stack(
+          children: [
+            Positioned(
+              left: 16,
+              bottom: 24,
+              child: SizedBox(
+                width: 168,
+                height: 168,
+                child: Stack(
+                  children: [
+                    Align(
+                      alignment: Alignment.topCenter,
+                      child: _touchButton(1 << 4, const Icon(Icons.keyboard_arrow_up, color: white)),
+                    ),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: _touchButton(1 << 5, const Icon(Icons.keyboard_arrow_down, color: white)),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: _touchButton(1 << 6, const Icon(Icons.keyboard_arrow_left, color: white)),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: _touchButton(1 << 7, const Icon(Icons.keyboard_arrow_right, color: white)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: 16,
+              bottom: 24,
+              child: SizedBox(
+                width: 168,
+                height: 168,
+                child: Stack(
+                  children: [
+                    Align(alignment: Alignment.topCenter, child: _touchButton(1 << 9, const Text('X'))),
+                    Align(alignment: Alignment.bottomCenter, child: _touchButton(1 << 0, const Text('B'))),
+                    Align(alignment: Alignment.centerLeft, child: _touchButton(1 << 1, const Text('Y'))),
+                    Align(alignment: Alignment.centerRight, child: _touchButton(1 << 8, const Text('A'))),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 16,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _touchButton(1 << 2, const Text('SEL', style: TextStyle(fontSize: 11)), size: 44),
+                    _touchButton(1 << 3, const Text('START', style: TextStyle(fontSize: 10)), size: 44),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.menu, color: white, size: 30),
+                onPressed: _toggleOverlay,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

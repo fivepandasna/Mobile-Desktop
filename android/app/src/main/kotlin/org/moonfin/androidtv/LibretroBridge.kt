@@ -37,6 +37,7 @@ class LibretroBridge(flutterEngine: FlutterEngine) {
 
   private var portMask = 0
   private var pulseMask = 0
+  private var touchMask = 0
 
   @Volatile var isActive = false
     private set
@@ -92,6 +93,11 @@ class LibretroBridge(flutterEngine: FlutterEngine) {
         result.success(current)
       }
       "controllerCount" -> result.success(1)
+      "setInput" -> {
+        touchMask = (args["mask"] as? Int) ?: 0
+        applyMask()
+        result.success(null)
+      }
       else -> result.notImplemented()
     }
   }
@@ -157,6 +163,7 @@ class LibretroBridge(flutterEngine: FlutterEngine) {
     textureEntry = null
     portMask = 0
     pulseMask = 0
+    touchMask = 0
   }
 
   private fun startAudio(sampleRate: Int) {
@@ -194,12 +201,16 @@ class LibretroBridge(flutterEngine: FlutterEngine) {
     audioTrack = null
   }
 
+  private fun applyMask() {
+    nativeSetMask(0, portMask or pulseMask or touchMask)
+  }
+
   // Called from MainActivity's key dispatch on the UI thread.
   fun onButton(index: Int, pressed: Boolean) {
     if (index < 0 || index >= 16) return
     val bit = 1 shl index
     portMask = if (pressed) portMask or bit else portMask and bit.inv()
-    nativeSetMask(0, portMask or pulseMask)
+    applyMask()
     eventSink?.success(mapOf("event" to "button", "index" to index, "pressed" to pressed))
   }
 
@@ -211,10 +222,10 @@ class LibretroBridge(flutterEngine: FlutterEngine) {
     if (index < 0 || index >= 16) return
     val bit = 1 shl index
     pulseMask = pulseMask or bit
-    nativeSetMask(0, portMask or pulseMask)
+    applyMask()
     mainHandler.postDelayed({
       pulseMask = pulseMask and bit.inv()
-      nativeSetMask(0, portMask or pulseMask)
+      applyMask()
     }, durationMs.toLong())
   }
 

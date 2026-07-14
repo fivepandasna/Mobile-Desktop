@@ -119,6 +119,11 @@ bool get supportsCoreDownloads =>
 bool get usesKeyboardInput =>
     PlatformDetection.isWindows || PlatformDetection.isLinux;
 
+/// Whether the player shows on-screen touch controls. Android phones and tablets
+/// have no physical buttons, so a virtual gamepad drives the RetroPad mask.
+bool get usesOnScreenControls =>
+    PlatformDetection.isAndroid && !PlatformDetection.isTV;
+
 /// The save-state key for a game. Native libretro states are namespaced so they
 /// don't collide with an EmulatorJS state of the same game.
 String gameStateKey(String gameId) =>
