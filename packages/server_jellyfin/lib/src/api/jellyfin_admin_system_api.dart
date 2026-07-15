@@ -101,6 +101,10 @@ class JellyfinAdminSystemApi implements AdminSystemApi {
       _getLocalizationList('/Localization/Countries');
 
   @override
+  Future<List<Map<String, dynamic>>> getLocalizationOptions() =>
+      _getLocalizationList('/Localization/Options');
+
+  @override
   Future<List<Map<String, dynamic>>> getParentalRatings() =>
       _getLocalizationList('/Localization/ParentalRatings');
 

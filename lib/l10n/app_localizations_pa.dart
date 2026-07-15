@@ -7038,6 +7038,13 @@ class AppLocalizationsPa extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Tone mapping parameter';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Presets & Quality';
 
   @override
@@ -7051,6 +7058,10 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Deinterlace method';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Audio';
@@ -7407,6 +7418,13 @@ class AppLocalizationsPa extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'ਥ੍ਰੋਟਲ ਬਫਰਿੰਗ';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => 'ਘੱਟੋ-ਘੱਟ ਰੈਜ਼ਿਊਮੇ ਪ੍ਰਤੀਸ਼ਤ';
 
   @override
@@ -7485,6 +7503,9 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'ਸਰਵਰ ਦਾ ਨਾਮ';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => 'ਸੈਟਿੰਗਾਂ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ';

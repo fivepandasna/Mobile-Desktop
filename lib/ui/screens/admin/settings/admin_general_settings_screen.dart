@@ -21,6 +21,7 @@ class _AdminGeneralSettingsScreenState
   Map<String, dynamic>? _config;
   List<Map<String, dynamic>> _cultures = const [];
   List<Map<String, dynamic>> _countries = const [];
+  List<Map<String, dynamic>> _localizationOptions = const [];
   bool _loading = true;
   bool _saving = false;
   String? _error;
@@ -47,11 +48,15 @@ class _AdminGeneralSettingsScreenState
       final countries = await _api
           .getCountries()
           .catchError((_) => <Map<String, dynamic>>[]);
+      final localizationOptions = await _api
+          .getLocalizationOptions()
+          .catchError((_) => <Map<String, dynamic>>[]);
       if (!mounted) return;
       setState(() {
         _config = config;
         _cultures = cultures;
         _countries = countries;
+        _localizationOptions = localizationOptions;
         _loading = false;
       });
     } catch (e) {
@@ -119,6 +124,8 @@ class _AdminGeneralSettingsScreenState
         adminSectionLabel(context, l10n.adminGeneralSectionServer,
             icon: Icons.dns_outlined),
         _textField('ServerName', l10n.adminGeneralServerName),
+        const SizedBox(height: 12),
+        _buildDisplayLanguageDropdown(l10n),
         const SizedBox(height: 8),
         adminGlassGroup(context, children: [
           _switchTile('QuickConnectAvailable', l10n.adminGeneralQuickConnect),
@@ -184,6 +191,23 @@ class _AdminGeneralSettingsScreenState
           )),
       onChanged: (v) =>
           setState(() => _config!['PreferredMetadataLanguage'] = v),
+    );
+  }
+
+  Widget _buildDisplayLanguageDropdown(AppLocalizations l10n) {
+    final current = _config!['UICulture']?.toString() ?? '';
+    if (_localizationOptions.isEmpty) {
+      return _textField('UICulture', l10n.adminGeneralDisplayLanguage);
+    }
+    return adminCodeDropdown(
+      label: l10n.adminGeneralDisplayLanguage,
+      defaultLabel: l10n.adminLibDefault,
+      current: current,
+      rawItems: _localizationOptions.map((o) => (
+            o['Value']?.toString(),
+            (o['Name'] ?? o['Value'])?.toString(),
+          )),
+      onChanged: (v) => setState(() => _config!['UICulture'] = v),
     );
   }
 

@@ -7061,6 +7061,13 @@ class AppLocalizationsLt extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Tone mapping parameter';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Presets & Quality';
 
   @override
@@ -7074,6 +7081,10 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Deinterlace method';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Audio';
@@ -7432,6 +7443,13 @@ class AppLocalizationsLt extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'Droselio buferis';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => 'Minimalus atnaujinimo procentas';
 
   @override
@@ -7511,6 +7529,9 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'Serverio pavadinimas';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => 'Nepavyko įkelti nustatymų';

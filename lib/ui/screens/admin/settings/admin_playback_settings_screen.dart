@@ -26,6 +26,7 @@ class _AdminPlaybackSettingsScreenState
 
   static const _hwAccelOptions = [
     ('none', 'none'),
+    ('amf', 'AMD AMF'),
     ('vaapi', 'VA-API'),
     ('qsv', 'qsv'),
     ('nvenc', 'NVIDIA NVENC'),
@@ -267,6 +268,14 @@ class _AdminPlaybackSettingsScreenState
         _doubleField('TonemappingPeak', l10n.adminPlaybackTonemappingPeak),
         const SizedBox(height: 12),
         _doubleField('TonemappingParam', l10n.adminPlaybackTonemappingParam),
+        if (currentAccel == 'qsv' || currentAccel == 'vaapi') ...[
+          const SizedBox(height: 12),
+          _doubleField('VppTonemappingBrightness',
+              l10n.adminPlaybackVppTonemappingBrightness),
+          const SizedBox(height: 12),
+          _doubleField('VppTonemappingContrast',
+              l10n.adminPlaybackVppTonemappingContrast),
+        ],
         const Divider(height: 32),
         _sectionHeader(l10n.adminPlaybackPresetsQuality),
         _dropdownField('EncoderPreset', l10n.adminPlaybackEncoderPreset,
@@ -278,6 +287,8 @@ class _AdminPlaybackSettingsScreenState
         const SizedBox(height: 12),
         _dropdownField('DeinterlaceMethod',
             l10n.adminPlaybackDeinterlaceMethod, _deinterlaceMethods),
+        _switchTile(
+            'DeinterlaceDoubleRate', l10n.adminPlaybackDeinterlaceDoubleRate),
         const Divider(height: 32),
         _sectionHeader(l10n.adminPlaybackAudioSection),
         _switchTile('EnableAudioVbr', l10n.adminPlaybackEnableAudioVbr),
@@ -300,6 +311,9 @@ class _AdminPlaybackSettingsScreenState
           const SizedBox(height: 8),
           _pathField('FallbackFontPath', l10n.adminPlaybackFallbackFontPath),
         ],
+        const SizedBox(height: 8),
+        _switchTile('EnableSubtitleExtraction',
+            l10n.adminPlaybackEnableSubtitleExtraction),
         const Divider(height: 32),
         _sectionHeader(l10n.adminPlaybackStreaming),
         _switchTile(
@@ -308,6 +322,8 @@ class _AdminPlaybackSettingsScreenState
         _intField('SegmentKeepSeconds', l10n.adminPlaybackSegmentKeep),
         const SizedBox(height: 12),
         _switchTile('EnableThrottling', l10n.adminPlaybackThrottleBuffering),
+        const SizedBox(height: 8),
+        _intField('ThrottleDelaySeconds', l10n.adminPlaybackThrottleDelay),
         const SizedBox(height: AppSpacing.spaceXl),
         adminSaveButton(
           label: l10n.save,

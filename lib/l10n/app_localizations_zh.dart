@@ -6825,6 +6825,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get adminPlaybackTonemappingParam => '色调映射参数';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => '预设与画质';
 
   @override
@@ -6838,6 +6845,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => '去隔行方法';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => '音频';
@@ -7186,6 +7197,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => '启用缓冲节流';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => '保存进度的最低百分比';
 
   @override
@@ -7261,6 +7279,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => '服务器名称';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => '无法加载设置';

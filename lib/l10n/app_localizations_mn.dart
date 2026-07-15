@@ -7063,6 +7063,13 @@ class AppLocalizationsMn extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Tone mapping parameter';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Presets & Quality';
 
   @override
@@ -7076,6 +7083,10 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Deinterlace method';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Audio';
@@ -7436,6 +7447,13 @@ class AppLocalizationsMn extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'Тохируулагч буфер';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => 'Анкетийн хамгийн бага хувь';
 
   @override
@@ -7515,6 +7533,9 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'Серверийн нэр';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => 'Тохиргоог ачаалж чадсангүй';

@@ -7069,6 +7069,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Tone mapping parameter';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Presets & Quality';
 
   @override
@@ -7082,6 +7089,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Deinterlace method';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Audio';
@@ -7439,6 +7450,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'Gaspedaalbuffering';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => 'Minimaal CV-percentage';
 
   @override
@@ -7518,6 +7536,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'Servernaam';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => 'Kan instellingen niet laden';

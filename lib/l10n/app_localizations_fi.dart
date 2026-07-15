@@ -7068,6 +7068,13 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Tone mapping parameter';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Presets & Quality';
 
   @override
@@ -7081,6 +7088,10 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Deinterlace method';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Audio';
@@ -7439,6 +7450,13 @@ class AppLocalizationsFi extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'Kaasun puskurointi';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => 'Minimi jatkamisprosentti';
 
   @override
@@ -7518,6 +7536,9 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'Palvelimen nimi';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => 'Asetusten lataaminen epäonnistui';

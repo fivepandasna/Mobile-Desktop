@@ -7085,6 +7085,13 @@ class AppLocalizationsMk extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Tone mapping parameter';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Presets & Quality';
 
   @override
@@ -7098,6 +7105,10 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Deinterlace method';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Audio';
@@ -7456,6 +7467,13 @@ class AppLocalizationsMk extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'Пуферирање на гас';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => 'Минимален процент на биографија';
 
   @override
@@ -7535,6 +7553,9 @@ class AppLocalizationsMk extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'Име на серверот';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => 'Не успеа да се вчитаат поставките';

@@ -7050,6 +7050,13 @@ class AppLocalizationsCs extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Tone mapping parameter';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Presets & Quality';
 
   @override
@@ -7063,6 +7070,10 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Deinterlace method';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Audio';
@@ -7421,6 +7432,13 @@ class AppLocalizationsCs extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'Vyrovnávací paměť plynu';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => 'Minimální procento obnovení';
 
   @override
@@ -7499,6 +7517,9 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'Název serveru';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => 'Nastavení se nepodařilo načíst';

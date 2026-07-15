@@ -7079,6 +7079,13 @@ class AppLocalizationsTe extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Tone mapping parameter';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Presets & Quality';
 
   @override
@@ -7092,6 +7099,10 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Deinterlace method';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Audio';
@@ -7450,6 +7461,13 @@ class AppLocalizationsTe extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'థొరెటల్ బఫరింగ్';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => 'కనిష్ట రెజ్యూమ్ శాతం';
 
   @override
@@ -7529,6 +7547,9 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'సర్వర్ పేరు';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => 'సెట్టింగ్‌లను లోడ్ చేయడంలో విఫలమైంది';

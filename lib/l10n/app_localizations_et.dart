@@ -7050,6 +7050,13 @@ class AppLocalizationsEt extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Tone mapping parameter';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Presets & Quality';
 
   @override
@@ -7063,6 +7070,10 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Deinterlace method';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Audio';
@@ -7422,6 +7433,13 @@ class AppLocalizationsEt extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'Drosselklapi puhverdus';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => 'Minimaalne jätkamise protsent';
 
   @override
@@ -7502,6 +7520,9 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'Serveri nimi';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => 'Seadete laadimine ebaõnnestus';

@@ -7071,6 +7071,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Ton eşleme parametresi';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Ön Ayar & Kalite';
 
   @override
@@ -7084,6 +7091,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Tarama giderme yöntemi';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Ses';
@@ -7443,6 +7454,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'Önbelleğe almayı sınırla';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => 'Minimum devam etme yüzdesi';
 
   @override
@@ -7522,6 +7540,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'Sunucu adı';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => 'Ayarlar yüklenemedi';

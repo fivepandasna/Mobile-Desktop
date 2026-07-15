@@ -6906,6 +6906,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Tone mapping parameter';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Presets & Quality';
 
   @override
@@ -6919,6 +6926,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Deinterlace method';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Audio';
@@ -7268,6 +7279,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => '스로틀 버퍼링';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => '최소 이력서 비율';
 
   @override
@@ -7344,6 +7362,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => '서버 이름';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => '설정을 로드하지 못했습니다.';

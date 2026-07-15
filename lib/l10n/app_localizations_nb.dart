@@ -7044,6 +7044,13 @@ class AppLocalizationsNb extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Tone mapping parameter';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Presets & Quality';
 
   @override
@@ -7057,6 +7064,10 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Deinterlace method';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Audio';
@@ -7415,6 +7426,13 @@ class AppLocalizationsNb extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'Gassbuffring';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => 'Minste CV-prosent';
 
   @override
@@ -7493,6 +7511,9 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'Servernavn';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => 'Kunne ikke laste inn innstillingene';

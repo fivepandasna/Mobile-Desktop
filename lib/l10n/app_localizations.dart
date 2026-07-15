@@ -12634,6 +12634,18 @@ abstract class AppLocalizations {
   /// **'Tone mapping parameter'**
   String get adminPlaybackTonemappingParam;
 
+  /// No description provided for @adminPlaybackVppTonemappingBrightness.
+  ///
+  /// In en, this message translates to:
+  /// **'VPP tone mapping brightness'**
+  String get adminPlaybackVppTonemappingBrightness;
+
+  /// No description provided for @adminPlaybackVppTonemappingContrast.
+  ///
+  /// In en, this message translates to:
+  /// **'VPP tone mapping contrast'**
+  String get adminPlaybackVppTonemappingContrast;
+
   /// No description provided for @adminPlaybackPresetsQuality.
   ///
   /// In en, this message translates to:
@@ -12663,6 +12675,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deinterlace method'**
   String get adminPlaybackDeinterlaceMethod;
+
+  /// No description provided for @adminPlaybackDeinterlaceDoubleRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Double the frame rate when deinterlacing'**
+  String get adminPlaybackDeinterlaceDoubleRate;
 
   /// No description provided for @adminPlaybackAudioSection.
   ///
@@ -13294,6 +13312,18 @@ abstract class AppLocalizations {
   /// **'Throttle buffering'**
   String get adminPlaybackThrottleBuffering;
 
+  /// No description provided for @adminPlaybackThrottleDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'Throttle delay (seconds)'**
+  String get adminPlaybackThrottleDelay;
+
+  /// No description provided for @adminPlaybackEnableSubtitleExtraction.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow subtitle extraction on the fly'**
+  String get adminPlaybackEnableSubtitleExtraction;
+
   /// No description provided for @adminResumeMinPct.
   ///
   /// In en, this message translates to:
@@ -13443,6 +13473,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Server name'**
   String get adminGeneralServerName;
+
+  /// No description provided for @adminGeneralDisplayLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred display language'**
+  String get adminGeneralDisplayLanguage;
 
   /// No description provided for @adminSettingsLoadFailed.
   ///

@@ -7012,6 +7012,13 @@ class AppLocalizationsTh extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Tone mapping parameter';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP tone mapping brightness';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast => 'VPP tone mapping contrast';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Presets & Quality';
 
   @override
@@ -7025,6 +7032,10 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Deinterlace method';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Double the frame rate when deinterlacing';
 
   @override
   String get adminPlaybackAudioSection => 'Audio';
@@ -7380,6 +7391,13 @@ class AppLocalizationsTh extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'การบัฟเฟอร์คันเร่ง';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Throttle delay (seconds)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Allow subtitle extraction on the fly';
+
+  @override
   String get adminResumeMinPct => 'เปอร์เซ็นต์เรซูเม่ขั้นต่ำ';
 
   @override
@@ -7459,6 +7477,9 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'ชื่อเซิร์ฟเวอร์';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Preferred display language';
 
   @override
   String get adminSettingsLoadFailed => 'โหลดการตั้งค่าไม่สำเร็จ';
