@@ -876,6 +876,9 @@ class DeviceProfileBuilder {
     }
 
     if (universalAudioDecode) {
+      if (codec == 'truehd' || codec == 'mlp') {
+        return capabilityProfile.canDecodeTrueHd;
+      }
       return true;
     }
 

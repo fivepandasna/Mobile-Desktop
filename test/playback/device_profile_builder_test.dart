@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moonfin/playback/audio_capability_profile.dart';
 import 'package:moonfin/playback/device_profile_builder.dart';
@@ -244,8 +245,8 @@ void main() {
       expect(codecs, contains('eac3'));
       expect(codecs, contains('dts'));
       expect(codecs, contains('dca'));
-      // TrueHD/MLP are advertised on every platform: where there is no hardware
-      // decoder (Android) the bundled FFmpeg decoder handles them.
+      // Android has no hardware TrueHD/MLP decoder, but the bundled FFmpeg
+      // decoder handles them, so they stay advertised there.
       expect(codecs, contains('truehd'));
       expect(codecs, contains('mlp'));
     });
@@ -620,6 +621,22 @@ void main() {
       final codecs = _videoDirectPlayAudioCodecs(profile);
       expect(codecs, contains('ac3'));
       expect(codecs, contains('eac3'));
+    });
+
+    test('does not advertise TrueHD on iOS, which ships no decoder for it', () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+      final profile = DeviceProfileBuilder.build(
+        audioCapabilityProfile: const AudioCapabilityProfile.appleMobile(),
+        universalAudioDecode: true,
+      );
+
+      final codecs = _videoDirectPlayAudioCodecs(profile);
+      expect(codecs, isNot(contains('truehd')));
+      expect(codecs, isNot(contains('mlp')));
+      // Everything else still decodes in software.
+      expect(codecs, containsAll(<String>['ac3', 'eac3', 'dts', 'flac']));
     });
   });
 
