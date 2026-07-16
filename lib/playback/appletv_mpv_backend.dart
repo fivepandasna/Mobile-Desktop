@@ -230,9 +230,7 @@ class AppleTvMpvBackend implements PlayerBackend {
       'audioCodec': payload['audioCodec']?.toString(),
       'audioProfile': payload['audioProfile']?.toString(),
       'audioChannels': payload['audioChannels'],
-      'audioChannelsMode': _resolveAudioChannelsMode(
-        (payload['audioChannels'] as num?)?.toInt() ?? 0,
-      ),
+      'audioChannelsMode': _resolveAudioChannelsMode(),
       'hybridAudioUrl': ?_resolveHybridAudioUrl(payload),
       'hybridAudioStreamIndex': (payload['audioStreamIndex'] as num?)?.toInt() ?? -1,
       'audioPassthrough': _audioPassthroughEligible(payload),
@@ -325,7 +323,7 @@ class AppleTvMpvBackend implements PlayerBackend {
       _prefs.get(UserPreferences.dolbyVisionProfile7DirectPlayBehavior) !=
       DolbyVisionProfile7DirectPlayBehavior.disabled;
 
-  String _resolveAudioChannelsMode(int contentChannels) {
+  String _resolveAudioChannelsMode() {
     if (_prefs.resolveAudioOutputMode() == AudioOutputMode.forceStereo) {
       return 'stereo';
     }
@@ -333,10 +331,13 @@ class AppleTvMpvBackend implements PlayerBackend {
     if (profile.maxPcmChannels <= 2) {
       return 'stereo';
     }
+    // A multichannel HDMI route (a normal 7.1 AVR, or a tvOS Continuous Audio
+    // Connection / Dolby MAT link, which is always a fixed 8-channel 7.1 bed)
+    // doesn't expose a layout mpv's auto detection can map, so it collapses to
+    // stereo. Force a full 7.1 bed. mpv pads 5.1 into it and tvOS wraps it into
+    // MAT.
     if (profile.activeRouteType == AudioRouteType.hdmi &&
-        profile.maxPcmChannels == 8 &&
-        contentChannels > 0 &&
-        contentChannels < 8) {
+        profile.maxPcmChannels >= 8) {
       return '7.1';
     }
     return 'auto-safe';

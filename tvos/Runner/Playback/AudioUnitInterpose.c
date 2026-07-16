@@ -72,7 +72,10 @@ static OSStatus patched_AudioUnitGetProperty(
             asbd.mChannelsPerFrame > 0) {
             channels = asbd.mChannelsPerFrame;
         }
-        if (channels == 0 || channels > 8) channels = 2;
+        // Map an Atmos/Dolby MAT route's oversized lane count to 7.1 rather than
+        // stereo, so surround survives when the layout query can't be parsed.
+        if (channels == 0) channels = 2;
+        else if (channels > 8) channels = 8;
 
         AudioChannelLayout *layout = (AudioChannelLayout *)outData;
         memset(layout, 0, sizeof(AudioChannelLayout));
