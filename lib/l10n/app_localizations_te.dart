@@ -893,9 +893,6 @@ class AppLocalizationsTe extends AppLocalizations {
   String get itemListPlaceholder => 'అంశం జాబితా ఇక్కడ కనిపిస్తుంది';
 
   @override
-  String get favoriteTracksPlaceholder => 'ఇష్టమైన ట్రాక్‌లు ఇక్కడ కనిపిస్తాయి';
-
-  @override
   String get failedToLoad => 'లోడ్ చేయడంలో విఫలమైంది';
 
   @override

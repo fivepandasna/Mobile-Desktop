@@ -896,10 +896,6 @@ class AppLocalizationsSq extends AppLocalizations {
   String get itemListPlaceholder => 'Lista e artikujve do të shfaqet këtu';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Këngët e preferuara do të shfaqen këtu';
-
-  @override
   String get failedToLoad => 'Ngarkimi dështoi';
 
   @override

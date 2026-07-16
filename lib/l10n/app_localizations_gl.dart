@@ -897,10 +897,6 @@ class AppLocalizationsGl extends AppLocalizations {
   String get itemListPlaceholder => 'A lista de elementos aparecerá aquí';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'As cancións favoritas aparecerán aquí';
-
-  @override
   String get failedToLoad => 'Produciuse un erro ao cargar';
 
   @override

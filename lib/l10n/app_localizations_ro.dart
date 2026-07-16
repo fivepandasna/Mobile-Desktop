@@ -891,9 +891,6 @@ class AppLocalizationsRo extends AppLocalizations {
   String get itemListPlaceholder => 'Lista articolelor va apărea aici';
 
   @override
-  String get favoriteTracksPlaceholder => 'Melodiile preferate vor apărea aici';
-
-  @override
   String get failedToLoad => 'Nu s-a putut încărca';
 
   @override

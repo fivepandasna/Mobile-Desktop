@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "收藏的曲目会显示在这里",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "加载失败",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

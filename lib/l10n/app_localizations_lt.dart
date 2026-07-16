@@ -889,10 +889,6 @@ class AppLocalizationsLt extends AppLocalizations {
   String get itemListPlaceholder => 'Čia pasirodys prekių sąrašas';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Mėgstamiausi takeliai bus rodomi čia';
-
-  @override
   String get failedToLoad => 'Nepavyko įkelti';
 
   @override

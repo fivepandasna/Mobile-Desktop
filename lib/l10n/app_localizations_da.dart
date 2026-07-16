@@ -887,9 +887,6 @@ class AppLocalizationsDa extends AppLocalizations {
   String get itemListPlaceholder => 'Vareliste vises her';
 
   @override
-  String get favoriteTracksPlaceholder => 'Yndlingsnumre vises her';
-
-  @override
   String get failedToLoad => 'Kunne ikke indlæses';
 
   @override

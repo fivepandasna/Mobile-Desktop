@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "Дуртай дуунууд энд гарч ирнэ",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "Ачааж чадсангүй",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

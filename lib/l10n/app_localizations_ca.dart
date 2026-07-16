@@ -897,10 +897,6 @@ class AppLocalizationsCa extends AppLocalizations {
   String get itemListPlaceholder => 'La llista d\'elements apareixerà aquí';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Les cançons preferides apareixeran aquí';
-
-  @override
   String get failedToLoad => 'No s\'ha pogut carregar';
 
   @override

@@ -857,9 +857,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get itemListPlaceholder => '媒体项列表将出现在这里';
 
   @override
-  String get favoriteTracksPlaceholder => '收藏的曲目会显示在这里';
-
-  @override
   String get failedToLoad => '加载失败';
 
   @override
@@ -10341,9 +10338,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get itemListPlaceholder => '項目清單將會出現在這裡';
-
-  @override
-  String get favoriteTracksPlaceholder => '最喜歡的曲目將會出現在這裡';
 
   @override
   String get failedToLoad => '載入失敗';

@@ -890,9 +890,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get itemListPlaceholder => 'Öğe listesi burada görünecek';
 
   @override
-  String get favoriteTracksPlaceholder => 'Favori parçalar burada görünecek';
-
-  @override
   String get failedToLoad => 'Yüklenemedi';
 
   @override

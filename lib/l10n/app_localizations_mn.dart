@@ -891,9 +891,6 @@ class AppLocalizationsMn extends AppLocalizations {
   String get itemListPlaceholder => 'Зүйлийн жагсаалт энд гарч ирнэ';
 
   @override
-  String get favoriteTracksPlaceholder => 'Дуртай дуунууд энд гарч ирнэ';
-
-  @override
   String get failedToLoad => 'Ачааж чадсангүй';
 
   @override

@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "ಮೆಚ್ಚಿನ ಟ್ರ್ಯಾಕ್‌ಗಳು ಇಲ್ಲಿ ಗೋಚರಿಸುತ್ತವೆ",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

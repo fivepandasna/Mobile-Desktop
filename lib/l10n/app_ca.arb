@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "Les cançons preferides apareixeran aquí",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "No s'ha pogut carregar",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

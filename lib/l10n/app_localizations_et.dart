@@ -892,9 +892,6 @@ class AppLocalizationsEt extends AppLocalizations {
   String get itemListPlaceholder => 'Siin kuvatakse üksuste loend';
 
   @override
-  String get favoriteTracksPlaceholder => 'Siin kuvatakse lemmiklood';
-
-  @override
   String get failedToLoad => 'Laadimine ebaõnnestus';
 
   @override

@@ -892,10 +892,6 @@ class AppLocalizationsLv extends AppLocalizations {
   String get itemListPlaceholder => 'Šeit parādīsies preču saraksts';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Šeit tiks parādīti iecienītākie ieraksti';
-
-  @override
   String get failedToLoad => 'Neizdevās ielādēt';
 
   @override

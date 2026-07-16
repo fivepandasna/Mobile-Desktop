@@ -886,9 +886,6 @@ class AppLocalizationsTh extends AppLocalizations {
   String get itemListPlaceholder => 'รายการสินค้าจะปรากฏที่นี่';
 
   @override
-  String get favoriteTracksPlaceholder => 'เพลงโปรดจะปรากฏที่นี่';
-
-  @override
   String get failedToLoad => 'โหลดไม่สำเร็จ';
 
   @override

@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "প্রিয় ট্র্যাক এখানে প্রদর্শিত হবে",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "লোড করতে ব্যর্থ হয়েছে",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

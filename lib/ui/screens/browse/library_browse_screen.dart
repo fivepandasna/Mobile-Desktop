@@ -48,6 +48,7 @@ class LibraryBrowseScreen extends StatefulWidget {
   final String? genreName;
   final String? studioName;
   final List<String>? includeItemTypes;
+  final bool favoritesOnly;
 
   const LibraryBrowseScreen({
     super.key,
@@ -56,6 +57,7 @@ class LibraryBrowseScreen extends StatefulWidget {
     this.genreName,
     this.studioName,
     this.includeItemTypes,
+    this.favoritesOnly = false,
   });
 
   @override
@@ -86,6 +88,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
       studioName: widget.studioName,
       overrideName: widget.genreName ?? widget.studioName,
       includeItemTypes: widget.includeItemTypes,
+      favoritesOnly: widget.favoritesOnly,
     );
     _vm.addListener(_onChanged);
     _vm.load();
@@ -547,6 +550,9 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
             children: [
               _LibraryHeader(
                 libraryName: () {
+                  if (_vm.favoritesOnly) {
+                    return AppLocalizations.of(context).favorites;
+                  }
                   if (_vm.includeItemTypes != null &&
                       _vm.includeItemTypes!.isNotEmpty) {
                     final type = _vm.includeItemTypes!.first;
@@ -577,7 +583,6 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                 allLetterFocusNode: _allLetterFocusNode,
                 isMusicBrowse: _vm.isMusicBrowse,
                 playedFilter: _vm.playedFilter,
-                favoriteFilter: _vm.favoriteFilter,
                 onBack: () => PlatformDetection.isWeb
                     ? context.popOrHome()
                     : context.pop(),
@@ -585,8 +590,6 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                 onSettings: () => _showSettingsDialog(context),
                 onLetterChanged: (l) => _vm.setLetterFilter(l),
                 onPlayedFilterChanged: (status) => _vm.setPlayedFilter(status),
-                onFavoriteFilterChanged: (value) =>
-                    _vm.setFavoriteFilter(value),
               ),
               Expanded(child: _buildBody()),
             ],
@@ -911,13 +914,11 @@ class _LibraryHeader extends StatelessWidget {
   final FocusNode? allLetterFocusNode;
   final bool isMusicBrowse;
   final PlayedStatusFilter playedFilter;
-  final bool favoriteFilter;
   final VoidCallback onBack;
   final VoidCallback onSort;
   final VoidCallback onSettings;
   final ValueChanged<String> onLetterChanged;
   final ValueChanged<PlayedStatusFilter> onPlayedFilterChanged;
-  final ValueChanged<bool> onFavoriteFilterChanged;
 
   const _LibraryHeader({
     required this.libraryName,
@@ -934,13 +935,11 @@ class _LibraryHeader extends StatelessWidget {
     this.allLetterFocusNode,
     this.isMusicBrowse = false,
     this.playedFilter = PlayedStatusFilter.all,
-    this.favoriteFilter = false,
     required this.onBack,
     required this.onSort,
     required this.onSettings,
     required this.onLetterChanged,
     required this.onPlayedFilterChanged,
-    required this.onFavoriteFilterChanged,
   });
 
   @override
@@ -1456,15 +1455,17 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                 accent: accent,
                 onSurface: onSurface,
               ),
-            Divider(color: dividerColor),
-            _sectionHeader(l10n.filters, sectionColor),
-            _DialogCheckboxTile(
-              label: l10n.favorites,
-              checked: vm.favoriteFilter,
-              onTap: () => vm.setFavoriteFilter(!vm.favoriteFilter),
-              accent: accent,
-              onSurface: onSurface,
-            ),
+            if (!vm.favoritesOnly) ...[
+              Divider(color: dividerColor),
+              _sectionHeader(l10n.filters, sectionColor),
+              _DialogCheckboxTile(
+                label: l10n.favorites,
+                checked: vm.favoriteFilter,
+                onTap: () => vm.setFavoriteFilter(!vm.favoriteFilter),
+                accent: accent,
+                onSurface: onSurface,
+              ),
+            ],
             if (!vm.isMusicBrowse) ...[
               Divider(color: dividerColor),
               _sectionHeader(

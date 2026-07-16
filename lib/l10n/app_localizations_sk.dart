@@ -893,9 +893,6 @@ class AppLocalizationsSk extends AppLocalizations {
   String get itemListPlaceholder => 'Tu sa zobrazí zoznam položiek';
 
   @override
-  String get favoriteTracksPlaceholder => 'Tu sa zobrazia obľúbené skladby';
-
-  @override
   String get failedToLoad => 'Načítanie zlyhalo';
 
   @override

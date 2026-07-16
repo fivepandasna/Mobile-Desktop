@@ -868,9 +868,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get itemListPlaceholder => 'ここにアイテム一覧が表示されます';
 
   @override
-  String get favoriteTracksPlaceholder => 'お気に入りのトラックがここに表示されます';
-
-  @override
   String get failedToLoad => 'ロードに失敗しました';
 
   @override

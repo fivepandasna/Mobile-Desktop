@@ -894,10 +894,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get itemListPlaceholder => 'Danh sách vật phẩm sẽ xuất hiện ở đây';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Những bản nhạc yêu thích sẽ xuất hiện ở đây';
-
-  @override
   String get failedToLoad => 'Không tải được';
 
   @override

@@ -893,10 +893,6 @@ class AppLocalizationsTl extends AppLocalizations {
   String get itemListPlaceholder => 'Lalabas dito ang listahan ng item';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Lalabas dito ang mga paboritong track';
-
-  @override
   String get failedToLoad => 'Nabigong mag-load';
 
   @override

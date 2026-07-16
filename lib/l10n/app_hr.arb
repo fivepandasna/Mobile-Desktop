@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "Ovdje će se pojaviti omiljene pjesme",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "Učitavanje nije uspjelo",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

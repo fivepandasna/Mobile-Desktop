@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "آهنگ های مورد علاقه در اینجا ظاهر می شوند",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "بارگیری نشد",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

@@ -893,10 +893,6 @@ class AppLocalizationsKn extends AppLocalizations {
   String get itemListPlaceholder => 'ಐಟಂ ಪಟ್ಟಿ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'ಮೆಚ್ಚಿನ ಟ್ರ್ಯಾಕ್‌ಗಳು ಇಲ್ಲಿ ಗೋಚರಿಸುತ್ತವೆ';
-
-  @override
   String get failedToLoad => 'ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ';
 
   @override

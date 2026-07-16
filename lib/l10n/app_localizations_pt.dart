@@ -892,9 +892,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get itemListPlaceholder => 'A lista de itens aparecerá aqui';
 
   @override
-  String get favoriteTracksPlaceholder => 'As faixas favoritas aparecerão aqui';
-
-  @override
   String get failedToLoad => 'Falha ao carregar';
 
   @override
@@ -10796,9 +10793,6 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get itemListPlaceholder => 'A lista de itens aparecerá aqui';
 
   @override
-  String get favoriteTracksPlaceholder => 'As faixas favoritas aparecerão aqui';
-
-  @override
   String get failedToLoad => 'Falha ao carregar';
 
   @override
@@ -18699,9 +18693,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get itemListPlaceholder => 'A lista de itens aparecerá aqui';
-
-  @override
-  String get favoriteTracksPlaceholder => 'As faixas favoritas aparecerão aqui';
 
   @override
   String get failedToLoad => 'Falha ao carregar';

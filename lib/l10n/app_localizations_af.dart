@@ -893,9 +893,6 @@ class AppLocalizationsAf extends AppLocalizations {
   String get itemListPlaceholder => 'Itemlys sal hier verskyn';
 
   @override
-  String get favoriteTracksPlaceholder => 'Gunstelingsnitte sal hier verskyn';
-
-  @override
   String get failedToLoad => 'Kon nie laai nie';
 
   @override

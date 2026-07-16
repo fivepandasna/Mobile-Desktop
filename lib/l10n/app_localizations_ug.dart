@@ -889,10 +889,6 @@ class AppLocalizationsUg extends AppLocalizations {
   String get itemListPlaceholder => 'تۈر تىزىملىكى بۇ يەردە كۆرۈنىدۇ';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'ياقتۇرىدىغان ئىزلار بۇ يەردە كۆرۈنىدۇ';
-
-  @override
   String get failedToLoad => 'يۈكلەش مەغلۇپ بولدى';
 
   @override

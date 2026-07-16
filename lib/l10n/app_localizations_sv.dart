@@ -888,9 +888,6 @@ class AppLocalizationsSv extends AppLocalizations {
   String get itemListPlaceholder => 'Objektlistan kommer att visas här';
 
   @override
-  String get favoriteTracksPlaceholder => 'Favoritspår kommer att visas här';
-
-  @override
   String get failedToLoad => 'Det gick inte att ladda';
 
   @override

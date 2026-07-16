@@ -890,9 +890,6 @@ class AppLocalizationsBe extends AppLocalizations {
   String get itemListPlaceholder => 'Тут з\'явіцца спіс прадметаў';
 
   @override
-  String get favoriteTracksPlaceholder => 'Тут з\'явяцца любімыя трэкі';
-
-  @override
   String get failedToLoad => 'Не ўдалося загрузіць';
 
   @override

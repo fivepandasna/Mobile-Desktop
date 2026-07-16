@@ -893,9 +893,6 @@ class AppLocalizationsFi extends AppLocalizations {
   String get itemListPlaceholder => 'Tuoteluettelo tulee näkyviin tähän';
 
   @override
-  String get favoriteTracksPlaceholder => 'Suosikkikappaleet näkyvät täällä';
-
-  @override
   String get failedToLoad => 'Lataus epäonnistui';
 
   @override

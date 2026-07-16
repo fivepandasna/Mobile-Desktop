@@ -864,9 +864,6 @@ class AppLocalizationsYue extends AppLocalizations {
   String get itemListPlaceholder => '項目清單將會出現在這裡';
 
   @override
-  String get favoriteTracksPlaceholder => '最喜歡的曲目將會出現在這裡';
-
-  @override
   String get failedToLoad => '載入失敗';
 
   @override
@@ -10462,9 +10459,6 @@ class AppLocalizationsYueCn extends AppLocalizationsYue {
   String get itemListPlaceholder => '项目列表将出现在这里';
 
   @override
-  String get favoriteTracksPlaceholder => '最喜欢的曲目将出现在这里';
-
-  @override
   String get failedToLoad => '加载失败';
 
   @override
@@ -18057,9 +18051,6 @@ class AppLocalizationsYueHk extends AppLocalizationsYue {
 
   @override
   String get itemListPlaceholder => '項目清單將會出現在這裡';
-
-  @override
-  String get favoriteTracksPlaceholder => '最喜歡的曲目將會出現在這裡';
 
   @override
   String get failedToLoad => '載入失敗';

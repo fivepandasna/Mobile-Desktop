@@ -895,9 +895,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get itemListPlaceholder => 'Itt fog megjelenni a tétellista';
 
   @override
-  String get favoriteTracksPlaceholder => 'A kedvenc számok itt jelennek meg';
-
-  @override
   String get failedToLoad => 'Nem sikerült betölteni';
 
   @override

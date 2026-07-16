@@ -888,9 +888,6 @@ class AppLocalizationsEo extends AppLocalizations {
   String get itemListPlaceholder => 'Listo de eroj aperos ĉi tie';
 
   @override
-  String get favoriteTracksPlaceholder => 'Plej ŝatataj trakoj aperos ĉi tie';
-
-  @override
   String get failedToLoad => 'Malsukcesis ŝargi';
 
   @override

@@ -896,10 +896,6 @@ class AppLocalizationsSw extends AppLocalizations {
   String get itemListPlaceholder => 'Orodha ya bidhaa itaonekana hapa';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Nyimbo unazozipenda zaidi zitaonekana hapa';
-
-  @override
   String get failedToLoad => 'Imeshindwa kupakia';
 
   @override

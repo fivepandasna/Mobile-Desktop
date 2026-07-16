@@ -894,10 +894,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get itemListPlaceholder => 'La lista de elementos aparecerá aquí';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Las pistas favoritas aparecerán aquí';
-
-  @override
   String get failedToLoad => 'Error al cargar';
 
   @override
@@ -10840,10 +10836,6 @@ class AppLocalizationsEs419 extends AppLocalizationsEs {
   String get itemListPlaceholder => 'La lista de artículos aparecerá aquí.';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Las pistas favoritas aparecerán aquí';
-
-  @override
   String get failedToLoad => 'No se pudo cargar';
 
   @override
@@ -18907,10 +18899,6 @@ class AppLocalizationsEsAr extends AppLocalizationsEs {
   String get itemListPlaceholder => 'La lista de artículos aparecerá aquí.';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Las pistas favoritas aparecerán aquí';
-
-  @override
   String get failedToLoad => 'No se pudo cargar';
 
   @override
@@ -26855,10 +26843,6 @@ class AppLocalizationsEsDo extends AppLocalizationsEs {
   String get itemListPlaceholder => 'La lista de artículos aparecerá aquí.';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Las pistas favoritas aparecerán aquí';
-
-  @override
   String get failedToLoad => 'No se pudo cargar';
 
   @override
@@ -34801,10 +34785,6 @@ class AppLocalizationsEsMx extends AppLocalizationsEs {
 
   @override
   String get itemListPlaceholder => 'La lista de artículos aparecerá aquí.';
-
-  @override
-  String get favoriteTracksPlaceholder =>
-      'Las pistas favoritas aparecerán aquí';
 
   @override
   String get failedToLoad => 'No se pudo cargar';

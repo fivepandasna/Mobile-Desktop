@@ -890,9 +890,6 @@ class AppLocalizationsPa extends AppLocalizations {
   String get itemListPlaceholder => 'ਆਈਟਮ ਸੂਚੀ ਇੱਥੇ ਦਿਖਾਈ ਦੇਵੇਗੀ';
 
   @override
-  String get favoriteTracksPlaceholder => 'ਮਨਪਸੰਦ ਟਰੈਕ ਇੱਥੇ ਦਿਖਾਈ ਦੇਣਗੇ';
-
-  @override
   String get failedToLoad => 'ਲੋਡ ਕਰਨਾ ਅਸਫਲ ਰਿਹਾ';
 
   @override

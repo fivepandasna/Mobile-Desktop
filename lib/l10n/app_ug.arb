@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "ياقتۇرىدىغان ئىزلار بۇ يەردە كۆرۈنىدۇ",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "يۈكلەش مەغلۇپ بولدى",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

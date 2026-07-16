@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "즐겨찾는 트랙이 여기에 표시됩니다.",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "로드하지 못했습니다.",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

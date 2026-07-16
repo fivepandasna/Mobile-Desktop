@@ -893,9 +893,6 @@ class AppLocalizationsTa extends AppLocalizations {
   String get itemListPlaceholder => 'உருப்படி பட்டியல் இங்கே தோன்றும்';
 
   @override
-  String get favoriteTracksPlaceholder => 'பிடித்த டிராக்குகள் இங்கே தோன்றும்';
-
-  @override
   String get failedToLoad => 'ஏற்றுவதில் தோல்வி';
 
   @override

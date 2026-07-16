@@ -923,10 +923,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "Favoritspår kommer att visas här",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "Det gick inte att ladda",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

@@ -887,10 +887,6 @@ class AppLocalizationsFa extends AppLocalizations {
   String get itemListPlaceholder => 'لیست موارد در اینجا ظاهر می شود';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'آهنگ های مورد علاقه در اینجا ظاهر می شوند';
-
-  @override
   String get failedToLoad => 'بارگیری نشد';
 
   @override

@@ -897,10 +897,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get itemListPlaceholder => 'Η λίστα στοιχείων θα εμφανιστεί εδώ';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Τα αγαπημένα κομμάτια θα εμφανιστούν εδώ';
-
-  @override
   String get failedToLoad => 'Αποτυχία φόρτωσης';
 
   @override

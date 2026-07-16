@@ -894,9 +894,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get itemListPlaceholder => 'Список товаров появится здесь';
 
   @override
-  String get favoriteTracksPlaceholder => 'Здесь появятся любимые треки';
-
-  @override
   String get failedToLoad => 'Не удалось загрузить';
 
   @override

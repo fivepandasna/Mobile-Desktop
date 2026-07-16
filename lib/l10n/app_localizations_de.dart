@@ -957,10 +957,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get itemListPlaceholder => 'Die Liste der Inhalte wird hier angezeigt';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Favorisierte Titel werden hier angezeigt';
-
-  @override
   String get failedToLoad => 'Laden fehlgeschlagen';
 
   @override

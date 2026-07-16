@@ -893,9 +893,6 @@ class AppLocalizationsMk extends AppLocalizations {
   String get itemListPlaceholder => 'Списокот со ставки ќе се појави овде';
 
   @override
-  String get favoriteTracksPlaceholder => 'Омилените песни ќе се појават овде';
-
-  @override
   String get failedToLoad => 'Не успеа да се вчита';
 
   @override

@@ -889,9 +889,6 @@ class AppLocalizationsBg extends AppLocalizations {
   String get itemListPlaceholder => 'Тук ще се появи списък с артикули';
 
   @override
-  String get favoriteTracksPlaceholder => 'Любимите песни ще се появят тук';
-
-  @override
   String get failedToLoad => 'Неуспешно зареждане';
 
   @override

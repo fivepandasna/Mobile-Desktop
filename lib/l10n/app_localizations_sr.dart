@@ -890,9 +890,6 @@ class AppLocalizationsSr extends AppLocalizations {
   String get itemListPlaceholder => 'Овде ће се појавити листа ставки';
 
   @override
-  String get favoriteTracksPlaceholder => 'Овде ће се појавити омиљене нумере';
-
-  @override
   String get failedToLoad => 'Учитавање није успело';
 
   @override

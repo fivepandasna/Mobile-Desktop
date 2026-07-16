@@ -887,9 +887,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get itemListPlaceholder => 'Item list will appear here';
 
   @override
-  String get favoriteTracksPlaceholder => 'Favorite tracks will appear here';
-
-  @override
   String get failedToLoad => 'Failed to load';
 
   @override
@@ -10688,9 +10685,6 @@ class AppLocalizationsEnGb extends AppLocalizationsEn {
 
   @override
   String get itemListPlaceholder => 'Item list will appear here';
-
-  @override
-  String get favoriteTracksPlaceholder => 'Favorite tracks will appear here';
 
   @override
   String get failedToLoad => 'Failed to load';

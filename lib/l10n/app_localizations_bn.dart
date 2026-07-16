@@ -887,9 +887,6 @@ class AppLocalizationsBn extends AppLocalizations {
   String get itemListPlaceholder => 'আইটেম তালিকা এখানে প্রদর্শিত হবে';
 
   @override
-  String get favoriteTracksPlaceholder => 'প্রিয় ট্র্যাক এখানে প্রদর্শিত হবে';
-
-  @override
   String get failedToLoad => 'লোড করতে ব্যর্থ হয়েছে';
 
   @override

@@ -889,9 +889,6 @@ class AppLocalizationsNb extends AppLocalizations {
   String get itemListPlaceholder => 'Vareliste vil vises her';
 
   @override
-  String get favoriteTracksPlaceholder => 'Favorittspor vises her';
-
-  @override
   String get failedToLoad => 'Kunne ikke laste inn';
 
   @override

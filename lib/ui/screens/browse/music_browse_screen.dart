@@ -68,7 +68,7 @@ List<_MusicCategory> _musicCategories(BuildContext context, String libraryId) {
     _MusicCategory(
       Icons.favorite,
       l10n.favorites,
-      Destinations.musicFavoritesOf(libraryId),
+      Destinations.library(libraryId, favorites: true),
     ),
   ];
 }
@@ -165,7 +165,12 @@ class _MusicBrowseScreenState extends State<MusicBrowseScreen> {
         includeItemTypes: const ['Playlist'],
       );
     } else if (rowId.startsWith('favorites_')) {
-      route = Destinations.musicFavoritesOf(widget.libraryId);
+      // The row itself only holds albums, so keep the same shape behind See All.
+      route = Destinations.library(
+        widget.libraryId,
+        includeItemTypes: const ['MusicAlbum'],
+        favorites: true,
+      );
     }
     if (route == null) return null;
     final target = route;

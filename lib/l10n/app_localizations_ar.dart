@@ -884,9 +884,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get itemListPlaceholder => 'ستظهر قائمة العناصر هنا';
 
   @override
-  String get favoriteTracksPlaceholder => 'سوف تظهر المسارات المفضلة هنا';
-
-  @override
   String get failedToLoad => 'فشل التحميل';
 
   @override

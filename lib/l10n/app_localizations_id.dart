@@ -893,9 +893,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get itemListPlaceholder => 'Daftar item akan muncul di sini';
 
   @override
-  String get favoriteTracksPlaceholder => 'Trek favorit akan muncul di sini';
-
-  @override
   String get failedToLoad => 'Gagal memuat';
 
   @override

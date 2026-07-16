@@ -880,9 +880,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get itemListPlaceholder => 'רשימת הפריטים תופיע כאן';
 
   @override
-  String get favoriteTracksPlaceholder => 'רצועות אהובות יופיעו כאן';
-
-  @override
   String get failedToLoad => 'הטעינה נכשלה';
 
   @override

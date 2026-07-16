@@ -887,9 +887,6 @@ class AppLocalizationsSi extends AppLocalizations {
   String get itemListPlaceholder => 'අයිතම ලැයිස්තුව මෙහි දිස්වනු ඇත';
 
   @override
-  String get favoriteTracksPlaceholder => 'ප්‍රියතම ගීත මෙහි දිස් වනු ඇත';
-
-  @override
   String get failedToLoad => 'පූරණය කිරීමට අසමත් විය';
 
   @override

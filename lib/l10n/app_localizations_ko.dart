@@ -868,9 +868,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get itemListPlaceholder => '여기에 항목 목록이 표시됩니다.';
 
   @override
-  String get favoriteTracksPlaceholder => '즐겨찾는 트랙이 여기에 표시됩니다.';
-
-  @override
   String get failedToLoad => '로드하지 못했습니다.';
 
   @override

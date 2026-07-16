@@ -891,9 +891,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get itemListPlaceholder => 'Zde se zobrazí seznam položek';
 
   @override
-  String get favoriteTracksPlaceholder => 'Zde se zobrazí oblíbené skladby';
-
-  @override
   String get failedToLoad => 'Načtení se nezdařilo';
 
   @override

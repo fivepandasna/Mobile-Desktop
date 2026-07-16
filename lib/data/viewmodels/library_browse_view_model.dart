@@ -20,6 +20,11 @@ class LibraryBrowseViewModel extends ChangeNotifier {
   final String? overrideName;
   final List<String>? includeItemTypes;
 
+  /// Pins the browse to favorites for routes that only ever show those. The
+  /// filter stays out of the saved preference so it cannot follow the user back
+  /// to the ordinary browse of the same library.
+  final bool favoritesOnly;
+
   static const _pageSize = 48;
   static const _firstPageSize = 75;
   // Name and CollectionType come back as default fields, so the library lookup
@@ -170,6 +175,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     this.studioName,
     this.overrideName,
     this.includeItemTypes,
+    this.favoritesOnly = false,
   }) : _client = client,
        _prefs = prefs,
        _mdbListRepository = mdbListRepository {
@@ -177,9 +183,9 @@ class LibraryBrowseViewModel extends ChangeNotifier {
     _sortDirection = _prefs.get(UserPreferences.librarySortDirection(_prefKey));
     _playedFilter = _prefs.get(UserPreferences.libraryPlayedFilter(_prefKey));
     _seriesFilter = _prefs.get(UserPreferences.librarySeriesFilter(_prefKey));
-    _favoriteFilter = _prefs.get(
-      UserPreferences.libraryFavoriteFilter(_prefKey),
-    );
+    _favoriteFilter =
+        favoritesOnly ||
+        _prefs.get(UserPreferences.libraryFavoriteFilter(_prefKey));
     _letterFilter = '';
     _imageType = _prefs.get(UserPreferences.libraryImageType(_imagePrefKey));
     _posterSize = _readScopedPosterSize();
@@ -644,7 +650,7 @@ class LibraryBrowseViewModel extends ChangeNotifier {
   }
 
   Future<void> setFavoriteFilter(bool value) async {
-    if (_favoriteFilter == value) return;
+    if (favoritesOnly || _favoriteFilter == value) return;
     _favoriteFilter = value;
     await _prefs.set(UserPreferences.libraryFavoriteFilter(_prefKey), value);
     await load();

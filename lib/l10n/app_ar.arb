@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "سوف تظهر المسارات المفضلة هنا",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "فشل التحميل",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

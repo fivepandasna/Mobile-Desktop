@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "A kedvenc számok itt jelennek meg",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "Nem sikerült betölteni",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

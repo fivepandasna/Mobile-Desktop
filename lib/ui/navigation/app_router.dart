@@ -35,7 +35,6 @@ import '../screens/games/game_detail_screen.dart';
 import '../screens/playback/game_emulator_screen.dart';
 import '../screens/playback/native_game_player_screen.dart';
 import '../screens/detail/item_list_screen.dart';
-import '../screens/detail/music_favorites_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/seerr/seerr_browse_screen.dart';
 import '../screens/seerr/seerr_collection_screen.dart';
@@ -275,6 +274,7 @@ final appRouter = GoRouter(
         return LibraryBrowseScreen(
           libraryId: libraryId,
           includeItemTypes: includeItemTypes,
+          favoritesOnly: state.uri.queryParameters['favorites'] == '1',
         );
       },
       routes: [
@@ -394,13 +394,6 @@ final appRouter = GoRouter(
           },
         ),
       ],
-    ),
-    GoRoute(
-      path: Destinations.musicFavorites,
-      builder: (context, state) {
-        final parentId = state.pathParameters['parentId']!;
-        return MusicFavoritesScreen(parentId: parentId);
-      },
     ),
 
     // Games (EmulatorJS)

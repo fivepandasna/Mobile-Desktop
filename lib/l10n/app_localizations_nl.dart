@@ -893,9 +893,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get itemListPlaceholder => 'De itemlijst verschijnt hier';
 
   @override
-  String get favoriteTracksPlaceholder => 'Favoriete nummers verschijnen hier';
-
-  @override
   String get failedToLoad => 'Kan niet laden';
 
   @override

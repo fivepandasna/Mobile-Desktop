@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "Тут з'явяцца любімыя трэкі",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "Не ўдалося загрузіць",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

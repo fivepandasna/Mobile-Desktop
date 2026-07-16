@@ -889,9 +889,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get itemListPlaceholder => 'आइटम सूची यहां दिखाई देगी';
 
   @override
-  String get favoriteTracksPlaceholder => 'पसंदीदा ट्रैक यहां दिखाई देंगे';
-
-  @override
   String get failedToLoad => 'लोड करने में विफल';
 
   @override

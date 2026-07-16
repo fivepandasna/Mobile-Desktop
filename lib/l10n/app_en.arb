@@ -1170,10 +1170,6 @@
   "@itemListPlaceholder": {
     "description": "Placeholder text for an empty item list screen"
   },
-  "favoriteTracksPlaceholder": "Favorite tracks will appear here",
-  "@favoriteTracksPlaceholder": {
-    "description": "Placeholder text for an empty music favorites screen"
-  },
   "failedToLoad": "Failed to load",
   "@failedToLoad": {
     "description": "Error message when item detail fails to load"

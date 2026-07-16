@@ -931,10 +931,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "പ്രിയപ്പെട്ട ട്രാക്കുകൾ ഇവിടെ ദൃശ്യമാകും",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"

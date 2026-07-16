@@ -890,9 +890,6 @@ class AppLocalizationsUk extends AppLocalizations {
   String get itemListPlaceholder => 'Тут з’явиться список елементів';
 
   @override
-  String get favoriteTracksPlaceholder => 'Тут з’являться улюблені треки';
-
-  @override
   String get failedToLoad => 'Не вдалося завантажити';
 
   @override

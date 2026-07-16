@@ -892,9 +892,6 @@ class AppLocalizationsCy extends AppLocalizations {
   String get itemListPlaceholder => 'Bydd rhestr o eitemau yn ymddangos yma';
 
   @override
-  String get favoriteTracksPlaceholder => 'Bydd hoff draciau yn ymddangos yma';
-
-  @override
   String get failedToLoad => 'Wedi methu llwytho';
 
   @override

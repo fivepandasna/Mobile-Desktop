@@ -81,7 +81,6 @@ class Destinations {
 
   // Item details
   static const itemDetail = '/item/:itemId';
-  static const musicFavorites = '/music-favorites/:parentId';
 
   // Games (EmulatorJS)
   static const gameLibrary = '/games/:libraryId';
@@ -153,6 +152,7 @@ class Destinations {
   static String library(
     String libraryId, {
     List<String>? includeItemTypes,
+    bool favorites = false,
   }) {
     final base = '/library/$libraryId';
     final params = <String>[];
@@ -160,6 +160,7 @@ class Destinations {
       final types = includeItemTypes.map(Uri.encodeComponent).join(',');
       params.add('types=$types');
     }
+    if (favorites) params.add('favorites=1');
     if (params.isEmpty) return base;
     return '$base?${params.join('&')}';
   }
@@ -207,8 +208,7 @@ class Destinations {
     ];
     return '$base?${params.join('&')}';
   }
-  static String musicFavoritesOf(String parentId) =>
-      '/music-favorites/$parentId';
+
   static String genre(
     String genreName, {
     required String genreId,

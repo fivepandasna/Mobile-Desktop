@@ -894,10 +894,6 @@ class AppLocalizationsMl extends AppLocalizations {
   String get itemListPlaceholder => 'ഇനങ്ങളുടെ ലിസ്റ്റ് ഇവിടെ ദൃശ്യമാകും';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'പ്രിയപ്പെട്ട ട്രാക്കുകൾ ഇവിടെ ദൃശ്യമാകും';
-
-  @override
   String get failedToLoad => 'ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു';
 
   @override

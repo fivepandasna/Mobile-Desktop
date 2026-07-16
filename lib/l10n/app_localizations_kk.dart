@@ -892,10 +892,6 @@ class AppLocalizationsKk extends AppLocalizations {
   String get itemListPlaceholder => 'Элемент тізімі осы жерде пайда болады';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Таңдаулы тректер осы жерде пайда болады';
-
-  @override
   String get failedToLoad => 'Жүктелмеді';
 
   @override

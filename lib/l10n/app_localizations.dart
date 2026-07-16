@@ -1768,12 +1768,6 @@ abstract class AppLocalizations {
   /// **'Item list will appear here'**
   String get itemListPlaceholder;
 
-  /// Placeholder text for an empty music favorites screen
-  ///
-  /// In en, this message translates to:
-  /// **'Favorite tracks will appear here'**
-  String get favoriteTracksPlaceholder;
-
   /// Error message when item detail fails to load
   ///
   /// In en, this message translates to:

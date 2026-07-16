@@ -889,10 +889,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get itemListPlaceholder => 'Ovdje će se pojaviti popis stavki';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Ovdje će se pojaviti omiljene pjesme';
-
-  @override
   String get failedToLoad => 'Učitavanje nije uspjelo';
 
   @override

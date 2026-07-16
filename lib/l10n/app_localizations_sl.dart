@@ -893,10 +893,6 @@ class AppLocalizationsSl extends AppLocalizations {
   String get itemListPlaceholder => 'Tukaj se prikaže seznam predmetov';
 
   @override
-  String get favoriteTracksPlaceholder =>
-      'Tukaj bodo prikazane priljubljene skladbe';
-
-  @override
   String get failedToLoad => 'Nalaganje ni uspelo';
 
   @override
