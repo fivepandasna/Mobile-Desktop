@@ -597,7 +597,7 @@
     "@listen": {
         "description": "Primary action label for audiobooks"
     },
-    "resume": "Reprèn",
+    "resume": "Reprendre",
     "@resume": {
         "description": "Primary action label for resuming reading"
     },
@@ -1391,7 +1391,7 @@
     "@director": {
         "description": "Metadata label for director"
     },
-    "writers": "GUIONISTES",
+    "writers": "ESCRIPTORS",
     "@writers": {
         "description": "Metadata label for writers"
     },
@@ -7355,7 +7355,7 @@
     "@settingsScrollWheelActionDescription": {
         "description": "Description for the mouse scroll wheel action setting"
     },
-    "scrollWheelActionOff": "Desactivat",
+    "scrollWheelActionOff": "Desactivar",
     "@scrollWheelActionOff": {
         "description": "Scroll wheel action option: do nothing"
     },
@@ -7415,7 +7415,7 @@
     "@settingsMaxAudioChannelsMono": {
         "description": "Option: Mono (1 channel)"
     },
-    "settingsMaxAudioChannelsStereo": "2.0 Estèreo",
+    "settingsMaxAudioChannelsStereo": "2.0 Stereo",
     "@settingsMaxAudioChannelsStereo": {
         "description": "Option: Stereo (2 channels)"
     },
@@ -7423,7 +7423,7 @@
     "@settingsMaxAudioChannels3_0": {
         "description": "Option: 3 channels"
     },
-    "settingsMaxAudioChannels4_0": "4.0 / 3.1 Quadrafònic",
+    "settingsMaxAudioChannels4_0": "4.0 / 3.1 Quadraphonic",
     "@settingsMaxAudioChannels4_0": {
         "description": "Option: 4 channels"
     },
@@ -7497,7 +7497,7 @@
     "themeStoreDescription": "Guarda un tema per a usarlo com els altres temes guardats.",
     "themeStoreEmpty": "No hi ha temes disponibles en aquest moment.",
     "themeStoreLoadFailed": "No s'ha pogut carregar la botiga de temes. Verifica la teva conexió i intenta-ho de nou.",
-    "themeStoreSave": "Desa",
+    "themeStoreSave": "Guardar",
     "themeStoreSaveAndApply": "Guardar i aplicar",
     "themeStoreSaved": "Guardat",
     "themeStoreInvalidMessage": "Aquest tema no s'ha pogut carregar.",
