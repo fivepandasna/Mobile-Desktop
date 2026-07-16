@@ -1,6 +1,6 @@
 {
     "@@locale": "cy",
-    "appTitle": "Moonfin",
+    "appTitle": "Lleuad",
     "@appTitle": {
         "description": "The application title"
     },
@@ -17,7 +17,7 @@
             }
         }
     },
-    "quickConnect": "Quick Connect",
+    "quickConnect": "Cyswllt Cyflym",
     "@quickConnect": {
         "description": "Quick Connect toggle button label"
     },
@@ -37,7 +37,7 @@
     "@waitingForAuthorization": {
         "description": "Quick Connect polling status text"
     },
-    "back": "Yn ôl",
+    "back": "Yn ol",
     "@back": {
         "description": "Back button label"
     },
@@ -132,7 +132,7 @@
     "@cancel": {
         "description": "Generic cancel button label"
     },
-    "remove": "Tynnu",
+    "remove": "Dileu",
     "@remove": {
         "description": "Remove button label in confirmation dialogs"
     },
@@ -172,7 +172,7 @@
     "@settingsAppearanceThemeSubtitle": {
         "description": "Subtitle for the theme selection screen and theme settings entry"
     },
-    "themeMoonfin": "Moonfin",
+    "themeMoonfin": "Lleuad",
     "@themeMoonfin": {
         "description": "Display name for the Moonfin theme"
     },
@@ -285,7 +285,7 @@
     "@schedule": {
         "description": "Live TV schedule button label"
     },
-    "series": "Cyfresi",
+    "series": "Cyfres",
     "@series": {
         "description": "Section header for TV series"
     },
@@ -293,7 +293,7 @@
     "@noItemsFound": {
         "description": "Empty state when no items match the current view"
     },
-    "home": "Hafan",
+    "home": "Cartref",
     "@home": {
         "description": "Home navigation tooltip"
     },
@@ -532,7 +532,7 @@
     "@pickDiscoverySubjects": {
         "description": "Instruction text in discovery subject picker"
     },
-    "apply": "Gweithredu",
+    "apply": "Ymgeisiwch",
     "@apply": {
         "description": "Button label to apply selected options"
     },
@@ -560,7 +560,7 @@
     "@librivoxDescription": {
         "description": "Subtitle for audiobook discovery section"
     },
-    "titlesCount": "{count} teitl",
+    "titlesCount": "{count} titles",
     "@titlesCount": {
         "description": "Label showing number of titles",
         "placeholders": {
@@ -597,7 +597,7 @@
     "@listen": {
         "description": "Primary action label for audiobooks"
     },
-    "resume": "Parhau",
+    "resume": "Ail-ddechrau",
     "@resume": {
         "description": "Primary action label for resuming reading"
     },
@@ -678,7 +678,7 @@
             }
         }
     },
-    "genresCount": "{count} genre",
+    "genresCount": "{count} genres",
     "@genresCount": {
         "description": "Metric pill showing genre count",
         "placeholders": {
@@ -790,7 +790,7 @@
     "@readStatus": {
         "description": "Filter label for read/watched items in book libraries"
     },
-    "watched": "Gwyliwyd",
+    "watched": "Gwylio",
     "@watched": {
         "description": "Filter label for watched items"
     },
@@ -822,7 +822,7 @@
     "@unknownAuthor": {
         "description": "Fallback text when book author is not available"
     },
-    "uncategorized": "Heb gategori",
+    "uncategorized": "Uncategorized",
     "@uncategorized": {
         "description": "Fallback text when genre is not available"
     },
@@ -914,7 +914,7 @@
             }
         }
     },
-    "audiobookCountLabel": "{count, plural, =1{1 llyfr sain} zero{{count} o lyfrau sain} two{{count} lyfr sain} other{{count} llyfr sain}}",
+    "audiobookCountLabel": "{count, plural, =1{1 audiobook} other{{count} audiobooks}}",
     "@audiobookCountLabel": {
         "description": "Subtitle showing number of audiobooks by an author",
         "placeholders": {
@@ -939,7 +939,7 @@
     "@delete": {
         "description": "Delete action button label"
     },
-    "save": "Cadw",
+    "save": "Arbed",
     "@save": {
         "description": "Save action button label"
     },
@@ -1107,11 +1107,11 @@
     "@version": {
         "description": "Action button label for version/media source selection"
     },
-    "cast": "Castio",
+    "cast": "Cast",
     "@cast": {
         "description": "Action button label for casting to a device"
     },
-    "trailer": "Rhaghysbyseb",
+    "trailer": "Trelar",
     "@trailer": {
         "description": "Action button label for trailer playback"
     },
@@ -1391,7 +1391,7 @@
     "@director": {
         "description": "Metadata label for director"
     },
-    "writers": "SGRIPTWYR",
+    "writers": "YSGRIFENWYR",
     "@writers": {
         "description": "Metadata label for writers"
     },
@@ -1447,7 +1447,7 @@
             }
         }
     },
-    "trackCount": "{count, plural, =1{1 trac} zero{{count} o draciau} two{{count} drac} few{{count} thrac} many{{count} thrac} other{{count} trac}}",
+    "trackCount": "{count, plural, =1{1 track} other{{count} tracks}}",
     "@trackCount": {
         "description": "Label showing number of tracks in an album",
         "placeholders": {
@@ -1456,7 +1456,7 @@
             }
         }
     },
-    "chapterCount": "{count, plural, =1{1 bennod} zero{{count} o benodau} two{{count} bennod} few{{count} pennod} many{{count} phennod} other{{count} pennod}}",
+    "chapterCount": "{count, plural, =1{1 chapter} other{{count} chapters}}",
     "@chapterCount": {
         "description": "Label showing number of chapters in an audiobook",
         "placeholders": {
@@ -1500,7 +1500,7 @@
     "@readMore": {
         "description": "Toggle label to expand biography"
     },
-    "shuffle": "Cymysgu",
+    "shuffle": "Siffrwd",
     "@shuffle": {
         "description": "Action button label for shuffle playback"
     },
@@ -1668,7 +1668,7 @@
     "@unavailable": {
         "description": "Label when a feature is unavailable"
     },
-    "pause": "Oedi",
+    "pause": "Oedwch",
     "@pause": {
         "description": "Pause action label"
     },
@@ -1743,7 +1743,7 @@
             }
         }
     },
-    "auto": "Awto",
+    "auto": "Auto",
     "@auto": {
         "description": "Label for automatic bitrate selection"
     },
@@ -1830,7 +1830,7 @@
     "@container": {
         "description": "Stream info label for media container"
     },
-    "bitrate": "Cyfradd didau",
+    "bitrate": "Bitrate",
     "@bitrate": {
         "description": "Stream info label for bitrate"
     },
@@ -2241,7 +2241,7 @@
             }
         }
     },
-    "no": "Na",
+    "no": "Nac ydw",
     "@no": {
         "description": "Negative dialog button label"
     },
@@ -2413,7 +2413,7 @@
             }
         }
     },
-    "durationMinutes": "{minutes} mun",
+    "durationMinutes": "{minutes} min",
     "@durationMinutes": {
         "description": "Duration in minutes",
         "placeholders": {
@@ -2422,7 +2422,7 @@
             }
         }
     },
-    "seasonEpisodeLabel": "T{season} P{episode}",
+    "seasonEpisodeLabel": "S{season} E{episode}",
     "@seasonEpisodeLabel": {
         "description": "Season and episode label like S1 E2",
         "placeholders": {
@@ -2464,7 +2464,7 @@
             }
         }
     },
-    "seasonChip": "T{number}",
+    "seasonChip": "S{number}",
     "@seasonChip": {
         "description": "Compact season chip label",
         "placeholders": {
@@ -2490,7 +2490,7 @@
             }
         }
     },
-    "episodeCount": "{count, plural, =1{1 bennod} zero{{count} o benodau} two{{count} bennod} few{{count} pennod} many{{count} phennod} other{{count} pennod}}",
+    "episodeCount": "{count, plural, =1{1 episode} other{{count} episodes}}",
     "@episodeCount": {
         "description": "Number of episodes with pluralization",
         "placeholders": {
@@ -2840,7 +2840,7 @@
     "@refreshRateSwitching": {
         "description": "Setting for refresh rate switching"
     },
-    "disabled": "Wedi'i analluogi",
+    "disabled": "Anabl",
     "@disabled": {
         "description": "Option: disabled"
     },
@@ -3201,7 +3201,7 @@
     "@green": {
         "description": "Color: green"
     },
-    "cyan": "Gwyrddlas",
+    "cyan": "Cyan",
     "@cyan": {
         "description": "Color: cyan"
     },
@@ -3561,7 +3561,7 @@
     "@mediaBarModeDescription": {
         "description": "Description for media bar style setting"
     },
-    "mediaBarModeMoonfin": "Moonfin",
+    "mediaBarModeMoonfin": "Lleuad",
     "@mediaBarModeMoonfin": {
         "description": "Media bar style option: Moonfin"
     },
@@ -3817,7 +3817,7 @@
     "@timeout": {
         "description": "Setting for timeout"
     },
-    "minutesShort": "{minutes} mun",
+    "minutesShort": "{minutes} min",
     "@minutesShort": {
         "description": "Minutes duration short format",
         "placeholders": {
@@ -3951,7 +3951,7 @@
     "@ratingSourcesDescription": {
         "description": "Description for rating sources"
     },
-    "pluginLabel": "Ategyn Moonbase",
+    "pluginLabel": "Ategyn",
     "@pluginLabel": {
         "description": "Settings title for plugin"
     },
@@ -4080,19 +4080,19 @@
             }
         }
     },
-    "discoverRows": "Tudalen Ddarganfod Seerr",
+    "discoverRows": "Darganfod Rhesi",
     "@discoverRows": {
         "description": "Section title for discover rows"
     },
-    "discoverRowsDescriptionPlugin": "Galluogwch resi i'w gweld ar brif dudalen Seerr. Llusgwch i aildrefnu. Mae'r drefn bersonol yn cydweddu â Moonbase.",
+    "discoverRowsDescriptionPlugin": "Llusgwch i aildrefnu. Galluogi neu analluogi rhesi. Wedi galluogi cysoni trefn rhesi ag ategyn Moonfin.",
     "@discoverRowsDescriptionPlugin": {
         "description": "Description for discover rows with plugin"
     },
-    "discoverRowsDescription": "Galluogwch resi i'w gweld ar brif dudalen Seerr. Llusgwch i aildrefnu. Mae'r drefn bersonol yn cydweddu â Moonbase.",
+    "discoverRowsDescription": "Llusgwch i aildrefnu. Galluogi neu analluogi rhesi.",
     "@discoverRowsDescription": {
         "description": "Description for discover rows without plugin"
     },
-    "enabled": "Wedi'i alluogi",
+    "enabled": "Galluogwyd",
     "@enabled": {
         "description": "Status: enabled"
     },
@@ -4248,7 +4248,7 @@
             }
         }
     },
-    "clear": "Clirio",
+    "clear": "Clir",
     "@clear": {
         "description": "Button to clear"
     },
@@ -4524,7 +4524,7 @@
     "copy": "Copi",
     "create": "Creu",
     "disable": "Analluogi",
-    "done": "Gorffen",
+    "done": "Wedi'i wneud",
     "edit": "Golygu",
     "encoding": "Amgodio",
     "error": "Gwall",
@@ -4544,13 +4544,13 @@
     "profile": "Proffil",
     "provider": "Darparwr",
     "refresh": "Adnewyddu",
-    "remote": "Rheolydd pell",
+    "remote": "Anghysbell",
     "rename": "Ailenwi",
     "revoke": "Dirymu",
     "role": "Rôl",
     "root": "Gwraidd",
     "run": "Rhedeg",
-    "search": "Chwilio",
+    "search": "Chwiliwch",
     "select": "Dewiswch",
     "send": "Anfon",
     "sessions": "Sesiynau",
@@ -4565,7 +4565,7 @@
     "update": "Diweddariad",
     "upload": "Llwytho i fyny",
     "unmute": "Dad-dewi",
-    "mute": "Distewi",
+    "mute": "Tewi",
     "branding": "Brandio",
     "adminDrawerDashboard": "Dangosfwrdd",
     "adminDrawerAnalytics": "Dadansoddeg",
@@ -4574,7 +4574,7 @@
     "adminDrawerUsers": "Defnyddwyr",
     "adminDrawerLibraries": "Llyfrgelloedd",
     "adminDrawerTranscoding": "Trawsgodio",
-    "adminDrawerResume": "Parhau",
+    "adminDrawerResume": "Ail-ddechrau",
     "adminDrawerStreaming": "Ffrydio",
     "adminDrawerTrickplay": "Trickplay",
     "adminDrawerDevices": "Dyfeisiau",
@@ -4673,14 +4673,14 @@
     "sessionForward": "Ymlaen",
     "sessionNext": "Nesaf",
     "sessionVolumeDown": "Vol -",
-    "sessionVolumeUp": "Sain +",
+    "sessionVolumeUp": "Vol +",
     "uhd4k": "4K",
     "nowPlaying": "Yn Chwarae Nawr",
-    "volume": "Lefel sain",
+    "volume": "Cyfrol",
     "actions": "Gweithredoedd",
     "videoCodec": "Codec Fideo",
     "audioCodec": "Codec Sain",
-    "hwAccel": "Cyflymu Caledwedd",
+    "hwAccel": "HW Accel",
     "completion": "Cwblhau",
     "direct": "Uniongyrchol",
     "adminDisconnect": "Datgysylltu",
@@ -5431,7 +5431,7 @@
         }
     },
     "adminRefreshMetadata": "Adnewyddu Metadata",
-    "recursive": "Atgyrchol",
+    "recursive": "Recursive",
     "adminReplaceAllMetadata": "Disodli'r holl fetadata",
     "adminReplaceAllImages": "Amnewid pob delwedd",
     "adminMetadataRefreshRequested": "Gofynnwyd am adnewyddu metadata",
@@ -5669,7 +5669,7 @@
     "adminUnnamedBackup": "Copi Wrth Gefn Dienw",
     "adminLiveTvNotAvailable": "Nid yw gweinyddiaeth teledu byw ar gael ar y gosodiad gweinydd hwn.",
     "adminLiveTvTitle": "Gweinyddu teledu byw",
-    "adminApply": "Gweithredu",
+    "adminApply": "Ymgeisiwch",
     "adminNotSet": "Heb ei osod",
     "adminReset": "Ailosod",
     "adminLogsTitle": "Logiau Gweinydd",
@@ -5731,7 +5731,7 @@
     "adminMetadataFieldOfficialRating": "Sgôr swyddogol",
     "adminMetadataFieldCommunityRating": "Sgôr gymunedol",
     "adminMetadataFieldCriticRating": "Gradd feirniadol",
-    "adminMetadataFieldTagline": "Slogan",
+    "adminMetadataFieldTagline": "Tagline",
     "adminMetadataFieldOverview": "Trosolwg",
     "adminMetadataGenres": "Genres",
     "adminMetadataTags": "Tagiau",
@@ -5748,7 +5748,7 @@
     "adminMetadataImageLogo": "Logo",
     "adminMetadataImageBanner": "Baner",
     "adminMetadataImageThumb": "Bawd",
-    "adminMetadataRecursive": "Atgyrchol",
+    "adminMetadataRecursive": "Recursive",
     "adminMetadataProvider": "Darparwr",
     "adminMetadataImageUpdated": "delwedd {imageType} wedi'i diweddaru",
     "@adminMetadataImageUpdated": {
@@ -5896,7 +5896,7 @@
             }
         }
     },
-    "adminReposRemove": "Tynnu",
+    "adminReposRemove": "Dileu",
     "adminReposSaveFailed": "Wedi methu cadw ystorfeydd: {error}",
     "@adminReposSaveFailed": {
         "placeholders": {
@@ -6028,7 +6028,7 @@
     "adminTaskTriggerEvery12Hours": "Bob 12 awr",
     "adminTaskTriggerEvery24Hours": "Bob 24 awr",
     "adminTaskTriggerEvery2Days": "Bob 2 ddiwrnod",
-    "adminTaskTriggerHours": "{count, plural, one{1 awr} zero{{count} o oriau} other{{count} awr}}",
+    "adminTaskTriggerHours": "{count, plural, one{1 hour} other{{count} hours}}",
     "@adminTaskTriggerHours": {
         "placeholders": {
             "count": {
@@ -6092,7 +6092,7 @@
             }
         }
     },
-    "adminActivityDateShort": "{day}/{month}",
+    "adminActivityDateShort": "{month}/{day}",
     "@adminActivityDateShort": {
         "placeholders": {
             "month": {
@@ -6170,7 +6170,7 @@
     "syncPlayServerUnsupportedMessage": "Mae angen gweinydd Jellyfin ar SyncPlay. Nid yw'r gweinydd presennol yn ei gefnogi.",
     "syncPlayGroupFallbackName": "Grŵp SyncPlay",
     "syncPlayGroupTooltip": "Grŵp SyncPlay",
-    "syncPlayParticipantCount": "{count, plural, one {# cyfranogwr} zero {# o gyfranogwyr} two {# gyfranogwr} few {# chyfranogwr} many {# chyfranogwr} other {# cyfranogwr}}",
+    "syncPlayParticipantCount": "{count, plural, one {# participant} other {# participants}}",
     "@syncPlayParticipantCount": {
         "description": "Participant count label shown in SyncPlay UI",
         "placeholders": {
@@ -6251,7 +6251,7 @@
     "rememberMyChoice": "Cofiwch fy newis",
     "playHdr10Fallback": "Chwarae HDR10 wrth gefn",
     "requestTranscode": "Gofyn am drawsgod",
-    "integrationRowsDiscoveredCount": "{count, plural, one {# rhes wedi'i darganfod} zero {# o resi wedi'u darganfod} two {# res wedi'u darganfod} other {# rhes wedi'u darganfod}}",
+    "integrationRowsDiscoveredCount": "{count, plural, one {# row discovered} other {# rows discovered}}",
     "@integrationRowsDiscoveredCount": {
         "description": "Plural label for number of rows discovered in integration status",
         "placeholders": {
@@ -6326,14 +6326,14 @@
     "pinIncorrect": "PIN anghywir",
     "pinMismatch": "Nid yw PINs yn cyfateb",
     "pinForgot": "Wedi anghofio PIN?",
-    "pinClear": "Clirio",
+    "pinClear": "Clir",
     "pinBackspace": "Gofod cefn",
-    "quickConnectAuthorized": "Awdurdodwyd y cais Quick Connect.",
+    "quickConnectAuthorized": "Cais Cyswllt Cyflym wedi'i awdurdodi.",
     "quickConnectInvalidOrExpired": "Mae cod Quick Connect yn annilys neu wedi dod i ben.",
     "quickConnectNotSupported": "Nid yw Quick Connect yn cael ei gefnogi ar y gweinydd hwn.",
     "quickConnectAuthorizeFailed": "Wedi methu ag awdurdodi cod Quick Connect.",
     "quickConnectDisabled": "Mae Quick Connect wedi'i analluogi ar y gweinydd hwn.",
-    "quickConnectForbidden": "Ni all eich cyfrif awdurdodi'r cais Quick Connect hwn.",
+    "quickConnectForbidden": "Ni all eich cyfrif awdurdodi'r cais Cyswllt Cyflym hwn.",
     "quickConnectNotFound": "Ni chanfuwyd cod Quick Connect. Rhowch gynnig ar god newydd.",
     "quickConnectFailedWithMessage": "Methodd Quick Connect: {message}",
     "@quickConnectFailedWithMessage": {
@@ -6459,7 +6459,7 @@
     "@playerTooltipCastControls": {
         "description": "Tooltip label for active cast controls button in player"
     },
-    "playerTooltipPlaybackQuality": "Cyfradd didau",
+    "playerTooltipPlaybackQuality": "Bitrate",
     "@playerTooltipPlaybackQuality": {
         "description": "Tooltip label for playback quality/bitrate control in player"
     },
@@ -6567,7 +6567,7 @@
     "settingsCheckForUpdates": "Gwiriwch am Ddiweddariadau",
     "settingsCheckForUpdatesSubtitle": "Gwiriwch am y datganiad Moonfin diweddaraf",
     "settingsPoweredByFlutter": "Wedi'i bweru gan Flutter",
-    "settingsLicenseNoticesCount": "{count, plural, one {# hysbysiad trwydded} zero {# o hysbysiadau trwydded} other {# hysbysiad trwydded}}",
+    "settingsLicenseNoticesCount": "{count, plural, one {# license notice} other {# license notices}}",
     "@settingsLicenseNoticesCount": {
         "description": "Plural label for number of license notices",
         "placeholders": {
@@ -6763,7 +6763,7 @@
     "@musicVideos": {
         "description": "Section header for music videos filmography row"
     },
-    "record": "Recordio",
+    "record": "Cofnod",
     "@record": {
         "description": "Button label to schedule a live TV recording"
     },
@@ -6787,7 +6787,7 @@
     "@settingsAudioOutputMode": {
         "description": "Setting for audio output mode"
     },
-    "settingsAudioOutputModeAvrPassthrough": "Trosglwyddo AVR",
+    "settingsAudioOutputModeAvrPassthrough": "AVR Passthrough",
     "@settingsAudioOutputModeAvrPassthrough": {
         "description": "Audio output mode option for AVR passthrough"
     },
@@ -6799,7 +6799,7 @@
     "@settingsAudioPassthroughAdvanced": {
         "description": "Section title for advanced passthrough controls"
     },
-    "settingsAudioCodecPassthrough": "Trosglwyddo Codec",
+    "settingsAudioCodecPassthrough": "Codec Passthrough",
     "@settingsAudioCodecPassthrough": {
         "description": "Title for codec passthrough settings group"
     },
@@ -6811,7 +6811,7 @@
     "@settingsAudioEac3Passthrough": {
         "description": "Setting for EAC3 passthrough"
     },
-    "settingsAudioEac3JocPassthrough": "Trosglwyddo EAC3 JOC (Atmos)",
+    "settingsAudioEac3JocPassthrough": "EAC3 JOC (Atmos) Passthrough",
     "@settingsAudioEac3JocPassthrough": {
         "description": "Setting for EAC3 JOC Atmos passthrough"
     },
@@ -6823,7 +6823,7 @@
     "@settingsAudioDtsHdPassthrough": {
         "description": "Setting for DTS-HD MA passthrough"
     },
-    "settingsAudioTrueHdPassthrough": "Trosglwyddo TrueHD",
+    "settingsAudioTrueHdPassthrough": "Gwir HD Passthrough",
     "@settingsAudioTrueHdPassthrough": {
         "description": "Setting for TrueHD passthrough"
     },
@@ -6863,7 +6863,7 @@
     "@settingsAudioDecodeLabel": {
         "description": "Label for audio decode capability row"
     },
-    "settingsAudioPassthroughLabel": "Trosglwyddo",
+    "settingsAudioPassthroughLabel": "Passthrough",
     "@settingsAudioPassthroughLabel": {
         "description": "Label for audio passthrough capability row"
     },
@@ -7071,14 +7071,14 @@
     "genresRowSortingDescription": "Trefnu rhesi Genres yn ôl dyddiad a ychwanegwyd, dyddiad rhyddhau, yn nhrefn yr wyddor, a mwy.",
     "genresRowItems": "Eitemau Rhes Genres",
     "genresRowItemsDescription": "Dangos Ffilmiau, Cyfresi, neu'r ddau yn rhesi Genres.",
-    "appearance": "Gwedd",
+    "appearance": "Ymddangosiad",
     "cardSize": "Maint Cerdyn",
     "externalPlayerApp": "Ap chwaraewr allanol",
     "externalPlayerAskEachTimeSubtitle": "Dangos dewisydd ap pan fydd chwarae yn dechrau.",
     "loadingInstalledPlayers": "Wrthi'n llwytho chwaraewyr sydd wedi'u gosod...",
     "connection": "Cysylltiad",
     "audioTranscodeTarget": "Targed Trawsnewid Sain",
-    "passthrough": "Trosglwyddo",
+    "passthrough": "Passthrough",
     "supportedOnThisDevice": "Cefnogir ar y ddyfais hon",
     "notSupportedOnThisDevice": "Heb ei gefnogi ar y ddyfais hon",
     "settingsAudioDtsXPassthrough": "Llwybr DTS:X (DTS UHD).",
@@ -7158,7 +7158,7 @@
     "openIosRoutePicker": "Agor codwr llwybr iOS",
     "airPlayRoutePickerUnavailable": "Nid yw dewiswr llwybr AirPlay ar gael ar y ddyfais hon.",
     "videos": "Fideos",
-    "trailers": "Rhaghysbysebion",
+    "trailers": "Trelars",
     "programs": "Rhaglenni",
     "songs": "Caneuon",
     "photoAlbums": "Albymau Lluniau",
@@ -7192,7 +7192,7 @@
     "analyticsTopArtists": "Artistiaid Gorau",
     "analyticsTopAuthors": "Prif Awduron",
     "analyticsTopContributors": "Cyfranwyr Gorau",
-    "analyticsLibrariesCount": "{count, plural, =1{1 Llyfrgell} zero{{count} o Lyfrgelloedd} two{{count} Lyfrgell} other{{count} Llyfrgell}}",
+    "analyticsLibrariesCount": "{count, plural, =1{1 Library} other{{count} Libraries}}",
     "@analyticsLibrariesCount": {
         "placeholders": {
             "count": {
@@ -7207,7 +7207,7 @@
     "adminServerAdministrationTitle": "Gweinyddu Gweinydd",
     "adminServerPathData": "Data",
     "adminServerPathImageCache": "Cache Delwedd",
-    "adminServerPathCache": "Storfa",
+    "adminServerPathCache": "Cache",
     "adminServerPathLogs": "Logiau",
     "adminServerPathMetadata": "Metadata",
     "adminServerPathTranscode": "Trawsgod",
@@ -7234,7 +7234,7 @@
     "mixedContent": "Cynnwys Cymysg",
     "homeVideosAndPhotos": "Fideos Cartref a Lluniau",
     "mixedMoviesAndShows": "Ffilmiau a Sioeau Cymysg",
-    "intelQuickSync": "Intel Quick Sync",
+    "intelQuickSync": "Sync Cyflym Intel",
     "rockchipMpp": "Rockchip MPP",
     "dolbyVision": "Dolby Vision",
     "noRecordingsFound": "Ni chanfuwyd unrhyw recordiadau",
@@ -7302,199 +7302,199 @@
     "cb7ExtractionPluginUnavailable": "Nid yw ategyn echdynnu CB7 ar gael ar y platfform hwn.",
     "closeGenrePanel": "Panel genre agos",
     "loadingShuffle": "Wrthi'n llwytho siffrwd...",
-    "libraryShuffleLabel": "HAPCHWARAE'R LLYFRGELL",
-    "randomShuffleLabel": "HAPCHWARAE AR HAP",
-    "genresShuffleLabel": "HAPCHWARAE GENRES",
+    "libraryShuffleLabel": "LIBRARY SHUFFLE",
+    "randomShuffleLabel": "RANDOM SHUFFLE",
+    "genresShuffleLabel": "GENRES SHUFFLE",
     "autoHdrSwitching": "Newid HDR Auto",
     "autoHdrSwitchingDescription": "Galluogi HDR yn awtomatig ar gyfer chwarae fideo HDR ac adfer modd arddangos wrth ymadael.",
     "whenFullscreen": "Pan fydd sgrin lawn",
     "transcodingLimits": "Terfynau Trawsgodio",
     "settingsSupportMoonfinSubtitle": "Rhowch goffi i'r datblygwr",
-    "accountPreferences": "DEWISIADAU CYFRIF",
+    "accountPreferences": "",
     "@accountPreferences": {
         "description": "Section header for account preferences settings"
     },
-    "interfaceLanguage": "Iaith y Rhyngwyneb",
+    "interfaceLanguage": "",
     "@interfaceLanguage": {
         "description": "Label for the app interface language setting"
     },
-    "systemLanguageDefault": "Rhagosodiad y System",
+    "systemLanguageDefault": "",
     "@systemLanguageDefault": {
         "description": "Label for using the system default language in settings"
     },
-    "empty": "Gwag",
+    "empty": "",
     "@empty": {
         "description": "Label indicating a section or category is empty"
     },
-    "detailScreenStyle": "Arddull y sgrin fanylion",
+    "detailScreenStyle": "",
     "@detailScreenStyle": {
         "description": "Label for the media detail screen layout style setting"
     },
-    "detailScreenStyleSubtitle": "Clasurol yw cynllun canolog gwreiddiol Moonfin. Modern yw cynllun sinematig ymatebol.",
+    "detailScreenStyleSubtitle": "",
     "@detailScreenStyleSubtitle": {
         "description": "Explanation under the detail screen style setting"
     },
-    "detailScreenStyleMoonfin": "Clasurol",
+    "detailScreenStyleMoonfin": "",
     "@detailScreenStyleMoonfin": {
         "description": "Detail screen style option: the classic centered layout"
     },
-    "detailScreenStyleModern": "Modern",
+    "detailScreenStyleModern": "",
     "@detailScreenStyleModern": {
         "description": "Detail screen style option: the responsive cinematic layout"
     },
-    "expandedTabs": "Tabiau Estynedig",
+    "expandedTabs": "",
     "@expandedTabs": {
         "description": "Label for the detail screen expanded tabs setting"
     },
-    "expandedTabsSubtitle": "Dangos cynnwys tab yn awtomatig wrth bori drwy'r tabiau. Diffoddwch hyn i agor a chau pob tab â llaw.",
+    "expandedTabsSubtitle": "",
     "@expandedTabsSubtitle": {
         "description": "Explanation under the expanded tabs setting"
     },
-    "showTechnicalDetails": "Dangos Manylion Technegol?",
+    "showTechnicalDetails": "",
     "@showTechnicalDetails": {
         "description": "Label for the detail screen setting to show stream/codec technical details"
     },
-    "showTechnicalDetailsSubtitle": "Dangos gwybodaeth am y codec, y cydraniad a'r ffrwd yng nghrynodeb y faner",
+    "showTechnicalDetailsSubtitle": "",
     "@showTechnicalDetailsSubtitle": {
         "description": "Explanation under the show technical details setting"
     },
-    "recommendationSystem": "System Argymell",
+    "recommendationSystem": "",
     "@recommendationSystem": {
         "description": "Label for the Recommendation System setting"
     },
-    "recommendationSystemSubtitle": "Defnyddiwch algorithm llyfrgell leol Moonfin Recommends neu Fetrigau Tebygrwydd ar-lein TMDb. Sylwer: mae angen integreiddio Seerr ar gyfer argymhellion ar-lein.",
+    "recommendationSystemSubtitle": "",
     "@recommendationSystemSubtitle": {
         "description": "Explanation under the recommendation system setting"
     },
-    "recommendationSystemMoonfin": "Moonfin Recommends",
+    "recommendationSystemMoonfin": "",
     "@recommendationSystemMoonfin": {
         "description": "Recommendation system option: Moonfin Recommends"
     },
-    "recommendationSystemTmdb": "Tebygrwydd TMDb",
+    "recommendationSystemTmdb": "",
     "@recommendationSystemTmdb": {
         "description": "Recommendation system option: TMDb Similarity"
     },
-    "recommendationsApplyParentalRatingCap": "Cyfyngu yn ôl y dosbarthiad oedran?",
+    "recommendationsApplyParentalRatingCap": "",
     "@recommendationsApplyParentalRatingCap": {
         "description": "Label for the toggle that controls whether similar suggestions are capped by target media parental rating"
     },
-    "recommendationsApplyParentalRatingCapSubtitle": "Cyfyngu awgrymiadau Moonfin Recommends yn ôl dosbarthiad oedran y cyfrwng targed",
+    "recommendationsApplyParentalRatingCapSubtitle": "",
     "@recommendationsApplyParentalRatingCapSubtitle": {
         "description": "Explanation under the parental rating cap setting toggle"
     },
-    "interfaceStyle": "Arddull y Rhyngwyneb",
+    "interfaceStyle": "",
     "@interfaceStyle": {
         "description": "Label for the Automatic/Apple/Material interface style setting"
     },
-    "interfaceStyleSubtitle": "Mae Awtomatig yn cydweddu â'ch dyfais. Dewiswch Apple neu Material i orfodi golwg benodol.",
+    "interfaceStyleSubtitle": "",
     "@interfaceStyleSubtitle": {
         "description": "Explanation under the interface style setting"
     },
-    "interfaceStyleAutomatic": "Awtomatig",
+    "interfaceStyleAutomatic": "",
     "@interfaceStyleAutomatic": {
         "description": "Interface style option: follow the platform"
     },
-    "interfaceStyleApple": "Apple",
+    "interfaceStyleApple": "",
     "@interfaceStyleApple": {
         "description": "Interface style option: Apple native look"
     },
-    "interfaceStyleMaterial": "Material",
+    "interfaceStyleMaterial": "",
     "@interfaceStyleMaterial": {
         "description": "Interface style option: Material look"
     },
-    "glassQuality": "Ansawdd y Gwydr",
+    "glassQuality": "",
     "@glassQuality": {
         "description": "Label for the glass rendering quality setting"
     },
-    "glassQualitySubtitle": "Mae Awto yn dewis yr effaith wydr orau ar gyfer y ddyfais hon. Mae Llawn yn gorfodi pylu go iawn; mae Gostyngedig yn defnyddio gwydr ysgafn sy'n arbed pŵer y GPU.",
+    "glassQualitySubtitle": "",
     "@glassQualitySubtitle": {
         "description": "Explanation under the glass quality setting"
     },
-    "glassQualityAuto": "Awto",
+    "glassQualityAuto": "",
     "@glassQualityAuto": {
         "description": "Glass quality option: per-device default"
     },
-    "glassQualityFull": "Llawn",
+    "glassQualityFull": "",
     "@glassQualityFull": {
         "description": "Glass quality option: force real blur"
     },
-    "glassQualityReduced": "Gostyngedig",
+    "glassQualityReduced": "",
     "@glassQualityReduced": {
         "description": "Glass quality option: lightweight zero-blur glass"
     },
-    "customThemeTitle": "Thema Bersonol",
+    "customThemeTitle": "",
     "@customThemeTitle": {
         "description": "Title for the custom theme settings section"
     },
-    "customThemeSubtitle": "Mae themâu personol yn newid elfennau gweledol ar draws Moonfin. Dewiswch un o'r opsiynau hyn i weddu i'ch arddull.",
+    "customThemeSubtitle": "",
     "@customThemeSubtitle": {
         "description": "Description under custom themes section"
     },
-    "themeGlass": "Gwydr",
+    "themeGlass": "",
     "@themeGlass": {
         "description": "Display name for the Glass theme"
     },
-    "themeGlassSubtitle": "Arddull gwydr hylifol gyda chefndir graddliw symudol, arwynebau barugog, ac acen glas Apple",
+    "themeGlassSubtitle": "",
     "@themeGlassSubtitle": {
         "description": "Preview description for the Glass theme"
     },
-    "theme8BitHero": "Arwr 8-did",
+    "theme8BitHero": "",
     "@theme8BitHero": {
         "description": "Display name for the 8-bit Hero theme"
     },
-    "theme8BitHeroSubtitle": "Arddull celf picsel retro gyda phalet trwchus, borderi bloclyd, cysgodion caled, a ffont picsel",
+    "theme8BitHeroSubtitle": "",
     "@theme8BitHeroSubtitle": {
         "description": "Preview description for the 8-bit Hero theme"
     },
-    "gameMenu": "Dewislen",
+    "gameMenu": "",
     "@gameMenu": {
         "description": "Tooltip for the in-game menu button"
     },
-    "gamePaused": "Wedi oedi",
+    "gamePaused": "",
     "@gamePaused": {
         "description": "Status shown in the in-game menu while the game is paused"
     },
-    "gameSaveState": "Arbed cyflwr",
+    "gameSaveState": "",
     "@gameSaveState": {
         "description": "In-game menu action to save the game state"
     },
-    "games": "Gemau",
+    "games": "",
     "@games": {
         "description": "Label for the games category tab in search results"
     },
-    "gameLoadState": "Llwytho cyflwr",
+    "gameLoadState": "",
     "@gameLoadState": {
         "description": "In-game menu action to load the saved game state"
     },
-    "gameFastForward": "Chwarae ymlaen",
+    "gameFastForward": "",
     "@gameFastForward": {
         "description": "In-game menu action to toggle fast-forward"
     },
-    "gameEmulatorSettings": "Gosodiadau'r efelychydd",
+    "gameEmulatorSettings": "",
     "@gameEmulatorSettings": {
         "description": "In-game menu action opening the emulator settings"
     },
-    "gameNoCoreOptions": "Nid oes gan y craidd hwn unrhyw opsiynau addasadwy.",
+    "gameNoCoreOptions": "",
     "@gameNoCoreOptions": {
         "description": "Shown when a game core exposes no settings"
     },
-    "gameHoldToOpenMenu": "Daliwch i agor y ddewislen",
+    "gameHoldToOpenMenu": "",
     "@gameHoldToOpenMenu": {
         "description": "Hint shown while holding the gamepad combo to open the in-game menu"
     },
-    "gamePlaybackUnsupported": "Nid yw chwarae gemau'n cael ei gefnogi ar y ddyfais hon eto.",
+    "gamePlaybackUnsupported": "",
     "@gamePlaybackUnsupported": {
         "description": "Shown when the device cannot run the retro-game emulator"
     },
-    "latestBooks": "Llyfrau Diweddaraf",
+    "latestBooks": "",
     "@latestBooks": {
         "description": "Row title for recently added books in the book library"
     },
-    "latestAudiobooks": "Llyfrau Sain Diweddaraf",
+    "latestAudiobooks": "",
     "@latestAudiobooks": {
         "description": "Row title for recently added audiobooks in the book library"
     },
-    "bookSeriesItemCount": "{count, plural, =1{1 llyfr} zero{{count} o lyfrau} two{{count} lyfr} other{{count} llyfr}}",
+    "bookSeriesItemCount": "",
     "@bookSeriesItemCount": {
         "description": "Subtitle for a book series shelf entry showing how many books it contains",
         "placeholders": {
@@ -7503,15 +7503,15 @@
             }
         }
     },
-    "bookFormatBook": "Llyfr",
+    "bookFormatBook": "",
     "@bookFormatBook": {
         "description": "Semantic label for the book format badge on library cards"
     },
-    "bookFormatAudiobook": "Llyfr sain",
+    "bookFormatAudiobook": "",
     "@bookFormatAudiobook": {
         "description": "Semantic label for the audiobook format badge on library cards"
     },
-    "bookPercentRead": "{percent}% wedi'i ddarllen",
+    "bookPercentRead": "",
     "@bookPercentRead": {
         "description": "Reading progress label on book cards",
         "placeholders": {
@@ -7520,7 +7520,7 @@
             }
         }
     },
-    "bookTimeLeft": "{time} ar ôl",
+    "bookTimeLeft": "",
     "@bookTimeLeft": {
         "description": "Short remaining-duration chip on audiobook cards, e.g. '6h 12m left'",
         "placeholders": {
@@ -7529,47 +7529,47 @@
             }
         }
     },
-    "bookHeroRead": "Darllen",
+    "bookHeroRead": "",
     "@bookHeroRead": {
         "description": "Hero CTA label to start reading a book"
     },
-    "bookHeroListen": "Gwrando",
+    "bookHeroListen": "",
     "@bookHeroListen": {
         "description": "Hero CTA label to start listening to an audiobook"
     },
-    "items": "Eitemau",
+    "items": "",
     "@items": {
         "description": "Tab label for the items in a collection/box set"
     },
-    "extras": "Ychwanegion",
+    "extras": "",
     "@extras": {
         "description": "Tab label for special features / extras"
     },
-    "behindTheScenes": "Y Tu Ôl i'r Llenni",
+    "behindTheScenes": "",
     "@behindTheScenes": {
         "description": "Tab label for behind the scenes special features"
     },
-    "deletedScenes": "Golygfeydd wedi'u Dileu",
+    "deletedScenes": "",
     "@deletedScenes": {
         "description": "Tab label for deleted scenes special features"
     },
-    "featurettes": "Featurettes",
+    "featurettes": "",
     "@featurettes": {
         "description": "Tab label for featurettes special features"
     },
-    "interviews": "Cyfweliadau",
+    "interviews": "",
     "@interviews": {
         "description": "Tab label for interviews special features"
     },
-    "scenes": "Golygfeydd",
+    "scenes": "",
     "@scenes": {
         "description": "Tab label for scenes special features"
     },
-    "shorts": "Ffilmiau Byrion",
+    "shorts": "",
     "@shorts": {
         "description": "Tab label for shorts special features"
     },
-    "timeRemaining": "{time} ar ôl",
+    "timeRemaining": "",
     "@timeRemaining": {
         "description": "Label showing remaining playback time, e.g. '42m remaining'",
         "placeholders": {
@@ -7578,7 +7578,7 @@
             }
         }
     },
-    "endsIn": "Yn gorffen ymhen {time}",
+    "endsIn": "",
     "@endsIn": {
         "description": "Label showing remaining time for segment or timeout",
         "placeholders": {
@@ -7587,27 +7587,27 @@
             }
         }
     },
-    "directors": "CYFARWYDDWYR",
+    "directors": "",
     "@directors": {
         "description": "Metadata label for directors"
     },
-    "writer": "AWDUR",
+    "writer": "",
     "@writer": {
         "description": "Metadata label for writer"
     },
-    "shuffleAllMusic": "Hapchwarae'r holl gerddoriaeth",
+    "shuffleAllMusic": "",
     "@shuffleAllMusic": {
         "description": "Car browse action that shuffles the whole music library"
     },
-    "carSignInPrompt": "Mewngofnodwch i Moonfin ar eich ffôn",
+    "carSignInPrompt": "",
     "@carSignInPrompt": {
         "description": "Shown in the car when no account is signed in"
     },
-    "carServerUnreachable": "Methu cyrraedd eich gweinydd",
+    "carServerUnreachable": "",
     "@carServerUnreachable": {
         "description": "Shown in the car when the media server can't be reached"
     },
-    "guideNextProgram": "Nesaf: {time}  {title}",
+    "guideNextProgram": "",
     "@guideNextProgram": {
         "description": "Guide card line for the upcoming program, e.g. 'Next: 9:00 PM  The News'",
         "placeholders": {
@@ -7619,7 +7619,7 @@
             }
         }
     },
-    "guideMinutesLeft": "{minutes}m ar ôl",
+    "guideMinutesLeft": "",
     "@guideMinutesLeft": {
         "description": "Remaining time of the current program, under an hour",
         "placeholders": {
@@ -7628,7 +7628,7 @@
             }
         }
     },
-    "guideHoursLeft": "{hours}h ar ôl",
+    "guideHoursLeft": "",
     "@guideHoursLeft": {
         "description": "Remaining time of the current program, whole hours",
         "placeholders": {
@@ -7637,7 +7637,7 @@
             }
         }
     },
-    "guideHoursMinutesLeft": "{hours}h {minutes}m ar ôl",
+    "guideHoursMinutesLeft": "",
     "@guideHoursMinutesLeft": {
         "description": "Remaining time of the current program, hours and minutes",
         "placeholders": {
@@ -7649,301 +7649,301 @@
             }
         }
     },
-    "themeMusicSettingsSubtitle": "Tudalennau manylion, rhesi cartref, a lefel sain",
+    "themeMusicSettingsSubtitle": "",
     "@themeMusicSettingsSubtitle": {
         "description": "Subtitle for the Theme Music settings sub-category tile"
     },
-    "loopThemeMusic": "Dolennu'r Gerddoriaeth Thema",
+    "loopThemeMusic": "",
     "@loopThemeMusic": {
         "description": "Setting to loop the theme music"
     },
-    "loopThemeMusicSubtitle": "Ailadrodd y trac yn hytrach na'i chwarae unwaith",
+    "loopThemeMusicSubtitle": "",
     "@loopThemeMusicSubtitle": {
         "description": "Description for the loop theme music setting"
     },
-    "settingsScrollWheelAction": "Olwyn sgrolio'r llygoden",
+    "settingsScrollWheelAction": "",
     "@settingsScrollWheelAction": {
         "description": "Setting title for the mouse scroll wheel action during playback"
     },
-    "settingsScrollWheelActionDescription": "Dewiswch beth mae sgrolio olwyn y llygoden dros y fideo yn ei wneud wrth chwarae.",
+    "settingsScrollWheelActionDescription": "",
     "@settingsScrollWheelActionDescription": {
         "description": "Description for the mouse scroll wheel action setting"
     },
-    "scrollWheelActionOff": "I ffwrdd",
+    "scrollWheelActionOff": "",
     "@scrollWheelActionOff": {
         "description": "Scroll wheel action option: do nothing"
     },
-    "scrollWheelActionSeek": "Symud (ymlaen / yn ôl)",
+    "scrollWheelActionSeek": "",
     "@scrollWheelActionSeek": {
         "description": "Scroll wheel action option: seek forward and back"
     },
-    "scrollWheelActionVolume": "Lefel sain",
+    "scrollWheelActionVolume": "",
     "@scrollWheelActionVolume": {
         "description": "Scroll wheel action option: adjust volume"
     },
-    "playerTooltipVolume": "Lefel sain",
+    "playerTooltipVolume": "",
     "@playerTooltipVolume": {
         "description": "Tooltip for the volume control button in the player OSD"
     },
-    "fallbackAudioLanguage": "Iaith Sain Wrth Gefn",
+    "fallbackAudioLanguage": "",
     "@fallbackAudioLanguage": {
         "description": "Setting for fallback audio language"
     },
-    "preferDefaultAudioTrack": "Ffafrio'r Trac Sain Rhagosodedig",
+    "preferDefaultAudioTrack": "",
     "@preferDefaultAudioTrack": {
         "description": "Setting for preferring default audio track"
     },
-    "preferDefaultAudioTrackDescription": "Ffafrio'r trac sain gwreiddiol yn hytrach na throsleisio wedi'i leoleiddio.",
+    "preferDefaultAudioTrackDescription": "",
     "@preferDefaultAudioTrackDescription": {
         "description": "Description for preferring default audio track setting"
     },
-    "preferAudioDescription": "Ffafrio Traciau Disgrifiad Sain",
+    "preferAudioDescription": "",
     "@preferAudioDescription": {
         "description": "Setting for preferring audio description tracks"
     },
-    "preferAudioDescriptionDescription": "Ffafrio traciau disgrifiad sain yn hytrach na thraciau arferol.",
+    "preferAudioDescriptionDescription": "",
     "@preferAudioDescriptionDescription": {
         "description": "Description for preferring audio description tracks setting"
     },
-    "transcodingAudio": "Trawsgodio (Sain)",
+    "transcodingAudio": "",
     "@transcodingAudio": {
         "description": "Label for audio-only transcode playback method"
     },
-    "directStreamRemux": "Ffrwd Uniongyrchol (Remux)",
+    "directStreamRemux": "",
     "@directStreamRemux": {
         "description": "Play method label for direct stream with remuxing"
     },
-    "transcodingBitrateOrResolution": "Trawsgodio (Cyfradd Didau neu Gydraniad)",
+    "transcodingBitrateOrResolution": "",
     "@transcodingBitrateOrResolution": {
         "description": "Play method label for transcoding due to bitrate or resolution"
     },
-    "transcodingVideoAndAudio": "Trawsgodio (Fideo a Sain)",
+    "transcodingVideoAndAudio": "",
     "@transcodingVideoAndAudio": {
         "description": "Play method label for transcoding both video and audio"
     },
-    "transcodingVideo": "Trawsgodio (Fideo)",
+    "transcodingVideo": "",
     "@transcodingVideo": {
         "description": "Play method label for transcoding video"
     },
-    "settingsAudioOutputModeDescription": "Dewiswch sut mae sain yn cael ei ddadgodio. Mae Trosglwyddo AVR yn anfon ffrydiau Dolby/DTS crai i'ch derbynnydd; mae Awto neu Gymysgu i Lawr yn dadgodio'n lleol.",
+    "settingsAudioOutputModeDescription": "",
     "@settingsAudioOutputModeDescription": {
         "description": "Description for audio output mode setting"
     },
-    "settingsAudioFallbackCodecDescription": "Dewiswch y fformat targed ar gyfer trawsgodio sain aml-sianel pan na ellir chwarae'r ffrwd ffynhonnell yn uniongyrchol na'i throsglwyddo.",
+    "settingsAudioFallbackCodecDescription": "",
     "@settingsAudioFallbackCodecDescription": {
         "description": "Description for audio fallback codec setting"
     },
-    "settingsAudioFallbackCodecAuto": "Canfod yn Awtomatig\n(Argymhellir)",
+    "settingsAudioFallbackCodecAuto": "",
     "@settingsAudioFallbackCodecAuto": {
         "description": "Fallback codec option: Auto"
     },
-    "settingsAudioFallbackCodecAac": "AAC\n(Rhagosodedig)",
+    "settingsAudioFallbackCodecAac": "",
     "@settingsAudioFallbackCodecAac": {
         "description": "Fallback codec option: AAC"
     },
-    "settingsAudioFallbackCodecAc3": "AC3\n(Dolby Digital)",
+    "settingsAudioFallbackCodecAc3": "",
     "@settingsAudioFallbackCodecAc3": {
         "description": "Fallback codec option: AC3"
     },
-    "settingsAudioFallbackCodecEac3": "EAC3\n(Dolby Digital Plus)",
+    "settingsAudioFallbackCodecEac3": "",
     "@settingsAudioFallbackCodecEac3": {
         "description": "Fallback codec option: EAC3"
     },
-    "settingsAudioFallbackCodecTrueHd": "TrueHD\n(Di-golled)",
+    "settingsAudioFallbackCodecTrueHd": "",
     "@settingsAudioFallbackCodecTrueHd": {
         "description": "Fallback codec option: TrueHD"
     },
-    "settingsAudioFallbackCodecMp3": "MP3\n(Stereo yn Unig)",
+    "settingsAudioFallbackCodecMp3": "",
     "@settingsAudioFallbackCodecMp3": {
         "description": "Fallback codec option: MP3"
     },
-    "settingsAudioFallbackCodecOpus": "Opus\n(Effeithlon)",
+    "settingsAudioFallbackCodecOpus": "",
     "@settingsAudioFallbackCodecOpus": {
         "description": "Fallback codec option: Opus"
     },
-    "settingsAudioFallbackCodecFlac": "FLAC\n(Di-golled)",
+    "settingsAudioFallbackCodecFlac": "",
     "@settingsAudioFallbackCodecFlac": {
         "description": "Fallback codec option: FLAC"
     },
-    "settingsMaxAudioChannels": "Uchafswm Sianeli Sain",
+    "settingsMaxAudioChannels": "",
     "@settingsMaxAudioChannels": {
         "description": "Setting for maximum audio channels capability"
     },
-    "settingsMaxAudioChannelsDescription": "Ffurfweddwch uchafswm sianeli eich gosodiad sain. Bydd ffrydiau aml-sianel sy'n uwch na'r terfyn hwn yn cael eu cymysgu i lawr neu eu trawsgodio.",
+    "settingsMaxAudioChannelsDescription": "",
     "@settingsMaxAudioChannelsDescription": {
         "description": "Description for maximum audio channels setting"
     },
-    "settingsMaxAudioChannelsAuto": "Canfod yn Awtomatig\n(Rhagosodiad Caledwedd)",
+    "settingsMaxAudioChannelsAuto": "",
     "@settingsMaxAudioChannelsAuto": {
         "description": "Option: Auto detect channels"
     },
-    "settingsMaxAudioChannelsMono": "1.0 Mono",
+    "settingsMaxAudioChannelsMono": "",
     "@settingsMaxAudioChannelsMono": {
         "description": "Option: Mono (1 channel)"
     },
-    "settingsMaxAudioChannelsStereo": "2.0 Stereo",
+    "settingsMaxAudioChannelsStereo": "",
     "@settingsMaxAudioChannelsStereo": {
         "description": "Option: Stereo (2 channels)"
     },
-    "settingsMaxAudioChannels3_0": "3.0 / 2.1 Amgylchynol",
+    "settingsMaxAudioChannels3_0": "",
     "@settingsMaxAudioChannels3_0": {
         "description": "Option: 3 channels"
     },
-    "settingsMaxAudioChannels4_0": "4.0 / 3.1 Cwadroffonig",
+    "settingsMaxAudioChannels4_0": "",
     "@settingsMaxAudioChannels4_0": {
         "description": "Option: 4 channels"
     },
-    "settingsMaxAudioChannels5_0": "5.0 / 4.1 Amgylchynol",
+    "settingsMaxAudioChannels5_0": "",
     "@settingsMaxAudioChannels5_0": {
         "description": "Option: 5 channels"
     },
-    "settingsMaxAudioChannels5_1": "5.1 Amgylchynol",
+    "settingsMaxAudioChannels5_1": "",
     "@settingsMaxAudioChannels5_1": {
         "description": "Option: 5.1 Surround channels"
     },
-    "settingsMaxAudioChannels6_1": "6.1 Amgylchynol",
+    "settingsMaxAudioChannels6_1": "",
     "@settingsMaxAudioChannels6_1": {
         "description": "Option: 6.1 Surround channels"
     },
-    "settingsMaxAudioChannels7_1": "7.1 Amgylchynol",
+    "settingsMaxAudioChannels7_1": "",
     "@settingsMaxAudioChannels7_1": {
         "description": "Option: 7.1 Surround channels"
     },
-    "settingsAudioRouteHeadphones": "Clustffonau",
+    "settingsAudioRouteHeadphones": "",
     "@settingsAudioRouteHeadphones": {
         "description": "Audio route type wired or USB headphones"
     },
-    "subtitleMode": "Modd Isdeitlau",
+    "subtitleMode": "",
     "@subtitleMode": {
         "description": "Setting for subtitle mode"
     },
-    "subtitleModeFlagged": "Wedi'u Fflagio",
+    "subtitleModeFlagged": "",
     "@subtitleModeFlagged": {
         "description": "Subtitle mode: default/flagged"
     },
-    "subtitleModeAlways": "Bob amser",
+    "subtitleModeAlways": "",
     "@subtitleModeAlways": {
         "description": "Subtitle mode: always play"
     },
-    "subtitleModeForeign": "Tramor",
+    "subtitleModeForeign": "",
     "@subtitleModeForeign": {
         "description": "Subtitle mode: foreign/smart"
     },
-    "subtitleModeForced": "Gorfodol",
+    "subtitleModeForced": "",
     "@subtitleModeForced": {
         "description": "Subtitle mode: only forced"
     },
-    "subtitleModeFlaggedDescription": "Yn chwarae traciau sydd wedi'u fflagio'n fewnol ym metadata'r ffeil gyfrwng fel \"default\" neu \"forced\".",
+    "subtitleModeFlaggedDescription": "",
     "@subtitleModeFlaggedDescription": {
         "description": "Description for flagged subtitle mode"
     },
-    "subtitleModeAlwaysDescription": "Yn llwytho ac yn dangos isdeitlau'n awtomatig bob tro y bydd fideo'n dechrau.",
+    "subtitleModeAlwaysDescription": "",
     "@subtitleModeAlwaysDescription": {
         "description": "Description for always subtitle mode"
     },
-    "subtitleModeForeignDescription": "Yn troi isdeitlau ymlaen yn awtomatig os yw'r trac sain rhagosodedig mewn iaith dramor.",
+    "subtitleModeForeignDescription": "",
     "@subtitleModeForeignDescription": {
         "description": "Description for foreign subtitle mode"
     },
-    "subtitleModeForcedDescription": "Yn llwytho isdeitlau sydd wedi'u tagio'n benodol â'r fflag metadata \"forced\" yn unig.",
+    "subtitleModeForcedDescription": "",
     "@subtitleModeForcedDescription": {
         "description": "Description for forced subtitle mode"
     },
-    "subtitleModeNoneDescription": "Yn analluogi llwytho isdeitlau'n awtomatig yn llwyr.",
+    "subtitleModeNoneDescription": "",
     "@subtitleModeNoneDescription": {
         "description": "Description for none subtitle mode"
     },
-    "fallbackSubtitleLanguage": "Iaith Isdeitlau Wrth Gefn",
+    "fallbackSubtitleLanguage": "",
     "@fallbackSubtitleLanguage": {
         "description": "Setting for fallback subtitle language"
     },
-    "subtitleStream": "Ffrwd Isdeitlau",
+    "subtitleStream": "",
     "@subtitleStream": {
         "description": "Header for subtitle stream settings"
     },
     "reportDownloadsActivity": "Dangos lawrlwythiadau ar y gweinydd",
     "reportDownloadsActivitySubtitle": "Gadael i weinyddwr y gweinydd weld eich lawrlwythiadau wedi'u trawsgodio yn y dangosfwrdd",
-    "navbarAlwaysExpanded": "Dangos Labeli'r Bar Llywio Bob Amser",
+    "navbarAlwaysExpanded": "",
     "@navbarAlwaysExpanded": {
         "description": "Setting to keep every top navbar heading's text label visible at all times, tvOS-style"
     },
-    "showSeerrButton": "Dangos Botwm Seerr",
+    "showSeerrButton": "",
     "@showSeerrButton": {
         "description": "Setting for showing Seerr button"
     },
-    "groupItemsIntoCollections": "Grwpio Eitemau'n Gasgliadau",
+    "groupItemsIntoCollections": "",
     "@groupItemsIntoCollections": {
         "description": "Setting for grouping items into collections"
     },
-    "hideCollectionAssociatedItems": "Cuddio eitemau llyfrgell sy'n perthyn i gasgliad wrth bori drwy lyfrgelloedd",
+    "hideCollectionAssociatedItems": "",
     "@hideCollectionAssociatedItems": {
         "description": "Description for grouping items into collections"
     },
-    "groupItemsIntoCollectionsDialogTitle": "Hysbysiad Grwpio Llyfrgell",
+    "groupItemsIntoCollectionsDialogTitle": "",
     "@groupItemsIntoCollectionsDialogTitle": {
         "description": "Title of the alert dialog explaining server settings requirement"
     },
-    "groupItemsIntoCollectionsDialogMessage": "I ddefnyddio'r gosodiad hwn, gwnewch yn siŵr bod gosodiadau Llyfrgell \"Grwpio ffilmiau'n gasgliadau\" a/neu \"Grwpio sioeau'n gasgliadau\" wedi'u galluogi o dan osodiadau Dangos eich llyfrgell ar eich gweinydd Jellyfin neu Emby.",
+    "groupItemsIntoCollectionsDialogMessage": "",
     "@groupItemsIntoCollectionsDialogMessage": {
         "description": "Message of the alert dialog explaining server settings requirement"
     },
-    "trailerAudio": "Sain Rhaghysbysebion",
+    "trailerAudio": "",
     "@trailerAudio": {
         "description": "Setting for trailer audio"
     },
-    "enableTrailerAudio": "Galluogi sain ar gyfer rhaghysbysebion yn y bar cyfryngau",
+    "enableTrailerAudio": "",
     "@enableTrailerAudio": {
         "description": "Description for trailer audio"
     },
-    "fullScreenRows": "Rhesi Cartref Estynedig",
+    "fullScreenRows": "",
     "@fullScreenRows": {
         "description": "Setting for full screen home rows"
     },
-    "fullScreenRowsDescription": "Cyfyngu rhesi cartref i 1 rhes fesul sgrin",
+    "fullScreenRowsDescription": "",
     "@fullScreenRowsDescription": {
         "description": "Description for full screen home rows"
     },
-    "currentUser": "Defnyddiwr Cyfredol",
+    "currentUser": "",
     "@currentUser": {
         "description": "Option: current user"
     },
-    "clockModeStatic": "Statig",
+    "clockModeStatic": "",
     "@clockModeStatic": {
         "description": "Screensaver clock mode: fixed in a corner"
     },
-    "clockModeBouncing": "Yn bownsio",
+    "clockModeBouncing": "",
     "@clockModeBouncing": {
         "description": "Screensaver clock mode: bounces around the screen"
     },
-    "seerrDiscoveryRows": "Rhesi Darganfod Seerr",
+    "seerrDiscoveryRows": "",
     "@seerrDiscoveryRows": {
         "description": "Subtitle shown under Seerr discovery home rows"
     },
-    "seerrNotificationsSection": "Hysbysiadau",
+    "seerrNotificationsSection": "",
     "@seerrNotificationsSection": {
         "description": "Header for the Seerr notifications settings section"
     },
-    "seerrNotifyNewRequestsTitle": "Hysbysiadau cais newydd",
+    "seerrNotifyNewRequestsTitle": "",
     "@seerrNotifyNewRequestsTitle": {
         "description": "Title for the toggle that notifies approvers of new Seerr requests"
     },
-    "seerrNotifyNewRequestsSubtitle": "Rhoi gwybod i mi pan fydd rhywun yn cyflwyno cais",
+    "seerrNotifyNewRequestsSubtitle": "",
     "@seerrNotifyNewRequestsSubtitle": {
         "description": "Subtitle for the new request notifications toggle"
     },
-    "seerrNotifyLibraryAddedTitle": "Diweddariadau ceisiadau",
+    "seerrNotifyLibraryAddedTitle": "",
     "@seerrNotifyLibraryAddedTitle": {
         "description": "Title for the toggle that notifies a requester about approvals, declines, and library availability"
     },
-    "seerrNotifyLibraryAddedSubtitle": "Wedi'i gymeradwyo, ei wrthod, a'i ychwanegu at eich llyfrgell",
+    "seerrNotifyLibraryAddedSubtitle": "",
     "@seerrNotifyLibraryAddedSubtitle": {
         "description": "Subtitle for the library-added notifications toggle"
     },
-    "seerrNotifyIssuesTitle": "Diweddariadau materion",
+    "seerrNotifyIssuesTitle": "",
     "@seerrNotifyIssuesTitle": {
         "description": "Title for the issue notifications toggle"
     },
-    "seerrNotifyIssuesSubtitle": "Materion newydd, atebion a datrysiadau",
+    "seerrNotifyIssuesSubtitle": "",
     "@seerrNotifyIssuesSubtitle": {
         "description": "Subtitle for the issue notifications toggle"
     },
@@ -7959,7 +7959,7 @@
     "imageCacheLimit": "Terfyn storfa ddelweddau",
     "clearImageCache": "Clirio'r storfa ddelweddau",
     "imageCacheCleared": "Storfa ddelweddau wedi'i chlirio",
-    "seerrDownloadingPercent": "Wrthi'n lawrlwytho · {percent}%",
+    "seerrDownloadingPercent": "",
     "@seerrDownloadingPercent": {
         "description": "Label above the Seerr download progress bar",
         "placeholders": {
@@ -7968,19 +7968,19 @@
             }
         }
     },
-    "seerrImportingStatus": "Wrthi'n mewnforio",
+    "seerrImportingStatus": "",
     "@seerrImportingStatus": {
         "description": "Label when a Seerr download has finished and is importing"
     },
-    "failedStatus": "Wedi methu",
+    "failedStatus": "",
     "@failedStatus": {
         "description": "Request status label when the request failed to send to Radarr/Sonarr"
     },
-    "processingStatus": "Wrthi'n prosesu",
+    "processingStatus": "",
     "@processingStatus": {
         "description": "Filter label for approved requests being processed"
     },
-    "modifiedByName": "Wedi'i addasu gan {name}",
+    "modifiedByName": "",
     "@modifiedByName": {
         "description": "Label showing which manager acted on a request",
         "placeholders": {
@@ -7989,51 +7989,51 @@
             }
         }
     },
-    "completedStatus": "Wedi'i gwblhau",
+    "completedStatus": "",
     "@completedStatus": {
         "description": "Request status label when the request finished"
     },
-    "requestErrorDuplicate": "Gwnaethpwyd cais am y teitl hwn eisoes",
+    "requestErrorDuplicate": "",
     "@requestErrorDuplicate": {
         "description": "Error when creating a request that already exists"
     },
-    "requestErrorQuota": "Wedi cyrraedd y terfyn ceisiadau",
+    "requestErrorQuota": "",
     "@requestErrorQuota": {
         "description": "Error when the user is out of request quota"
     },
-    "requestErrorBlocklisted": "Mae'r teitl hwn ar y rhestr rwystro",
+    "requestErrorBlocklisted": "",
     "@requestErrorBlocklisted": {
         "description": "Error when requesting blocklisted media"
     },
-    "requestErrorNoSeasons": "Does dim tymhorau ar ôl i wneud cais amdanynt",
+    "requestErrorNoSeasons": "",
     "@requestErrorNoSeasons": {
         "description": "Error when every season is already requested or available"
     },
-    "requestErrorPermission": "Does gennych chi ddim caniatâd i wneud y cais hwn",
+    "requestErrorPermission": "",
     "@requestErrorPermission": {
         "description": "Error when the user lacks request permission"
     },
-    "seerrRequestsTitle": "Ceisiadau",
+    "seerrRequestsTitle": "",
     "@seerrRequestsTitle": {
         "description": "Requests tab and screen title"
     },
-    "seerrIssuesTitle": "Materion",
+    "seerrIssuesTitle": "",
     "@seerrIssuesTitle": {
         "description": "Issues tab title on the requests hub"
     },
-    "sortNewest": "Diweddaraf",
+    "sortNewest": "",
     "@sortNewest": {
         "description": "Request sort option, most recently added first"
     },
-    "sortLastModified": "Wedi'i Addasu Ddiwethaf",
+    "sortLastModified": "",
     "@sortLastModified": {
         "description": "Request sort option, most recently updated first"
     },
-    "noIssues": "Dim materion",
+    "noIssues": "",
     "@noIssues": {
         "description": "Shown when the issue list is empty"
     },
-    "movieQuotaRemaining": "{remaining} o {limit} cais am ffilm ar ôl",
+    "movieQuotaRemaining": "",
     "@movieQuotaRemaining": {
         "description": "Quota line in the request dialog",
         "placeholders": {
@@ -8045,7 +8045,7 @@
             }
         }
     },
-    "seasonQuotaRemaining": "{remaining} o {limit} cais am dymor ar ôl",
+    "seasonQuotaRemaining": "",
     "@seasonQuotaRemaining": {
         "description": "Quota line in the request dialog for series",
         "placeholders": {
@@ -8057,7 +8057,7 @@
             }
         }
     },
-    "partOfCollectionName": "Rhan o {name}",
+    "partOfCollectionName": "",
     "@partOfCollectionName": {
         "description": "Banner on a movie that belongs to a collection",
         "placeholders": {
@@ -8066,15 +8066,15 @@
             }
         }
     },
-    "viewCollection": "Gweld y Casgliad",
+    "viewCollection": "",
     "@viewCollection": {
         "description": "Link to open the collection screen"
     },
-    "requestCollection": "Gwneud Cais am y Casgliad",
+    "requestCollection": "",
     "@requestCollection": {
         "description": "Button to request movies from a collection"
     },
-    "collectionMoviesSummary": "{total} ffilm · {available} ar gael",
+    "collectionMoviesSummary": "",
     "@collectionMoviesSummary": {
         "description": "Collection header summary line",
         "placeholders": {
@@ -8086,7 +8086,7 @@
             }
         }
     },
-    "requestMoviesCount": "Gwneud cais am {count} ffilm",
+    "requestMoviesCount": "",
     "@requestMoviesCount": {
         "description": "Submit button on the collection request sheet",
         "placeholders": {
@@ -8095,7 +8095,7 @@
             }
         }
     },
-    "requestingProgress": "Wrthi'n gwneud cais am {current} o {total}...",
+    "requestingProgress": "",
     "@requestingProgress": {
         "description": "Progress label while collection requests are submitted",
         "placeholders": {
@@ -8107,7 +8107,7 @@
             }
         }
     },
-    "requestedMoviesCount": "Wedi gwneud cais am {count} ffilm",
+    "requestedMoviesCount": "",
     "@requestedMoviesCount": {
         "description": "Snackbar after a collection request succeeds",
         "placeholders": {
@@ -8116,7 +8116,7 @@
             }
         }
     },
-    "requestedMoviesPartial": "Wedi gwneud cais am {ok} o {total} ffilm",
+    "requestedMoviesPartial": "",
     "@requestedMoviesPartial": {
         "description": "Snackbar when some collection requests failed",
         "placeholders": {
@@ -8128,51 +8128,51 @@
             }
         }
     },
-    "collectionAllRequested": "Mae pob ffilm ar gael neu wedi'i cheisio eisoes",
+    "collectionAllRequested": "",
     "@collectionAllRequested": {
         "description": "Shown instead of the request button when nothing is requestable"
     },
-    "reportIssue": "Adrodd Mater",
+    "reportIssue": "",
     "@reportIssue": {
         "description": "Button on the seerr detail screen to report a media issue"
     },
-    "issueTypeVideo": "Fideo",
+    "issueTypeVideo": "",
     "@issueTypeVideo": {
         "description": "Issue type option"
     },
-    "issueTypeAudio": "Sain",
+    "issueTypeAudio": "",
     "@issueTypeAudio": {
         "description": "Issue type option"
     },
-    "whatsWrong": "Beth sy'n bod?",
+    "whatsWrong": "",
     "@whatsWrong": {
         "description": "Label for the issue description field"
     },
-    "allEpisodes": "Pob Pennod",
+    "allEpisodes": "",
     "@allEpisodes": {
         "description": "Episode dropdown option covering the whole season"
     },
-    "episode": "Pennod",
+    "episode": "",
     "@episode": {
         "description": "Episode dropdown label"
     },
-    "openStatus": "Ar agor",
+    "openStatus": "",
     "@openStatus": {
         "description": "Issue status label"
     },
-    "resolvedStatus": "Wedi'i ddatrys",
+    "resolvedStatus": "",
     "@resolvedStatus": {
         "description": "Issue status label"
     },
-    "resolveAction": "Datrys",
+    "resolveAction": "",
     "@resolveAction": {
         "description": "Button to resolve an issue"
     },
-    "reopenAction": "Ailagor",
+    "reopenAction": "",
     "@reopenAction": {
         "description": "Button to reopen a resolved issue"
     },
-    "reportedByName": "Wedi'i adrodd gan {name}",
+    "reportedByName": "",
     "@reportedByName": {
         "description": "Label showing who reported an issue",
         "placeholders": {
@@ -8181,7 +8181,7 @@
             }
         }
     },
-    "commentsCount": "{count} sylw",
+    "commentsCount": "",
     "@commentsCount": {
         "description": "Number of comments on an issue",
         "placeholders": {
@@ -8190,24 +8190,24 @@
             }
         }
     },
-    "addComment": "Ychwanegu sylw",
+    "addComment": "",
     "@addComment": {
         "description": "Hint for the issue comment field"
     },
-    "deleteIssueConfirm": "Dileu'r mater hwn?",
+    "deleteIssueConfirm": "",
     "@deleteIssueConfirm": {
         "description": "Confirmation before deleting an issue"
     },
-    "submitReport": "Cyflwyno'r Adroddiad",
+    "submitReport": "",
     "@submitReport": {
         "description": "Button to submit an issue report"
     },
-    "adminDrawerDisplay": "Dangos",
-    "adminDrawerMetadata": "Metadata",
-    "adminDrawerNfo": "Gosodiadau NFO",
-    "adminActivitySeverityAll": "Pob difrifoldeb",
-    "adminActivityDateRange": "Ystod dyddiadau",
-    "adminRemoveDeviceConfirm": "Tynnu'r ddyfais '{name}'? Bydd angen i'r defnyddiwr fewngofnodi eto ar y ddyfais hon.",
+    "adminDrawerDisplay": "",
+    "adminDrawerMetadata": "",
+    "adminDrawerNfo": "",
+    "adminActivitySeverityAll": "",
+    "adminActivityDateRange": "",
+    "adminRemoveDeviceConfirm": "",
     "@adminRemoveDeviceConfirm": {
         "placeholders": {
             "name": {
@@ -8215,8 +8215,8 @@
             }
         }
     },
-    "adminDeleteAllDevices": "Dileu pob dyfais",
-    "adminDeleteAllDevicesConfirm": "Tynnu {count} dyfais? Bydd angen i'r defnyddwyr yr effeithir arnynt fewngofnodi eto. Nid effeithir ar eich dyfais bresennol.",
+    "adminDeleteAllDevices": "",
+    "adminDeleteAllDevicesConfirm": "",
     "@adminDeleteAllDevicesConfirm": {
         "placeholders": {
             "count": {
@@ -8224,8 +8224,8 @@
             }
         }
     },
-    "adminDevicesDeletedAll": "Dyfeisiau wedi'u tynnu",
-    "adminDevicesDeletedPartial": "Tynnwyd rhai dyfeisiau; nid oedd modd tynnu {count}.",
+    "adminDevicesDeletedAll": "",
+    "adminDevicesDeletedPartial": "",
     "@adminDevicesDeletedPartial": {
         "placeholders": {
             "count": {
@@ -8233,13 +8233,13 @@
             }
         }
     },
-    "adminLibraryTabPaths": "Llwybrau",
-    "adminLibraryTabOptions": "Opsiynau",
-    "adminLibraryTabDownloaders": "Lawrlwythwyr",
-    "adminLibMetadataSavers": "Cadwyr metadata",
-    "adminLibSubtitleDownloaders": "Lawrlwythwyr isdeitlau",
-    "adminLibLyricDownloaders": "Lawrlwythwyr geiriau caneuon",
-    "adminLibMetadataDownloadersFor": "Lawrlwythwyr metadata: {type}",
+    "adminLibraryTabPaths": "",
+    "adminLibraryTabOptions": "",
+    "adminLibraryTabDownloaders": "",
+    "adminLibMetadataSavers": "",
+    "adminLibSubtitleDownloaders": "",
+    "adminLibLyricDownloaders": "",
+    "adminLibMetadataDownloadersFor": "",
     "@adminLibMetadataDownloadersFor": {
         "placeholders": {
             "type": {
@@ -8247,7 +8247,7 @@
             }
         }
     },
-    "adminLibImageFetchersFor": "Estynwyr delweddau: {type}",
+    "adminLibImageFetchersFor": "",
     "@adminLibImageFetchersFor": {
         "placeholders": {
             "type": {
@@ -8255,48 +8255,48 @@
             }
         }
     },
-    "adminLibNoDownloaders": "Nid yw'r gweinydd hwn yn cynnig lawrlwythwyr ar gyfer y math hwn o lyfrgell.",
-    "adminLibrarySectionGeneral": "Cyffredinol",
-    "adminLibrarySectionMetadata": "Metadata",
-    "adminLibrarySectionEmbedded": "Gwybodaeth Fewnblanedig",
-    "adminLibrarySectionSubtitles": "Isdeitlau",
-    "adminLibrarySectionImages": "Delweddau",
-    "adminLibrarySectionSeries": "Cyfresi",
-    "adminLibrarySectionMusic": "Cerddoriaeth",
-    "adminLibrarySectionMovies": "Ffilmiau",
-    "adminLibRealtimeMonitor": "Galluogi monitro amser real",
-    "adminLibRealtimeMonitorHint": "Canfod newidiadau i ffeiliau a'u prosesu'n awtomatig.",
-    "adminLibArchiveMediaFiles": "Trin archifau fel ffeiliau cyfryngau",
-    "adminLibEnablePhotos": "Dangos lluniau",
-    "adminLibSaveLocalMetadata": "Cadw gwaith celf yn y ffolderi cyfryngau",
-    "adminLibRefreshInterval": "Adnewyddu metadata'n awtomatig",
-    "adminLibRefreshNever": "Byth",
-    "adminLibDefault": "Rhagosodedig",
-    "adminLibDisplayTitle": "Dangos",
-    "adminLibDisplaySection": "Dangos y llyfrgell",
-    "adminLibFolderView": "Dangos golwg ffolder i ddangos ffolderi cyfryngau plaen",
-    "adminLibSpecialsInSeasons": "Dangos penodau arbennig o fewn y tymhorau y cawsant eu darlledu ynddynt",
-    "adminLibGroupMovies": "Grwpio ffilmiau'n gasgliadau",
-    "adminLibGroupShows": "Grwpio sioeau'n gasgliadau",
-    "adminLibExternalSuggestions": "Dangos cynnwys allanol mewn awgrymiadau",
-    "adminLibDateAddedSection": "Ymddygiad y dyddiad ychwanegu",
-    "adminLibDateAddedLabel": "Defnyddio'r dyddiad ychwanegu o",
-    "adminLibDateAddedImport": "Y dyddiad y'i sganiwyd i'r llyfrgell",
-    "adminLibDateAddedFile": "Y dyddiad y crëwyd y ffeil",
-    "adminLibMetadataTitle": "Metadata a Delweddau",
-    "adminLibMetadataLangSection": "Iaith fetadata ddewisol",
-    "adminLibChaptersSection": "Penodau",
-    "adminLibDummyChapterDuration": "Hyd penodau ffug (eiliadau)",
-    "adminLibDummyChapterDurationHint": "Hyd y penodau a gynhyrchir ar gyfer cyfryngau heb rai. Gosodwch i 0 i'w analluogi.",
-    "adminLibChapterImageResolution": "Cydraniad delweddau penodau",
-    "adminLibNfoTitle": "Gosodiadau NFO",
-    "adminLibNfoHelp": "Mae metadata NFO yn gydnaws â Kodi a chleientiaid tebyg. Mae'r gosodiadau'n berthnasol i bob llyfrgell sy'n cadw metadata NFO.",
-    "adminLibKodiUser": "Y defnyddiwr y cedwir data gwylio ar ei gyfer mewn ffeiliau NFO",
-    "adminLibSaveImagePaths": "Cadw llwybrau delweddau o fewn ffeiliau NFO",
-    "adminLibPathSubstitution": "Galluogi amnewid llwybrau ar gyfer llwybrau delweddau NFO",
-    "adminLibExtraThumbs": "Copïo delweddau extrafanart i ffolder extrathumbs",
-    "adminLibNone": "Dim",
-    "adminLibRefreshDays": "{days} diwrnod",
+    "adminLibNoDownloaders": "",
+    "adminLibrarySectionGeneral": "",
+    "adminLibrarySectionMetadata": "",
+    "adminLibrarySectionEmbedded": "",
+    "adminLibrarySectionSubtitles": "",
+    "adminLibrarySectionImages": "",
+    "adminLibrarySectionSeries": "",
+    "adminLibrarySectionMusic": "",
+    "adminLibrarySectionMovies": "",
+    "adminLibRealtimeMonitor": "",
+    "adminLibRealtimeMonitorHint": "",
+    "adminLibArchiveMediaFiles": "",
+    "adminLibEnablePhotos": "",
+    "adminLibSaveLocalMetadata": "",
+    "adminLibRefreshInterval": "",
+    "adminLibRefreshNever": "",
+    "adminLibDefault": "",
+    "adminLibDisplayTitle": "",
+    "adminLibDisplaySection": "",
+    "adminLibFolderView": "",
+    "adminLibSpecialsInSeasons": "",
+    "adminLibGroupMovies": "",
+    "adminLibGroupShows": "",
+    "adminLibExternalSuggestions": "",
+    "adminLibDateAddedSection": "",
+    "adminLibDateAddedLabel": "",
+    "adminLibDateAddedImport": "",
+    "adminLibDateAddedFile": "",
+    "adminLibMetadataTitle": "",
+    "adminLibMetadataLangSection": "",
+    "adminLibChaptersSection": "",
+    "adminLibDummyChapterDuration": "",
+    "adminLibDummyChapterDurationHint": "",
+    "adminLibChapterImageResolution": "",
+    "adminLibNfoTitle": "",
+    "adminLibNfoHelp": "",
+    "adminLibKodiUser": "",
+    "adminLibSaveImagePaths": "",
+    "adminLibPathSubstitution": "",
+    "adminLibExtraThumbs": "",
+    "adminLibNone": "",
+    "adminLibRefreshDays": "",
     "@adminLibRefreshDays": {
         "placeholders": {
             "days": {
@@ -8304,119 +8304,119 @@
             }
         }
     },
-    "adminLibEmbeddedTitles": "Defnyddio teitlau mewnblanedig",
-    "adminLibEmbeddedExtrasTitles": "Defnyddio teitlau mewnblanedig ar gyfer ychwanegion",
-    "adminLibEmbeddedEpisodeInfos": "Defnyddio gwybodaeth fewnblanedig am benodau",
-    "adminLibAllowEmbeddedSubtitles": "Caniatáu isdeitlau mewnblanedig",
-    "adminLibEmbeddedAllowAll": "Caniatáu pob un",
-    "adminLibEmbeddedAllowText": "Testun yn unig",
-    "adminLibEmbeddedAllowImage": "Delwedd yn unig",
-    "adminLibEmbeddedAllowNone": "Dim",
-    "adminLibSkipIfEmbeddedSubs": "Hepgor y lawrlwythiad os oes isdeitlau mewnblanedig yn bresennol",
-    "adminLibSkipIfAudioMatches": "Hepgor y lawrlwythiad os yw'r trac sain yn cyfateb i iaith y lawrlwythiad",
-    "adminLibRequirePerfectMatch": "Mynnu bod yr isdeitlau'n cyfateb yn berffaith",
-    "adminLibSaveSubtitlesWithMedia": "Cadw isdeitlau yn y ffolderi cyfryngau",
-    "adminLibChapterImageExtraction": "Echdynnu delweddau penodau",
-    "adminLibChapterImagesDuringScan": "Echdynnu delweddau penodau yn ystod sgan y llyfrgell",
-    "adminLibTrickplayExtraction": "Galluogi echdynnu delweddau Trickplay",
-    "adminLibTrickplayDuringScan": "Echdynnu delweddau Trickplay yn ystod sgan y llyfrgell",
-    "adminLibSaveTrickplayWithMedia": "Cadw delweddau Trickplay yn y ffolderi cyfryngau",
-    "adminLibAutomaticSeriesGrouping": "Uno cyfresi sydd wedi'u gwasgaru ar draws sawl ffolder yn awtomatig",
-    "adminLibSeasonZeroName": "Enw dangos tymor sero",
-    "adminLibLufsScan": "Galluogi sgan LUFS ar gyfer normaleiddio sain",
-    "adminLibPreferNonstandardArtist": "Ffafrio'r tag artistiaid ansafonol",
-    "adminLibAutoAddToCollection": "Ychwanegu ffilmiau at gasgliadau'n awtomatig",
-    "adminParentalControl": "Rheolaeth Rieni",
-    "adminMaxParentalRating": "Uchafswm y dosbarthiad oedran a ganiateir",
-    "adminMaxParentalRatingHint": "Bydd cynnwys â dosbarthiad uwch yn cael ei guddio rhag y defnyddiwr hwn.",
-    "adminParentalRatingNone": "Dim",
-    "adminBlockUnratedItems": "Rhwystro eitemau heb wybodaeth ddosbarthu, neu â gwybodaeth annealladwy",
-    "adminUnratedBook": "Llyfrau",
-    "adminUnratedChannelContent": "Sianeli",
-    "adminUnratedLiveTvChannel": "Teledu byw",
-    "adminUnratedMovie": "Ffilmiau",
-    "adminUnratedMusic": "Cerddoriaeth",
-    "adminUnratedTrailer": "Rhaghysbysebion",
-    "adminUnratedSeries": "Sioeau",
-    "adminAccessSchedules": "Amserlenni Mynediad",
-    "adminAccessSchedulesHint": "Caniatáu mynediad yn ystod yr amserau a drefnwyd isod yn unig. Caniateir mynediad drwy'r dydd pan na fydd amserlen wedi'i gosod.",
-    "adminAddSchedule": "Ychwanegu Amserlen",
-    "adminScheduleDay": "Diwrnod",
-    "adminScheduleStart": "Dechrau",
-    "adminScheduleEnd": "Diwedd",
-    "adminDayEveryday": "Bob dydd",
-    "adminDayWeekday": "Diwrnod gwaith",
-    "adminDayWeekend": "Penwythnos",
-    "adminDaySunday": "Dydd Sul",
-    "adminDayMonday": "Dydd Llun",
-    "adminDayTuesday": "Dydd Mawrth",
-    "adminDayWednesday": "Dydd Mercher",
-    "adminDayThursday": "Dydd Iau",
-    "adminDayFriday": "Dydd Gwener",
-    "adminDaySaturday": "Dydd Sadwrn",
-    "adminAllowedTags": "Tagiau a ganiateir",
-    "adminAllowedTagsHint": "Dim ond cynnwys â'r tagiau hyn a ddangosir. Gadewch yn wag i ganiatáu pob un.",
-    "adminBlockedTags": "Tagiau wedi'u rhwystro",
-    "adminBlockedTagsHint": "Mae cynnwys â'r tagiau hyn yn cael ei guddio rhag y defnyddiwr hwn.",
-    "adminAddTag": "Ychwanegu tag",
-    "adminEnabledDevices": "Dyfeisiau wedi'u galluogi",
-    "adminEnabledChannels": "Sianeli wedi'u galluogi",
-    "adminAuthProvider": "Darparwr dilysu",
-    "adminPasswordResetProvider": "Darparwr ailosod cyfrinair",
-    "adminLoginAttemptsBeforeLockout": "Uchafswm y ceisiadau mewngofnodi aflwyddiannus cyn cloi allan",
-    "adminLoginAttemptsHint": "Gosodwch i 0 ar gyfer y rhagosodiad, neu -1 i analluogi cloi allan.",
-    "adminSyncPlayAccess": "Mynediad SyncPlay",
-    "adminSyncPlayCreateAndJoin": "Caniatáu creu grwpiau ac ymuno â nhw",
-    "adminSyncPlayJoin": "Caniatáu ymuno â grwpiau",
-    "adminSyncPlayNone": "Dim mynediad",
-    "adminContentDeletionFolders": "Caniatáu dileu cynnwys o",
-    "adminBackupOptionsTitle": "Creu Copi Wrth Gefn",
-    "adminBackupInclude": "Dewiswch beth i'w gynnwys yn y copi wrth gefn.",
-    "adminBackupDatabase": "Cronfa ddata",
-    "adminBackupDatabaseAlways": "Wedi'i gynnwys bob amser",
-    "adminBackupMetadata": "Metadata",
-    "adminBackupSubtitles": "Isdeitlau",
-    "adminBackupTrickplay": "Delweddau Trickplay",
-    "adminEditTuner": "Golygu'r Tiwniwr",
-    "adminTunerTypeM3u": "Tiwniwr M3U",
-    "adminTunerTypeHdHomerun": "HDHomeRun",
-    "adminTunerFileOrUrl": "Ffeil neu URL",
-    "adminTunerIpAddress": "Cyfeiriad IP y tiwniwr",
-    "adminTunerFriendlyName": "Enw cyfeillgar",
-    "adminTunerUserAgent": "Asiant defnyddiwr",
-    "adminTunerCount": "Terfyn cysylltiadau ar yr un pryd",
-    "adminTunerCountHelp": "Yr uchafswm o ffrydiau y mae'r tiwniwr yn eu caniatáu ar yr un pryd. Gosodwch i 0 ar gyfer diderfyn.",
-    "adminTunerFallbackBitrate": "Uchafswm cyfradd didau ffrydio wrth gefn",
-    "adminTunerImportFavoritesOnly": "Mewnforio sianeli ffefryn yn unig",
-    "adminTunerAllowHwTranscoding": "Caniatáu trawsgodio caledwedd",
-    "adminTunerAllowFmp4": "Caniatáu'r cynhwysydd trawsgodio fMP4",
-    "adminTunerAllowStreamSharing": "Caniatáu rhannu ffrydiau",
-    "adminTunerEnableStreamLooping": "Galluogi dolennu ffrydiau",
-    "adminTunerIgnoreDts": "Anwybyddu DTS",
-    "adminTunerReadAtNativeFramerate": "Darllen y mewnbwn ar y gyfradd fframiau frodorol",
-    "adminEditProvider": "Golygu'r Darparwr",
-    "adminProviderXmltv": "XMLTV",
-    "adminProviderSchedulesDirect": "Schedules Direct",
-    "adminXmltvPath": "Ffeil neu URL",
-    "adminXmltvMoviePrefix": "Rhagddodiad ffilmiau",
-    "adminXmltvMovieCategories": "Categorïau ffilmiau",
-    "adminXmltvCategoriesHelp": "Gwahanwch sawl categori â bar fertigol.",
-    "adminXmltvKidsCategories": "Categorïau plant",
-    "adminXmltvNewsCategories": "Categorïau newyddion",
-    "adminXmltvSportsCategories": "Categorïau chwaraeon",
-    "adminSdUsername": "Enw defnyddiwr",
-    "adminSdPassword": "Cyfrinair",
-    "adminSdCountry": "Gwlad",
-    "adminSdCountrySelect": "Dewiswch wlad",
-    "adminSdPostalCode": "Cod post",
-    "adminSdGetListings": "Nôl y rhestrau",
-    "adminSdListings": "Rhestrau",
-    "adminEnableAllTuners": "Galluogi pob tiwniwr",
-    "adminTunerResetNotSupported": "Nid yw'r math hwn o diwniwr yn cefnogi ailosod.",
-    "adminMovieRecordingPath": "Llwybr recordio ffilmiau",
-    "adminGuideDays": "Diwrnodau o ddata'r canllaw",
-    "adminGuideDaysAuto": "Awtomatig",
-    "adminGuideDaysValue": "{days} diwrnod",
+    "adminLibEmbeddedTitles": "",
+    "adminLibEmbeddedExtrasTitles": "",
+    "adminLibEmbeddedEpisodeInfos": "",
+    "adminLibAllowEmbeddedSubtitles": "",
+    "adminLibEmbeddedAllowAll": "",
+    "adminLibEmbeddedAllowText": "",
+    "adminLibEmbeddedAllowImage": "",
+    "adminLibEmbeddedAllowNone": "",
+    "adminLibSkipIfEmbeddedSubs": "",
+    "adminLibSkipIfAudioMatches": "",
+    "adminLibRequirePerfectMatch": "",
+    "adminLibSaveSubtitlesWithMedia": "",
+    "adminLibChapterImageExtraction": "",
+    "adminLibChapterImagesDuringScan": "",
+    "adminLibTrickplayExtraction": "",
+    "adminLibTrickplayDuringScan": "",
+    "adminLibSaveTrickplayWithMedia": "",
+    "adminLibAutomaticSeriesGrouping": "",
+    "adminLibSeasonZeroName": "",
+    "adminLibLufsScan": "",
+    "adminLibPreferNonstandardArtist": "",
+    "adminLibAutoAddToCollection": "",
+    "adminParentalControl": "",
+    "adminMaxParentalRating": "",
+    "adminMaxParentalRatingHint": "",
+    "adminParentalRatingNone": "",
+    "adminBlockUnratedItems": "",
+    "adminUnratedBook": "",
+    "adminUnratedChannelContent": "",
+    "adminUnratedLiveTvChannel": "",
+    "adminUnratedMovie": "",
+    "adminUnratedMusic": "",
+    "adminUnratedTrailer": "",
+    "adminUnratedSeries": "",
+    "adminAccessSchedules": "",
+    "adminAccessSchedulesHint": "",
+    "adminAddSchedule": "",
+    "adminScheduleDay": "",
+    "adminScheduleStart": "",
+    "adminScheduleEnd": "",
+    "adminDayEveryday": "",
+    "adminDayWeekday": "",
+    "adminDayWeekend": "",
+    "adminDaySunday": "",
+    "adminDayMonday": "",
+    "adminDayTuesday": "",
+    "adminDayWednesday": "",
+    "adminDayThursday": "",
+    "adminDayFriday": "",
+    "adminDaySaturday": "",
+    "adminAllowedTags": "",
+    "adminAllowedTagsHint": "",
+    "adminBlockedTags": "",
+    "adminBlockedTagsHint": "",
+    "adminAddTag": "",
+    "adminEnabledDevices": "",
+    "adminEnabledChannels": "",
+    "adminAuthProvider": "",
+    "adminPasswordResetProvider": "",
+    "adminLoginAttemptsBeforeLockout": "",
+    "adminLoginAttemptsHint": "",
+    "adminSyncPlayAccess": "",
+    "adminSyncPlayCreateAndJoin": "",
+    "adminSyncPlayJoin": "",
+    "adminSyncPlayNone": "",
+    "adminContentDeletionFolders": "",
+    "adminBackupOptionsTitle": "",
+    "adminBackupInclude": "",
+    "adminBackupDatabase": "",
+    "adminBackupDatabaseAlways": "",
+    "adminBackupMetadata": "",
+    "adminBackupSubtitles": "",
+    "adminBackupTrickplay": "",
+    "adminEditTuner": "",
+    "adminTunerTypeM3u": "",
+    "adminTunerTypeHdHomerun": "",
+    "adminTunerFileOrUrl": "",
+    "adminTunerIpAddress": "",
+    "adminTunerFriendlyName": "",
+    "adminTunerUserAgent": "",
+    "adminTunerCount": "",
+    "adminTunerCountHelp": "",
+    "adminTunerFallbackBitrate": "",
+    "adminTunerImportFavoritesOnly": "",
+    "adminTunerAllowHwTranscoding": "",
+    "adminTunerAllowFmp4": "",
+    "adminTunerAllowStreamSharing": "",
+    "adminTunerEnableStreamLooping": "",
+    "adminTunerIgnoreDts": "",
+    "adminTunerReadAtNativeFramerate": "",
+    "adminEditProvider": "",
+    "adminProviderXmltv": "",
+    "adminProviderSchedulesDirect": "",
+    "adminXmltvPath": "",
+    "adminXmltvMoviePrefix": "",
+    "adminXmltvMovieCategories": "",
+    "adminXmltvCategoriesHelp": "",
+    "adminXmltvKidsCategories": "",
+    "adminXmltvNewsCategories": "",
+    "adminXmltvSportsCategories": "",
+    "adminSdUsername": "",
+    "adminSdPassword": "",
+    "adminSdCountry": "",
+    "adminSdCountrySelect": "",
+    "adminSdPostalCode": "",
+    "adminSdGetListings": "",
+    "adminSdListings": "",
+    "adminEnableAllTuners": "",
+    "adminTunerResetNotSupported": "",
+    "adminMovieRecordingPath": "",
+    "adminGuideDays": "",
+    "adminGuideDaysAuto": "",
+    "adminGuideDaysValue": "",
     "@adminGuideDaysValue": {
         "placeholders": {
             "days": {
@@ -8424,14 +8424,14 @@
             }
         }
     },
-    "adminRecordingPostProcessor": "Llwybr y rhaglen ôl-brosesu",
-    "adminRecordingPostProcessorArgs": "Ymresymiadau'r ôl-broseswr",
-    "adminSaveRecordingNfo": "Cadw metadata NFO recordiadau",
-    "adminSaveRecordingImages": "Cadw delweddau recordiadau",
-    "adminLiveTvSectionTiming": "Amseru",
-    "adminLiveTvSectionPaths": "Llwybrau recordio",
-    "adminLiveTvSectionPostProcessing": "Ôl-brosesu",
-    "adminGuideDaysDisplay": "Data'r canllaw: {value}",
+    "adminRecordingPostProcessor": "",
+    "adminRecordingPostProcessorArgs": "",
+    "adminSaveRecordingNfo": "",
+    "adminSaveRecordingImages": "",
+    "adminLiveTvSectionTiming": "",
+    "adminLiveTvSectionPaths": "",
+    "adminLiveTvSectionPostProcessing": "",
+    "adminGuideDaysDisplay": "",
     "@adminGuideDaysDisplay": {
         "placeholders": {
             "value": {
@@ -8439,124 +8439,124 @@
             }
         }
     },
-    "adminRefreshGuideData": "Adnewyddu Data'r Canllaw",
-    "adminGuideRefreshStarted": "Dechreuwyd adnewyddu data'r canllaw",
-    "adminGuideRefreshUnavailable": "Nid yw'r dasg adnewyddu'r canllaw ar gael ar y gweinydd hwn.",
-    "adminMetadataIdentify": "Adnabod",
-    "adminBrandingSplashUpload": "Uwchlwytho delwedd",
-    "adminBrandingSplashUploaded": "Sgrin gychwyn wedi'i diweddaru",
-    "adminBrandingSplashUploadFailed": "Wedi methu uwchlwytho'r sgrin gychwyn",
-    "adminBrandingSplashDeleted": "Sgrin gychwyn wedi'i thynnu",
-    "adminBrandingNoSplash": "Dim sgrin gychwyn bersonol",
-    "adminPlaybackQsvDevice": "Dyfais QSV",
-    "adminPlaybackEnhancedNvdec": "Galluogi'r dadgodiwr NVDEC gwell",
-    "adminPlaybackPreferNativeDecoder": "Ffafrio dadgodiwr caledwedd brodorol y system",
-    "adminPlaybackColorDepth": "Dyfnder lliw dadgodio caledwedd",
-    "adminPlaybackColorDepth10Hevc": "Dadgodio HEVC 10-did",
-    "adminPlaybackColorDepth10Vp9": "Dadgodio VP9 10-did",
-    "adminPlaybackColorDepth10HevcRext": "Dadgodio HEVC RExt 8/10-did",
-    "adminPlaybackColorDepth12HevcRext": "Dadgodio HEVC RExt 12-did",
-    "adminPlaybackHwEncodingSection": "Amgodio caledwedd",
-    "adminPlaybackAllowHevcEncoding": "Caniatáu amgodio HEVC",
-    "adminPlaybackAllowAv1Encoding": "Caniatáu amgodio AV1",
-    "adminPlaybackIntelLowPowerH264": "Galluogi amgodiwr H.264 pŵer isel Intel",
-    "adminPlaybackIntelLowPowerHevc": "Galluogi amgodiwr HEVC pŵer isel Intel",
-    "adminPlaybackToneMapping": "Mapio Tôn",
-    "adminPlaybackEnableTonemapping": "Galluogi mapio tôn",
-    "adminPlaybackEnableVppTonemapping": "Galluogi mapio tôn VPP",
-    "adminPlaybackEnableVtTonemapping": "Galluogi mapio tôn VideoToolbox",
-    "adminPlaybackTonemappingAlgorithm": "Algorithm mapio tôn",
-    "adminPlaybackTonemappingMode": "Modd mapio tôn",
-    "adminPlaybackTonemappingRange": "Ystod mapio tôn",
-    "adminPlaybackTonemappingDesat": "Dadddirlawnder mapio tôn",
-    "adminPlaybackTonemappingPeak": "Brig mapio tôn",
-    "adminPlaybackTonemappingParam": "Paramedr mapio tôn",
-    "adminPlaybackVppTonemappingBrightness": "Disgleirdeb mapio tôn VPP",
-    "adminPlaybackVppTonemappingContrast": "Cyferbyniad mapio tôn VPP",
-    "adminPlaybackPresetsQuality": "Rhagosodiadau ac Ansawdd",
-    "adminPlaybackEncoderPreset": "Rhagosodiad yr amgodiwr",
-    "adminPlaybackH264Crf": "CRF amgodio H.264",
-    "adminPlaybackH265Crf": "CRF amgodio H.265 (HEVC)",
-    "adminPlaybackDeinterlaceMethod": "Dull dadgydblethu",
-    "adminPlaybackDeinterlaceDoubleRate": "Dyblu'r gyfradd fframiau wrth ddadgydblethu",
-    "adminPlaybackAudioSection": "Sain",
-    "adminPlaybackEnableAudioVbr": "Galluogi amgodio VBR ar gyfer sain",
-    "adminPlaybackDownmixBoost": "Hwb cymysgu sain i lawr",
-    "adminPlaybackDownmixAlgorithm": "Algorithm cymysgu stereo i lawr",
-    "adminPlaybackMaxMuxingQueue": "Uchafswm maint y ciw muxio",
-    "adminPlaybackAutoOption": "Awto",
-    "adminRunningTasks": "Tasgau'n Rhedeg",
-    "adminNetworkingPublicHttpPort": "Porth HTTP cyhoeddus",
-    "adminNetworkingRequireHttps": "Mynnu HTTPS",
-    "adminNetworkingRequireHttpsHint": "Ailgyfeirio pob cais o bell i HTTPS. Nid yw'n cael unrhyw effaith os nad oes gan y gweinydd dystysgrif ddilys.",
-    "adminNetworkingCertPassword": "Cyfrinair y dystysgrif",
-    "adminNetworkingIpSettings": "Gosodiadau IP",
-    "adminNetworkingEnableIpv4": "Galluogi IPv4",
-    "adminNetworkingEnableIpv6": "Galluogi IPv6",
-    "adminNetworkingAutoDiscovery": "Galluogi mapio pyrth yn awtomatig",
-    "adminNetworkingLocalSubnets": "Rhwydweithiau LAN",
-    "adminNetworkingLocalSubnetsHint": "Rhestr o gyfeiriadau IP neu is-rwydweithiau CIDR, wedi'u gwahanu gan gomas neu linellau, sy'n cael eu trin fel rhai ar y rhwydwaith lleol.",
-    "adminNetworkingPublishedUris": "URIau gweinydd cyhoeddedig",
-    "adminNetworkingPublishedUriHint": "Mapio is-rwydwaith neu gyfeiriad i URL cyhoeddedig, e.e. all=https://example.com",
-    "adminPlaybackThrottleDelay": "Oedi cyn cyfyngu (eiliadau)",
-    "adminPlaybackEnableSubtitleExtraction": "Caniatáu echdynnu isdeitlau ar y pryd",
-    "adminGeneralEnableSlowResponse": "Galluogi rhybuddion ymateb araf",
-    "adminGeneralQuickConnect": "Galluogi Quick Connect",
-    "adminGeneralSectionServer": "Gweinydd",
-    "adminGeneralSectionMetadata": "Metadata",
-    "adminGeneralSectionPaths": "Llwybrau",
-    "adminGeneralSectionPerformance": "Perfformiad",
-    "adminGeneralDisplayLanguage": "Iaith ddangos ddewisol",
-    "offlineBannerTitle": "Rydych chi all-lein",
-    "offlineBannerSubtitle": "Yn dangos eich lawrlwythiadau",
-    "offlineBannerAction": "Lawrlwythiadau",
-    "serverUnreachableBannerTitle": "Methu cyrraedd eich gweinydd",
-    "serverUnreachableBannerSubtitle": "Yn chwarae o'ch lawrlwythiadau nes iddo ddod yn ôl",
-    "contextMenuHideFromContinueWatching": "Cuddio o Parhewch i Wylio",
+    "adminRefreshGuideData": "",
+    "adminGuideRefreshStarted": "",
+    "adminGuideRefreshUnavailable": "",
+    "adminMetadataIdentify": "",
+    "adminBrandingSplashUpload": "",
+    "adminBrandingSplashUploaded": "",
+    "adminBrandingSplashUploadFailed": "",
+    "adminBrandingSplashDeleted": "",
+    "adminBrandingNoSplash": "",
+    "adminPlaybackQsvDevice": "",
+    "adminPlaybackEnhancedNvdec": "",
+    "adminPlaybackPreferNativeDecoder": "",
+    "adminPlaybackColorDepth": "",
+    "adminPlaybackColorDepth10Hevc": "",
+    "adminPlaybackColorDepth10Vp9": "",
+    "adminPlaybackColorDepth10HevcRext": "",
+    "adminPlaybackColorDepth12HevcRext": "",
+    "adminPlaybackHwEncodingSection": "",
+    "adminPlaybackAllowHevcEncoding": "",
+    "adminPlaybackAllowAv1Encoding": "",
+    "adminPlaybackIntelLowPowerH264": "",
+    "adminPlaybackIntelLowPowerHevc": "",
+    "adminPlaybackToneMapping": "",
+    "adminPlaybackEnableTonemapping": "",
+    "adminPlaybackEnableVppTonemapping": "",
+    "adminPlaybackEnableVtTonemapping": "",
+    "adminPlaybackTonemappingAlgorithm": "",
+    "adminPlaybackTonemappingMode": "",
+    "adminPlaybackTonemappingRange": "",
+    "adminPlaybackTonemappingDesat": "",
+    "adminPlaybackTonemappingPeak": "",
+    "adminPlaybackTonemappingParam": "",
+    "adminPlaybackVppTonemappingBrightness": "",
+    "adminPlaybackVppTonemappingContrast": "",
+    "adminPlaybackPresetsQuality": "",
+    "adminPlaybackEncoderPreset": "",
+    "adminPlaybackH264Crf": "",
+    "adminPlaybackH265Crf": "",
+    "adminPlaybackDeinterlaceMethod": "",
+    "adminPlaybackDeinterlaceDoubleRate": "",
+    "adminPlaybackAudioSection": "",
+    "adminPlaybackEnableAudioVbr": "",
+    "adminPlaybackDownmixBoost": "",
+    "adminPlaybackDownmixAlgorithm": "",
+    "adminPlaybackMaxMuxingQueue": "",
+    "adminPlaybackAutoOption": "",
+    "adminRunningTasks": "",
+    "adminNetworkingPublicHttpPort": "",
+    "adminNetworkingRequireHttps": "",
+    "adminNetworkingRequireHttpsHint": "",
+    "adminNetworkingCertPassword": "",
+    "adminNetworkingIpSettings": "",
+    "adminNetworkingEnableIpv4": "",
+    "adminNetworkingEnableIpv6": "",
+    "adminNetworkingAutoDiscovery": "",
+    "adminNetworkingLocalSubnets": "",
+    "adminNetworkingLocalSubnetsHint": "",
+    "adminNetworkingPublishedUris": "",
+    "adminNetworkingPublishedUriHint": "",
+    "adminPlaybackThrottleDelay": "",
+    "adminPlaybackEnableSubtitleExtraction": "",
+    "adminGeneralEnableSlowResponse": "",
+    "adminGeneralQuickConnect": "",
+    "adminGeneralSectionServer": "",
+    "adminGeneralSectionMetadata": "",
+    "adminGeneralSectionPaths": "",
+    "adminGeneralSectionPerformance": "",
+    "adminGeneralDisplayLanguage": "",
+    "offlineBannerTitle": "",
+    "offlineBannerSubtitle": "",
+    "offlineBannerAction": "",
+    "serverUnreachableBannerTitle": "",
+    "serverUnreachableBannerSubtitle": "",
+    "contextMenuHideFromContinueWatching": "",
     "@contextMenuHideFromContinueWatching": {
         "description": "Context menu action to hide an item from the Continue Watching section"
     },
-    "contextMenuHideFromNextUp": "Cuddio o Nesaf",
+    "contextMenuHideFromNextUp": "",
     "@contextMenuHideFromNextUp": {
         "description": "Context menu action to hide a show from the Next Up section"
     },
-    "contextMenuAddToCollection": "Ychwanegu at Gasgliad",
+    "contextMenuAddToCollection": "",
     "@contextMenuAddToCollection": {
         "description": "Context menu action to add an item to a collection"
     },
-    "settingsConnectionSection": "CYSYLLTIAD",
+    "settingsConnectionSection": "",
     "@settingsConnectionSection": {
         "description": "Section header for server connection settings"
     },
-    "settingsAllowSelfSignedCerts": "Caniatáu tystysgrifau hunanlofnodedig",
+    "settingsAllowSelfSignedCerts": "",
     "@settingsAllowSelfSignedCerts": {
         "description": "Setting to trust self-signed TLS certificates"
     },
-    "settingsAllowSelfSignedCertsSubtitle": "Ymddiried mewn gweinyddion sy'n defnyddio tystysgrifau TLS hunanlofnodedig neu rai o CA preifat. Galluogwch hyn ar gyfer gweinyddion rydych chi'n eu rheoli yn unig. Mae hyn yn analluogi dilysu tystysgrifau ar gyfer pob cysylltiad.",
+    "settingsAllowSelfSignedCertsSubtitle": "",
     "@settingsAllowSelfSignedCertsSubtitle": {
         "description": "Description for the allow self-signed certificates setting"
     },
-    "settingsDetailsScreen": "Sgrin Fanylion",
-    "settingsDetailsScreenSubtitle": "Arddull, pylu'r cefndir, ac ymddygiad tabiau",
-    "settingsShowSeerrButtonInNavigation": "Dangos botwm Seerr yn y bar llywio",
-    "settingsAlwaysExpandNavbarLabels": "Dangos labeli testun yn y bar llywio uchaf bob amser",
-    "settingsMediaSegmentCountdown": "Cyfrif i Lawr Segment Cyfryngau",
+    "settingsDetailsScreen": "",
+    "settingsDetailsScreenSubtitle": "",
+    "settingsShowSeerrButtonInNavigation": "",
+    "settingsAlwaysExpandNavbarLabels": "",
+    "settingsMediaSegmentCountdown": "",
     "@settingsMediaSegmentCountdown": {
         "description": "Setting label for media segment countdown customizations"
     },
-    "settingsProgressBar": "Bar Cynnydd",
+    "settingsProgressBar": "",
     "@settingsProgressBar": {
         "description": "Option label to show only progress bar on media segment countdown overlay"
     },
-    "settingsTimer": "Amserydd",
+    "settingsTimer": "",
     "@settingsTimer": {
         "description": "Option label to show only countdown timer on media segment countdown overlay"
     },
-    "settingsNone": "Dim",
+    "settingsNone": "",
     "@settingsNone": {
         "description": "Option label to hide all decorations on media segment countdown overlay"
     },
-    "recentlyReleasedLibraryName": "{libraryName} a Ryddhawyd yn Ddiweddar",
+    "recentlyReleasedLibraryName": "",
     "@recentlyReleasedLibraryName": {
         "description": "Row title for recently released media in a specific library",
         "placeholders": {
@@ -8565,36 +8565,36 @@
             }
         }
     },
-    "enableTunnelingTitle": "Galluogi twnelu",
+    "enableTunnelingTitle": "",
     "@enableTunnelingTitle": {
         "description": "Setting title: enable tunneled video playback (advanced)"
     },
-    "enableTunnelingSubtitle": "Uwch. Yn llwybro sain a fideo drwy lwybr caledwedd cyplysedig. I ffwrdd yn ddiofyn am ei fod yn achosi i sain/fideo dorri ar rai dyfeisiau.",
+    "enableTunnelingSubtitle": "",
     "@enableTunnelingSubtitle": {
         "description": "Setting subtitle for enable tunneling"
     },
-    "showMediaDetailsOnLibraryPage": "Dangos Manylion y Cyfrwng",
+    "showMediaDetailsOnLibraryPage": "",
     "@showMediaDetailsOnLibraryPage": {
         "description": "Setting title to show/hide focused media details at the top of the library page"
     },
-    "showMediaDetailsOnLibraryPageDescription": "Dangos manylion yr eitem a ddewiswyd ar frig tudalennau'r Llyfrgell.",
+    "showMediaDetailsOnLibraryPageDescription": "",
     "@showMediaDetailsOnLibraryPageDescription": {
         "description": "Setting description to show/hide focused media details at the top of the library page"
     },
-    "hideBackdropsInLibraries": "Cuddio Cefndiroedd wrth Bori?",
+    "hideBackdropsInLibraries": "",
     "@hideBackdropsInLibraries": {
         "description": "Setting title to show/hide backdrops when browsing library pages"
     },
-    "themeStore": "Siop Themâu",
-    "themeStoreSubtitle": "Pori a chadw themâu'r gymuned",
-    "themeStoreDescription": "Arbedwch thema i'w defnyddio fel eich themâu eraill sydd wedi'u harbed.",
-    "themeStoreEmpty": "Does dim themâu ar gael ar hyn o bryd.",
-    "themeStoreLoadFailed": "Methwyd â llwytho'r Siop Themâu. Gwiriwch eich cysylltiad a rhowch gynnig arall arni.",
-    "themeStoreSave": "Cadw",
-    "themeStoreSaveAndApply": "Arbed a gosod",
-    "themeStoreSaved": "Wedi'i arbed",
-    "themeStoreInvalidMessage": "Methwyd â llwytho'r thema hon.",
-    "themeStoreSavedMessage": "Wedi arbed \"{themeName}\".",
+    "themeStore": "",
+    "themeStoreSubtitle": "",
+    "themeStoreDescription": "",
+    "themeStoreEmpty": "",
+    "themeStoreLoadFailed": "",
+    "themeStoreSave": "",
+    "themeStoreSaveAndApply": "",
+    "themeStoreSaved": "",
+    "themeStoreInvalidMessage": "",
+    "themeStoreSavedMessage": "",
     "@themeStoreSavedMessage": {
         "description": "Status message shown after saving a Theme Store theme",
         "placeholders": {
@@ -8603,34 +8603,34 @@
             }
         }
     },
-    "homeRowDisplay": "Dangos y Rhesi Cartref",
-    "homeRowSections": "Adrannau'r Rhesi Cartref",
-    "homeRowToggles": "Togls y Rhesi Cartref",
-    "homeRowTogglesSubtitle": "Galluogi neu analluogi categorïau'r rhesi cartref sy'n seiliedig ar lyfrgelloedd",
-    "homeRowTogglesDescription": "Galluogwch y togls canlynol i ddangos y rhesi yn yr Adrannau Cartref.",
-    "displayPlaylistsRows": "Dangos Rhesi Rhestrau Chwarae",
-    "displayPlaylistsRowsSubtitle": "Dangos rhesi Rhestrau Chwarae yn yr Adrannau Cartref.",
-    "playlistsRowSorting": "Trefnu Rhesi'r Rhestrau Chwarae",
-    "playlistsRowSortingDescription": "Trefnu rhesi'r Rhestrau Chwarae yn ôl y dyddiad ychwanegu, y dyddiad rhyddhau, yn nhrefn yr wyddor, a mwy.",
-    "displayAudioRows": "Dangos Rhesi Sain",
-    "displayAudioRowsSubtitle": "Dangos rhesi Sain yn yr Adrannau Cartref.",
-    "audioRowsSorting": "Trefnu'r Rhesi Sain",
-    "audioRowsSortingDescription": "Trefnu rhesi Sain yn ôl y dyddiad ychwanegu, y dyddiad rhyddhau, yn nhrefn yr wyddor, a mwy.",
-    "audioPlaylists": "Rhestrau Chwarae Sain",
-    "layout": "Cynllun",
-    "theme": "Thema",
-    "keyboard": "Bysellfwrdd",
-    "navButtons": "Botymau",
-    "rendering": "Rendro",
-    "mpvConfiguration": "Ffurfweddiad MPV",
-    "externalPlayerAppDescription": "Gosodwch chwaraewr allanol i alluogi'r opsiwn chwarae gwasg-hir",
-    "crewContributionsSeerr": "Cyfraniadau'r Criw (Seerr)",
-    "changeArtwork": "Newid y Gwaith Celf",
-    "missing": "Ar goll",
-    "clearAllArtworkButton": "Clirio'r holl waith celf?",
-    "clearAllArtworkWarning": "Ydych chi'n siŵr eich bod am glirio'r holl waith celf a lawrlwythwyd?",
-    "confirmClear": "Cadarnhau'r Clirio",
-    "confirmClearMessage": "Ydych chi'n siŵr eich bod am glirio'r {itemType} hwn?",
+    "homeRowDisplay": "",
+    "homeRowSections": "",
+    "homeRowToggles": "",
+    "homeRowTogglesSubtitle": "",
+    "homeRowTogglesDescription": "",
+    "displayPlaylistsRows": "",
+    "displayPlaylistsRowsSubtitle": "",
+    "playlistsRowSorting": "",
+    "playlistsRowSortingDescription": "",
+    "displayAudioRows": "",
+    "displayAudioRowsSubtitle": "",
+    "audioRowsSorting": "",
+    "audioRowsSortingDescription": "",
+    "audioPlaylists": "",
+    "layout": "",
+    "theme": "",
+    "keyboard": "",
+    "navButtons": "",
+    "rendering": "",
+    "mpvConfiguration": "",
+    "externalPlayerAppDescription": "",
+    "crewContributionsSeerr": "",
+    "changeArtwork": "",
+    "missing": "",
+    "clearAllArtworkButton": "",
+    "clearAllArtworkWarning": "",
+    "confirmClear": "",
+    "confirmClearMessage": "",
     "@confirmClearMessage": {
         "description": "Confirmation message when clearing a specific artwork",
         "placeholders": {
@@ -8639,12 +8639,12 @@
             }
         }
     },
-    "uploadButton": "Uwchlwytho?",
-    "resolutionLabel": "Cydraniad: ",
-    "onlyShowInterfaceLanguage": "Dangos gwaith celf yn iaith y rhyngwyneb yn unig",
-    "confirmClearAll": "Cadarnhau Clirio'r Cyfan",
-    "imageUploadSuccess": "Uwchlwythwyd y ddelwedd yn llwyddiannus!",
-    "imageUploadFailed": "Wedi methu uwchlwytho'r ddelwedd: {error}",
+    "uploadButton": "",
+    "resolutionLabel": "",
+    "onlyShowInterfaceLanguage": "",
+    "confirmClearAll": "",
+    "imageUploadSuccess": "",
+    "imageUploadFailed": "",
     "@imageUploadFailed": {
         "placeholders": {
             "error": {
@@ -8652,7 +8652,7 @@
             }
         }
     },
-    "imageDownloadFailed": "Wedi methu gosod y ddelwedd: {error}",
+    "imageDownloadFailed": "",
     "@imageDownloadFailed": {
         "placeholders": {
             "error": {
@@ -8660,7 +8660,7 @@
             }
         }
     },
-    "imageDeleteFailed": "Wedi methu dileu'r ddelwedd: {error}",
+    "imageDeleteFailed": "",
     "@imageDeleteFailed": {
         "placeholders": {
             "error": {
@@ -8668,7 +8668,7 @@
             }
         }
     },
-    "clearAllArtworkFailed": "Wedi methu clirio'r holl waith celf: {error}",
+    "clearAllArtworkFailed": "",
     "@clearAllArtworkFailed": {
         "placeholders": {
             "error": {
@@ -8676,49 +8676,49 @@
             }
         }
     },
-    "yes": "Ie",
-    "posterCategory": "Poster",
-    "backdropsCategory": "Cefndiroedd",
-    "bannerCategory": "Baner",
-    "logoCategory": "Logo",
-    "thumbnailCategory": "Mân-lun",
-    "artCategory": "Celf",
-    "discArtCategory": "Celf y Ddisg",
-    "screenshotCategory": "Sgrinlun",
-    "boxCoverCategory": "Clawr y Blwch",
-    "boxRearCoverCategory": "Clawr Cefn y Blwch",
-    "menuArtCategory": "Celf y Ddewislen",
-    "confirmItemPoster": "poster",
-    "confirmItemBackdrop": "cefndir",
-    "confirmItemBanner": "baner",
-    "confirmItemLogo": "logo",
-    "confirmItemThumbnail": "mân-lun",
-    "confirmItemArt": "celf",
-    "confirmItemDiscArt": "celf disg",
-    "confirmItemScreenshot": "sgrinlun",
-    "confirmItemBoxCover": "clawr blwch",
-    "confirmItemBoxRearCover": "clawr cefn blwch",
-    "confirmItemMenuArt": "celf dewislen",
-    "resolutionAll": "Pob un",
-    "resolutionHigh": "Uchel (1080p+)",
-    "resolutionMedium": "Canolig (720p)",
-    "resolutionLow": "Isel (<720p)",
-    "sources": "Ffynonellau",
+    "yes": "",
+    "posterCategory": "",
+    "backdropsCategory": "",
+    "bannerCategory": "",
+    "logoCategory": "",
+    "thumbnailCategory": "",
+    "artCategory": "",
+    "discArtCategory": "",
+    "screenshotCategory": "",
+    "boxCoverCategory": "",
+    "boxRearCoverCategory": "",
+    "menuArtCategory": "",
+    "confirmItemPoster": "",
+    "confirmItemBackdrop": "",
+    "confirmItemBanner": "",
+    "confirmItemLogo": "",
+    "confirmItemThumbnail": "",
+    "confirmItemArt": "",
+    "confirmItemDiscArt": "",
+    "confirmItemScreenshot": "",
+    "confirmItemBoxCover": "",
+    "confirmItemBoxRearCover": "",
+    "confirmItemMenuArt": "",
+    "resolutionAll": "",
+    "resolutionHigh": "",
+    "resolutionMedium": "",
+    "resolutionLow": "",
+    "sources": "",
     "@sources": {
         "description": "Title of the artwork source-provider filter dialog"
     },
-    "audiobookChapters": "Penodau",
-    "audiobookBookmarks": "Nodau tudalen",
-    "audiobookNotes": "Nodiadau",
-    "audiobookQueue": "Ciw",
-    "audiobookTimeline": "Llinell amser",
-    "audiobookTimelineEmpty": "Mae'r llinell amser yn wag",
-    "audiobookWholeBook": "Y Llyfr Cyfan",
-    "audiobookFocusedTimeline": "Llinell Amser â Ffocws",
-    "audiobookExportBookmarks": "Allforio'r Nodau Tudalen",
-    "audiobookExportNotes": "Allforio'r Nodiadau",
-    "audiobookExportAll": "Allforio'r Cyfan",
-    "audiobookExportSuccess": "Wedi'i allforio i {path}",
+    "audiobookChapters": "",
+    "audiobookBookmarks": "",
+    "audiobookNotes": "",
+    "audiobookQueue": "",
+    "audiobookTimeline": "",
+    "audiobookTimelineEmpty": "",
+    "audiobookWholeBook": "",
+    "audiobookFocusedTimeline": "",
+    "audiobookExportBookmarks": "",
+    "audiobookExportNotes": "",
+    "audiobookExportAll": "",
+    "audiobookExportSuccess": "",
     "@audiobookExportSuccess": {
         "placeholders": {
             "path": {
@@ -8726,7 +8726,7 @@
             }
         }
     },
-    "audiobookExportFailed": "Methodd yr allforio: {error}",
+    "audiobookExportFailed": "",
     "@audiobookExportFailed": {
         "placeholders": {
             "error": {
@@ -8734,16 +8734,16 @@
             }
         }
     },
-    "audiobookLyrics": "Geiriau",
-    "audiobookAddBookmark": "Ychwanegu nod tudalen",
-    "audiobookAddNote": "Ychwanegu nodiad",
-    "audiobookEditNote": "Golygu'r nodiad",
-    "audiobookNoteHint": "Ysgrifennwch nodiad ar gyfer y foment hon",
-    "audiobookSleepTimer": "Amserydd cysgu",
-    "audiobookSleepOff": "I ffwrdd",
-    "audiobookSleepEndOfChapter": "Diwedd y bennod",
-    "audiobookSleepCustom": "Personol",
-    "audiobookSleepRemaining": "{remaining} ar ôl",
+    "audiobookLyrics": "",
+    "audiobookAddBookmark": "",
+    "audiobookAddNote": "",
+    "audiobookEditNote": "",
+    "audiobookNoteHint": "",
+    "audiobookSleepTimer": "",
+    "audiobookSleepOff": "",
+    "audiobookSleepEndOfChapter": "",
+    "audiobookSleepCustom": "",
+    "audiobookSleepRemaining": "",
     "@audiobookSleepRemaining": {
         "placeholders": {
             "remaining": {
@@ -8751,7 +8751,7 @@
             }
         }
     },
-    "audiobookSleepMinutes": "{count, plural, =1{1 mun} other{{count} mun}}",
+    "audiobookSleepMinutes": "",
     "@audiobookSleepMinutes": {
         "placeholders": {
             "count": {
@@ -8759,10 +8759,10 @@
             }
         }
     },
-    "audiobookPlaybackSpeed": "Cyflymder chwarae",
-    "audiobookRemainingTime": "Ar ôl",
-    "audiobookElapsedTime": "Wedi mynd heibio",
-    "audiobookSkipBackSeconds": "Yn ôl {seconds}s",
+    "audiobookPlaybackSpeed": "",
+    "audiobookRemainingTime": "",
+    "audiobookElapsedTime": "",
+    "audiobookSkipBackSeconds": "",
     "@audiobookSkipBackSeconds": {
         "placeholders": {
             "seconds": {
@@ -8770,7 +8770,7 @@
             }
         }
     },
-    "audiobookSkipForwardSeconds": "Ymlaen {seconds}s",
+    "audiobookSkipForwardSeconds": "",
     "@audiobookSkipForwardSeconds": {
         "placeholders": {
             "seconds": {
@@ -8778,9 +8778,9 @@
             }
         }
     },
-    "audiobookPreviousChapter": "Y bennod flaenorol",
-    "audiobookNextChapter": "Y bennod nesaf",
-    "audiobookChapterIndicator": "Pennod {current} o {total}",
+    "audiobookPreviousChapter": "",
+    "audiobookNextChapter": "",
+    "audiobookChapterIndicator": "",
     "@audiobookChapterIndicator": {
         "placeholders": {
             "current": {
@@ -8791,10 +8791,10 @@
             }
         }
     },
-    "audiobookNoChapters": "Dim penodau",
-    "audiobookNoBookmarks": "Dim nodau tudalen eto",
-    "audiobookNoNotes": "Dim nodiadau eto",
-    "audiobookBookmarkAdded": "Ychwanegwyd nod tudalen ar {position}",
+    "audiobookNoChapters": "",
+    "audiobookNoBookmarks": "",
+    "audiobookNoNotes": "",
+    "audiobookBookmarkAdded": "",
     "@audiobookBookmarkAdded": {
         "placeholders": {
             "position": {
@@ -8802,8 +8802,8 @@
             }
         }
     },
-    "audiobookSpeedReset": "Ailosod i 1.0x",
-    "audiobookSpeedCustomLabel": "{value}x",
+    "audiobookSpeedReset": "",
+    "audiobookSpeedCustomLabel": "",
     "@audiobookSpeedCustomLabel": {
         "placeholders": {
             "value": {
@@ -8811,58 +8811,58 @@
             }
         }
     },
-    "audiobookSave": "Cadw",
-    "audiobookCancel": "Canslo",
-    "audiobookDelete": "Dileu",
-    "subtitlePreferences": "Dewisiadau Isdeitlau",
+    "audiobookSave": "",
+    "audiobookCancel": "",
+    "audiobookDelete": "",
+    "subtitlePreferences": "",
     "@subtitlePreferences": {
         "description": "Title for the subtitle preferences settings section"
     },
-    "subtitlePreferencesDescription": "Newid moddau isdeitlau, ieithoedd rhagosodedig, golwg, ac opsiynau rendro.",
+    "subtitlePreferencesDescription": "",
     "@subtitlePreferencesDescription": {
         "description": "Description for the subtitle preferences settings section"
     },
-    "subtitleRendering": "Rendro Isdeitlau",
+    "subtitleRendering": "",
     "@subtitleRendering": {
         "description": "Header for subtitle rendering settings"
     },
-    "displayOptions": "Opsiynau Dangos",
+    "displayOptions": "",
     "@displayOptions": {
         "description": "Title for details display options dialog"
     },
-    "releaseDateAscending": "Dyddiad Rhyddhau (Esgyn)",
+    "releaseDateAscending": "",
     "@releaseDateAscending": {
         "description": "Sort option for crew/cast contributions in ascending release date order"
     },
-    "releaseDateDescending": "Dyddiad Rhyddhau (Disgyn)",
+    "releaseDateDescending": "",
     "@releaseDateDescending": {
         "description": "Sort option for crew/cast contributions in descending release date order"
     },
-    "groupContributions": "Grwpio Cyfraniadau",
+    "groupContributions": "",
     "@groupContributions": {
         "description": "Section header for grouping person contributions"
     },
-    "groupMultipleRoles": "Grwpio sawl rôl",
+    "groupMultipleRoles": "",
     "@groupMultipleRoles": {
         "description": "Option to group multiple roles for a person"
     },
-    "libraryWriteAccessWarningTitle": "Rhybudd Mynediad Ysgrifennu i'r Llyfrgell",
+    "libraryWriteAccessWarningTitle": "",
     "@libraryWriteAccessWarningTitle": {
         "description": "Title for library write access warning dialog"
     },
-    "libraryWriteAccessHowToFix": "Sut i drwsio hyn:",
+    "libraryWriteAccessHowToFix": "",
     "@libraryWriteAccessHowToFix": {
         "description": "Section header for write access troubleshooting"
     },
-    "libraryWriteAccessFixSteps": "1. Rhowch ganiatâd ysgrifennu i ddefnyddiwr gwasanaeth Jellyfin (e.e. jellyfin neu PUID/PGID Docker) ar gyfer ffolderi eich llyfrgell gyfryngau ar y gweinydd.\n\n2. Neu, ewch i'ch Dangosfwrdd Jellyfin -> Llyfrgelloedd, golygwch y llyfrgell hon, ac analluogwch 'Cadw gwaith celf yn y ffolderi cyfryngau' i storio gwaith celf yng nghronfa ddata fewnol Jellyfin.",
+    "libraryWriteAccessFixSteps": "",
     "@libraryWriteAccessFixSteps": {
         "description": "Troubleshooting steps for write access issues"
     },
-    "dismiss": "Diystyru",
+    "dismiss": "",
     "@dismiss": {
         "description": "Dismiss button text"
     },
-    "libraryWriteAccessProactiveBody": "Mae eich llyfrgell '{libraryName}' wedi'i ffurfweddu i gadw gwaith celf yn uniongyrchol yn y ffolderi cyfryngau (mae 'Cadw gwaith celf yn y ffolderi cyfryngau' wedi'i alluogi). Fodd bynnag, mae Jellyfin wedi profi mynediad ysgrifennu ac nid oes ganddo ganiatâd i ysgrifennu ffeiliau i'r cyfeiriadur hwn:\n\n{failedPath}",
+    "libraryWriteAccessProactiveBody": "",
     "@libraryWriteAccessProactiveBody": {
         "description": "Proactive warning message about server write access",
         "placeholders": {
@@ -8874,21 +8874,21 @@
             }
         }
     },
-    "libraryWriteAccessReactiveBody": "Mae'n ymddangos bod Jellyfin wedi methu â diweddaru'r gwaith celf. Mae eich llyfrgell wedi'i ffurfweddu i gadw gwaith celf yn uniongyrchol yn y ffolderi cyfryngau (mae 'Cadw gwaith celf yn y ffolderi cyfryngau' wedi'i alluogi). Mae'r gwall hwn fel arfer yn digwydd pan nad oes gan broses gweinydd Jellyfin ganiatâd i ysgrifennu ffeiliau i'ch cyfeiriaduron cyfryngau.",
+    "libraryWriteAccessReactiveBody": "",
     "@libraryWriteAccessReactiveBody": {
         "description": "Reactive error warning message when artwork update fails"
     },
-    "externalLists": "Rhestrau Allanol",
-    "replay": "Ailchwarae",
-    "fileInformation": "Gwybodaeth am y Ffeil",
-    "fileSizeFormat": "Maint: {size}  •  Fformat: {format}",
+    "externalLists": "",
+    "replay": "",
+    "fileInformation": "",
+    "fileSizeFormat": "",
     "@fileSizeFormat": {
         "placeholders": {
             "size": {},
             "format": {}
         }
     },
-    "showAllAudioTracks": "Dangos Pob Trac Sain ({count})",
+    "showAllAudioTracks": "",
     "@showAllAudioTracks": {
         "placeholders": {
             "count": {
@@ -8896,7 +8896,7 @@
             }
         }
     },
-    "showAllSubtitleTracks": "Dangos Pob Trac Isdeitlau ({count})",
+    "showAllSubtitleTracks": "",
     "@showAllSubtitleTracks": {
         "placeholders": {
             "count": {
@@ -8904,30 +8904,30 @@
             }
         }
     },
-    "checkingDirectPlay": "Yn gwirio'r gallu Direct Play...",
-    "directPlayCapabilityLabel": "Gallu Direct Play: ",
-    "forced": "Gorfodol",
-    "transcodeContainerNotSupported": "Nid yw'r chwaraewr yn cefnogi fformat y cynhwysydd.",
-    "transcodeVideoCodecNotSupported": "Ni chefnogir y codec fideo.",
-    "transcodeAudioCodecNotSupported": "Ni chefnogir y codec sain.",
-    "transcodeSubtitleCodecNotSupported": "Ni chefnogir fformat yr isdeitlau (mae angen eu llosgi i mewn).",
-    "transcodeAudioProfileNotSupported": "Ni chefnogir y proffil sain.",
-    "transcodeVideoProfileNotSupported": "Ni chefnogir y proffil fideo.",
-    "transcodeVideoLevelNotSupported": "Ni chefnogir lefel y fideo.",
-    "transcodeVideoResolutionNotSupported": "Nid yw'r ddyfais hon yn cefnogi cydraniad y fideo.",
-    "transcodeVideoBitDepthNotSupported": "Ni chefnogir dyfnder didau'r fideo.",
-    "transcodeVideoFramerateNotSupported": "Ni chefnogir cyfradd fframiau'r fideo.",
-    "transcodeContainerBitrateExceedsLimit": "Mae cyfradd didau'r ffeil yn uwch na therfyn ffrydio'r chwaraewr.",
-    "transcodeVideoBitrateExceedsLimit": "Mae cyfradd didau'r fideo yn uwch na'r terfyn ffrydio.",
-    "transcodeAudioBitrateExceedsLimit": "Mae cyfradd didau'r sain yn uwch na'r terfyn ffrydio.",
-    "transcodeAudioChannelsNotSupported": "Ni chefnogir nifer y sianeli sain.",
-    "sortAlphabetical": "Yn nhrefn yr wyddor",
-    "sortReleaseAscending": "Trefn Rhyddhau (Esgyn)",
-    "sortReleaseDescending": "Trefn Rhyddhau (Disgyn)",
-    "sortCustomDragDrop": "Personol (Llusgo a Gollwng)",
-    "playlistSortOptions": "Opsiynau Trefnu'r Rhestr Chwarae",
-    "resetSort": "Ailosod y Drefn",
-    "rewatchSeasonEpisode": "Ailwylio T{season}:P{episode}",
+    "checkingDirectPlay": "",
+    "directPlayCapabilityLabel": "",
+    "forced": "",
+    "transcodeContainerNotSupported": "",
+    "transcodeVideoCodecNotSupported": "",
+    "transcodeAudioCodecNotSupported": "",
+    "transcodeSubtitleCodecNotSupported": "",
+    "transcodeAudioProfileNotSupported": "",
+    "transcodeVideoProfileNotSupported": "",
+    "transcodeVideoLevelNotSupported": "",
+    "transcodeVideoResolutionNotSupported": "",
+    "transcodeVideoBitDepthNotSupported": "",
+    "transcodeVideoFramerateNotSupported": "",
+    "transcodeContainerBitrateExceedsLimit": "",
+    "transcodeVideoBitrateExceedsLimit": "",
+    "transcodeAudioBitrateExceedsLimit": "",
+    "transcodeAudioChannelsNotSupported": "",
+    "sortAlphabetical": "",
+    "sortReleaseAscending": "",
+    "sortReleaseDescending": "",
+    "sortCustomDragDrop": "",
+    "playlistSortOptions": "",
+    "resetSort": "",
+    "rewatchSeasonEpisode": "",
     "@rewatchSeasonEpisode": {
         "placeholders": {
             "season": {
@@ -8938,57 +8938,57 @@
             }
         }
     },
-    "rewatchPlaylist": "Ailwylio'r Rhestr Chwarae",
-    "noSubtitlesFound": "Ni chanfuwyd unrhyw isdeitlau.",
-    "adminControls": "Rheolyddion Gweinyddu",
-    "impellerRendering": "Injan rendro (Impeller)",
+    "rewatchPlaylist": "",
+    "noSubtitlesFound": "",
+    "adminControls": "",
+    "impellerRendering": "",
     "@impellerRendering": {
         "description": "Title of the setting that selects the Flutter rendering engine (Impeller vs. legacy)."
     },
-    "impellerRenderingSubtitle": "Impeller yw rendrwr GPU modern Flutter, ar gyfer animeiddiadau llyfnach a llai o hercian. Ar rai bocsys teledu a GPUau hŷn gall achosi namau neu fideo du; diffoddwch ef os gwelwch chi'r rheini. Mae Awtomatig yn dewis y rhagosodiad gorau ar gyfer eich dyfais. Ailgychwynnwch Moonfin i'w osod.",
+    "impellerRenderingSubtitle": "",
     "@impellerRenderingSubtitle": {
         "description": "Explanatory description under the rendering engine setting."
     },
-    "impellerAuto": "Awtomatig",
-    "impellerOn": "Ymlaen",
-    "impellerOff": "I ffwrdd",
-    "impellerRestartTitle": "Mae angen ailgychwyn",
+    "impellerAuto": "",
+    "impellerOn": "",
+    "impellerOff": "",
+    "impellerRestartTitle": "",
     "@impellerRestartTitle": {
         "description": "Title of the dialog shown after changing the rendering engine."
     },
-    "impellerRestartMessage": "Mae angen i Moonfin ailgychwyn i newid yr injan rendro. Caewch yr ap nawr, yna ei ailagor i osod y newid.",
+    "impellerRestartMessage": "",
     "@impellerRestartMessage": {
         "description": "Body of the dialog shown after changing the rendering engine."
     },
-    "impellerCloseNow": "Cau'r ap nawr",
+    "impellerCloseNow": "",
     "@impellerCloseNow": {
         "description": "Button that closes the app so the new rendering engine takes effect on next launch."
     },
-    "adminRefreshLibrary": "Adnewyddu'r Llyfrgell",
+    "adminRefreshLibrary": "",
     "@adminRefreshLibrary": {
         "description": "Dropdown option to refresh/rescan a single library"
     },
-    "adminRefreshAllLibraries": "Adnewyddu Pob Llyfrgell",
+    "adminRefreshAllLibraries": "",
     "@adminRefreshAllLibraries": {
         "description": "Floating action button text to refresh all libraries"
     },
-    "adminRepoSortDateOldest": "Dyddiad Ychwanegu (Hynaf yn Gyntaf)",
+    "adminRepoSortDateOldest": "",
     "@adminRepoSortDateOldest": {
         "description": "Repository sort option, oldest added first"
     },
-    "adminRepoSortDateNewest": "Dyddiad Ychwanegu (Diweddaraf yn Gyntaf)",
+    "adminRepoSortDateNewest": "",
     "@adminRepoSortDateNewest": {
         "description": "Repository sort option, newest added first"
     },
-    "adminRepoSortNameAsc": "Yn nhrefn yr wyddor (A i Z)",
+    "adminRepoSortNameAsc": "",
     "@adminRepoSortNameAsc": {
         "description": "Repository sort option, alphabetical ascending"
     },
-    "adminRepoSortNameDesc": "Yn nhrefn yr wyddor (Z i A)",
+    "adminRepoSortNameDesc": "",
     "@adminRepoSortNameDesc": {
         "description": "Repository sort option, alphabetical descending"
     },
-    "adminAnalyticsLoadingProgress": "Yn llwytho Dadansoddeg y Gweinydd... {percentage}%",
+    "adminAnalyticsLoadingProgress": "",
     "@adminAnalyticsLoadingProgress": {
         "description": "Progress label shown while server analytics load",
         "placeholders": {
@@ -8997,14 +8997,14 @@
             }
         }
     },
-    "adminLibChapterImageResolutionMatchSource": "Cydweddu â'r ffynhonnell",
+    "adminLibChapterImageResolutionMatchSource": "",
     "@adminLibChapterImageResolutionMatchSource": {
         "description": "Chapter image resolution option that matches the source resolution"
     },
-    "imdbTop250Movies": "250 Ffilm Orau IMDb",
-    "imdbTop250TvShows": "250 Cyfres Deledu Orau IMDb",
-    "imdbMostPopularMovies": "Ffilmiau Mwyaf Poblogaidd IMDb",
-    "imdbMostPopularTvShows": "Cyfresi Teledu Mwyaf Poblogaidd IMDb",
-    "imdbLowestRatedMovies": "Ffilmiau â'r Sgôr Isaf ar IMDb",
-    "imdbTopEnglishMovies": "Ffilmiau Saesneg â'r Sgôr Uchaf ar IMDb"
+    "imdbTop250Movies": "",
+    "imdbTop250TvShows": "",
+    "imdbMostPopularMovies": "",
+    "imdbMostPopularTvShows": "",
+    "imdbLowestRatedMovies": "",
+    "imdbTopEnglishMovies": ""
 }
