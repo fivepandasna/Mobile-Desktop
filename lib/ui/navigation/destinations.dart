@@ -82,7 +82,7 @@ class Destinations {
   // Item details
   static const itemDetail = '/item/:itemId';
 
-  // Games (EmulatorJS)
+  // Games
   static const gameLibrary = '/games/:libraryId';
   static const gameDetail = '/game/:libraryId/:gameId';
   static const gamePlayer = '/game-player/:libraryId/:gameId';
@@ -183,7 +183,7 @@ class Destinations {
 
   static String itemListOf(String itemId) => '/item/$itemId/list';
 
-  // Games (EmulatorJS)
+  // Games
   static String gamesLibrary(String libraryId) =>
       '/games/${Uri.encodeComponent(libraryId)}';
   static String gameDetailOf(String libraryId, String gameId) =>

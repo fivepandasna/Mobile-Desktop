@@ -1,8 +1,10 @@
 import 'dart:ffi' show Abi;
 import 'dart:io';
 
+import 'package:get_it/get_it.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../preference/user_preferences.dart';
 import 'platform_detection.dart';
 
 /// EmulatorJS core name to libretro core id, for the native libretro backend
@@ -91,12 +93,37 @@ const List<GameCore> downloadableCores = [
   GameCore(coreId: 'mednafen_vb', system: 'Virtual Boy', approxSizeMb: 2),
 ];
 
-/// Whether this platform plays games through the native libretro backend
-/// (tvOS, Android, desktop) rather than the EmulatorJS WebView (iOS).
-bool get usesNativeGameBackend =>
+/// Whether this platform has the native libretro backend at all (tvOS,
+/// Android, desktop). iOS only has the EmulatorJS WebView.
+bool get nativeGameBackendSupported =>
     PlatformDetection.isAppleTV ||
     PlatformDetection.isAndroid ||
     PlatformDetection.isDesktop;
+
+/// Whether the EmulatorJS WebView backend works on this platform. Linux has no
+/// flutter_inappwebview implementation and tvOS has no WebKit.
+bool get emulatorJsAvailable =>
+    PlatformDetection.isIOS ||
+    PlatformDetection.isAndroid ||
+    PlatformDetection.isWindows ||
+    PlatformDetection.isMacOS;
+
+/// Whether the user can choose between the two backends here, which decides if
+/// the settings toggle is shown.
+bool get canToggleGameBackend =>
+    nativeGameBackendSupported && emulatorJsAvailable;
+
+/// Whether games play through the native libretro backend right now: forced on
+/// platforms with a single working backend, the user's choice everywhere else.
+/// The single source of truth for routing, save keys, and core support.
+bool get usesNativeGameBackend {
+  if (!nativeGameBackendSupported) return false;
+  if (!emulatorJsAvailable) return true;
+  if (!GetIt.instance.isRegistered<UserPreferences>()) return true;
+  return GetIt.instance<UserPreferences>().get(
+    UserPreferences.useNativeEmulator,
+  );
+}
 
 /// Whether this platform ships its cores inside the app and loads them from the
 /// bundle rather than downloading them. tvOS and macOS bundle (the Apple stores
@@ -133,16 +160,18 @@ String gameStateKey(String gameId) =>
 /// mapping for it.
 String? libretroCoreId(String core) => _libretroCores[core];
 
-/// Whether this platform can play the given EmulatorJS core.
+/// Whether the active backend can play the given EmulatorJS core.
 ///
-/// tvOS only runs its bundled subset. Android and desktop can run any mapped
-/// core (the file is downloaded on demand). iOS plays everything the plugin
-/// serves through EmulatorJS in a WebView.
+/// tvOS only runs its bundled subset. The native backend elsewhere needs a
+/// libretro mapping for the system (macOS bundles every mapped core, Android
+/// and the other desktops download them on demand). EmulatorJS plays
+/// everything the plugin serves.
 bool gameCoreSupported(String core) {
   if (PlatformDetection.isAppleTV) {
     final id = _libretroCores[core];
     return id != null && tvosBundledCores.contains(id);
   }
+  if (usesNativeGameBackend) return _libretroCores[core] != null;
   return true;
 }
 

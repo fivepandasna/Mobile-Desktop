@@ -8393,6 +8393,13 @@ class AppLocalizationsKn extends AppLocalizations {
   String get settingsOfflineDownloads => 'ಆಫ್‌ಲೈನ್ ಡೌನ್‌ಲೋಡ್‌ಗಳು';
 
   @override
+  String get useNativeEmulator => 'Native Emulation';
+
+  @override
+  String get useNativeEmulatorSubtitle =>
+      'Play games with native cores instead of the EmulatorJS web player';
+
+  @override
   String get emulatorCores => 'Emulator Cores';
 
   @override

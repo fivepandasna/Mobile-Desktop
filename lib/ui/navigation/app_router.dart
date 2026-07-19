@@ -397,7 +397,7 @@ final appRouter = GoRouter(
       ],
     ),
 
-    // Games (EmulatorJS)
+    // Games
     GoRoute(
       path: Destinations.gameLibrary,
       builder: (context, state) {
@@ -430,8 +430,9 @@ final appRouter = GoRouter(
         final startFresh = state.uri.queryParameters['fresh'] == '1';
         return _opaqueFullScreenPage<void>(
           state: state,
-          // Native libretro on tvOS, Android, and desktop. iOS stays on the
-          // EmulatorJS WebView.
+          // Native libretro or the EmulatorJS WebView: forced where only one
+          // backend works (tvOS and Linux native, iOS EmulatorJS), the user's
+          // choice on Android, Windows, and macOS.
           child: usesNativeGameBackend
               ? NativeGamePlayerScreen(
                   libraryId: libraryId,

@@ -8028,6 +8028,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsOfflineDownloads => '离线下载';
 
   @override
+  String get useNativeEmulator => 'Native Emulation';
+
+  @override
+  String get useNativeEmulatorSubtitle =>
+      'Play games with native cores instead of the EmulatorJS web player';
+
+  @override
   String get emulatorCores => 'Emulator Cores';
 
   @override

@@ -14866,6 +14866,18 @@ abstract class AppLocalizations {
   /// **'Offline Downloads'**
   String get settingsOfflineDownloads;
 
+  /// Settings toggle title. When on, retro games run through native libretro emulator cores instead of the EmulatorJS browser-based emulator.
+  ///
+  /// In en, this message translates to:
+  /// **'Native Emulation'**
+  String get useNativeEmulator;
+
+  /// Subtitle under the Native Emulation settings toggle. EmulatorJS is a product name and should not be translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Play games with native cores instead of the EmulatorJS web player'**
+  String get useNativeEmulatorSubtitle;
+
   /// No description provided for @emulatorCores.
   ///
   /// In en, this message translates to:

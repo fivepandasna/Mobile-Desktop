@@ -8373,6 +8373,13 @@ class AppLocalizationsKk extends AppLocalizations {
   String get settingsOfflineDownloads => 'Офлайн жүктеп алулар';
 
   @override
+  String get useNativeEmulator => 'Native Emulation';
+
+  @override
+  String get useNativeEmulatorSubtitle =>
+      'Play games with native cores instead of the EmulatorJS web player';
+
+  @override
   String get emulatorCores => 'Emulator Cores';
 
   @override

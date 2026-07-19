@@ -10,5 +10,7 @@ Pod::Spec.new do |s|
   s.source_files     = 'libretro_host.c', 'libretro_host.h', 'libretro.h'
   s.public_header_files = 'libretro_host.h'
   s.platform         = :osx, '11.0'
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
+  # The per-frame pixel conversion is too slow at -O0, so Debug builds still
+  # compile the host optimized.
+  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'GCC_OPTIMIZATION_LEVEL' => '2' }
 end

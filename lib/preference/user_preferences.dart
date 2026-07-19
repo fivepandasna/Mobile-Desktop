@@ -858,6 +858,14 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: true,
   );
 
+  /// Plays retro games through the native libretro backend instead of the
+  /// EmulatorJS WebView, on platforms that have both. Deliberately not synced:
+  /// the right backend is a per-device choice.
+  static final useNativeEmulator = Preference(
+    key: 'pref_use_native_emulator',
+    defaultValue: true,
+  );
+
   static final seriesThumbnailsEnabled = Preference(
     key: 'pref_enable_series_thumbnails',
     defaultValue: false,

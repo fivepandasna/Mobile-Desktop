@@ -7917,6 +7917,14 @@
   "settingsMetadataAndRatings": "Metadata & Ratings",
   "settingsPluginScreenDescription": "Moonbase powers server-side integrations including additional rating sources, Seerr requests, and synced preferences.",
   "settingsOfflineDownloads": "Offline Downloads",
+  "useNativeEmulator": "Native Emulation",
+  "@useNativeEmulator": {
+    "description": "Settings toggle title. When on, retro games run through native libretro emulator cores instead of the EmulatorJS browser-based emulator."
+  },
+  "useNativeEmulatorSubtitle": "Play games with native cores instead of the EmulatorJS web player",
+  "@useNativeEmulatorSubtitle": {
+    "description": "Subtitle under the Native Emulation settings toggle. EmulatorJS is a product name and should not be translated."
+  },
   "emulatorCores": "Emulator Cores",
   "emulatorCoresSubtitle": "Download systems to play games natively",
   "emulatorCoresDescription": "Choose which systems to install. Cores are provided by the libretro project and let games run natively instead of in a browser view.",

@@ -24,6 +24,9 @@ final class GameInputController {
     static let r3: UInt16 = 1 << 15
   }
 
+  // Masks are written on the main thread and read from the host run loop, so
+  // every access goes through the lock.
+  private let maskLock = NSLock()
   private var portMasks = [UInt16](repeating: 0, count: 4)
   private var pulseMask: UInt16 = 0
   private var pulseWork: [Int: DispatchWorkItem] = [:]
@@ -64,15 +67,19 @@ final class GameInputController {
     observers.removeAll()
     pulseWork.values.forEach { $0.cancel() }
     pulseWork.removeAll()
-    pulseMask = 0
     for controller in GCController.controllers() {
       controller.extendedGamepad?.valueChangedHandler = nil
       controller.extendedGamepad?.buttonMenu.pressedChangedHandler = nil
     }
+    maskLock.lock()
+    pulseMask = 0
     portMasks = [0, 0, 0, 0]
+    maskLock.unlock()
   }
 
   func mask(forPort port: Int) -> UInt16 {
+    maskLock.lock()
+    defer { maskLock.unlock() }
     guard port >= 0, port < portMasks.count else { return 0 }
     return port == 0 ? portMasks[0] | pulseMask : portMasks[port]
   }
@@ -80,9 +87,16 @@ final class GameInputController {
   func pulse(index: Int, durationMs: Int) {
     guard index >= 0, index < 16 else { return }
     let bit = UInt16(1) << UInt16(index)
+    maskLock.lock()
     pulseMask |= bit
+    maskLock.unlock()
     pulseWork[index]?.cancel()
-    let work = DispatchWorkItem { [weak self] in self?.pulseMask &= ~bit }
+    let work = DispatchWorkItem { [weak self] in
+      guard let self else { return }
+      self.maskLock.lock()
+      self.pulseMask &= ~bit
+      self.maskLock.unlock()
+    }
     pulseWork[index] = work
     DispatchQueue.main.asyncAfter(
       deadline: .now() + Double(durationMs) / 1000.0, execute: work)
@@ -100,9 +114,11 @@ final class GameInputController {
         if pressed { self?.onMenuPressed?() }
       }
     }
+    maskLock.lock()
     for port in pads.count..<portMasks.count {
       portMasks[port] = 0
     }
+    maskLock.unlock()
   }
 
   private func refresh(pad: GCExtendedGamepad, port: Int) {
@@ -123,8 +139,10 @@ final class GameInputController {
     if pad.rightThumbstickButton?.isPressed == true { mask |= Pad.r3 }
     if pad.buttonOptions?.isPressed == true { mask |= Pad.start }
 
+    maskLock.lock()
     let old = portMasks[port]
     portMasks[port] = mask
+    maskLock.unlock()
     guard port == 0, old != mask, let onButton else { return }
     for bit in 0..<16 where (old ^ mask) & (1 << bit) != 0 {
       onButton(bit, mask & (1 << bit) != 0)

@@ -647,12 +647,26 @@ static void *run_loop(void *arg) {
     if (now_ns() - h->last_sram_flush_ns > 30000000000ull) sram_flush(h);
 
     if (h->audio_paced) {
-      // Wait for the audio device to drain the ring, but never longer than a
-      // couple of frames, so a stalled consumer cannot freeze frame output.
-      uint64_t deadline = now_ns() + frame_ns * 2;
-      while (h->running && !h->paused && buffered_seconds(h) > pace_seconds &&
-             now_ns() < deadline) {
-        sleep_ns(2000000);
+      double buffered = buffered_seconds(h);
+      if (buffered < pace_seconds * 0.5) {
+        // Priming, underrun, or fast forward: refill without sleeping.
+        next = now_ns();
+      } else {
+        // Frames come out strictly periodically, and a small feedback term
+        // nudges the period so the ring settles at the target and the
+        // emulation rate locks to the audio device clock. Ahead of audio means
+        // a slightly longer period, behind means slightly shorter.
+        double err = (buffered - pace_seconds) / pace_seconds;
+        if (err > 0.25) err = 0.25;
+        if (err < -0.25) err = -0.25;
+        uint64_t period = (uint64_t)((double)frame_ns * (1.0 + 0.1 * err));
+        next += period;
+        uint64_t t = now_ns();
+        if (next > t) {
+          sleep_ns(next - t);
+        } else {
+          next = t;
+        }
       }
     } else {
       next += frame_ns;
@@ -810,9 +824,17 @@ int lh_load(lh_host *h, const char *core_path, const char *rom_path,
     fseek(f, 0, SEEK_END);
     long len = ftell(f);
     fseek(f, 0, SEEK_SET);
+    if (len <= 0) {
+      fclose(f);
+      return load_failed(h, -4);
+    }
     rom_data = malloc((size_t)len);
-    fread(rom_data, 1, (size_t)len, f);
+    size_t got = rom_data ? fread(rom_data, 1, (size_t)len, f) : 0;
     fclose(f);
+    if (got != (size_t)len) {
+      free(rom_data);
+      return load_failed(h, -4);
+    }
     game.data = rom_data;
     game.size = (size_t)len;
   }

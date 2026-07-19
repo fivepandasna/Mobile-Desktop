@@ -1,8 +1,9 @@
 package org.moonfin.androidtv
 
+import android.media.AudioAttributes
 import android.media.AudioFormat
-import android.media.AudioManager
 import android.media.AudioTrack
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.Surface
@@ -41,6 +42,10 @@ class LibretroBridge(flutterEngine: FlutterEngine) {
   @Volatile var isActive = false
     private set
 
+  // Whether Dart paused the game, so a background-foreground round trip does
+  // not resume a game the user left paused.
+  @Volatile private var userPaused = false
+
   init {
     control.setMethodCallHandler { call, result -> handle(call.method, call.arguments, result) }
     events.setStreamHandler(object : EventChannel.StreamHandler {
@@ -60,8 +65,8 @@ class LibretroBridge(flutterEngine: FlutterEngine) {
     when (method) {
       "load" -> load(args, result)
       "start" -> { nativeStart(); result.success(null) }
-      "pause" -> { nativePause(); result.success(null) }
-      "resume" -> { nativeResume(); result.success(null) }
+      "pause" -> { userPaused = true; nativePause(); result.success(null) }
+      "resume" -> { userPaused = false; nativeResume(); result.success(null) }
       "restart" -> { nativeReset(); result.success(null) }
       "stop" -> { stop(); result.success(null) }
       "saveState" -> result.success(nativeSaveState())
@@ -122,6 +127,19 @@ class LibretroBridge(flutterEngine: FlutterEngine) {
 
     val producer = textures.createSurfaceProducer()
     surfaceProducer = producer
+    // Flutter destroys and recreates the underlying Surface around
+    // backgrounding, so swap it out of the native side in lockstep.
+    producer.setCallback(object : TextureRegistry.SurfaceProducer.Callback {
+      override fun onSurfaceAvailable() {
+        nativeSetSurface(producer.surface)
+        if (isActive && !userPaused) nativeResume()
+      }
+
+      override fun onSurfaceCleanup() {
+        nativePause()
+        nativeSetSurface(null)
+      }
+    })
 
     val av = nativeLoad(core, corePath, romPath, systemDir, saveDir, gameId, keys, values)
     if (av == null) {
@@ -152,6 +170,7 @@ class LibretroBridge(flutterEngine: FlutterEngine) {
 
   private fun stop() {
     isActive = false
+    userPaused = false
     stopAudio()
     nativeStop()
     surfaceProducer?.release()
@@ -162,22 +181,43 @@ class LibretroBridge(flutterEngine: FlutterEngine) {
   }
 
   private fun startAudio(sampleRate: Int) {
-    val minBuffer = AudioTrack.getMinBufferSize(
+    // Small chunks keep the blocking write's back pressure finer than one
+    // video frame, and a small device buffer keeps input-to-sound lag low.
+    val frames = 512
+    val bytesPerFrame = 4
+    val bufferBytes = AudioTrack.getMinBufferSize(
       sampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT)
-      .coerceAtLeast(sampleRate)
-    val track = AudioTrack(
-      AudioManager.STREAM_MUSIC, sampleRate, AudioFormat.CHANNEL_OUT_STEREO,
-      AudioFormat.ENCODING_PCM_16BIT, minBuffer * 2, AudioTrack.MODE_STREAM)
+      .coerceAtLeast(4 * frames * bytesPerFrame)
+    val builder = AudioTrack.Builder()
+      .setAudioAttributes(
+        AudioAttributes.Builder()
+          .setUsage(AudioAttributes.USAGE_GAME)
+          .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+          .build())
+      .setAudioFormat(
+        AudioFormat.Builder()
+          .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+          .setSampleRate(sampleRate)
+          .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
+          .build())
+      .setBufferSizeInBytes(bufferBytes)
+      .setTransferMode(AudioTrack.MODE_STREAM)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
+    }
+    val track = builder.build()
     audioTrack = track
     track.play()
 
     audioRunning = true
-    val frames = 1024
     val buffer = ShortArray(frames * 2)
     val thread = Thread {
       while (audioRunning) {
-        nativeReadAudio(buffer, frames)
-        track.write(buffer, 0, frames * 2)
+        val read = nativeReadAudio(buffer, frames)
+        // Write only what the ring had, since padding silence would pop. On a
+        // short read the emulator is priming or paused, so give it a moment.
+        if (read > 0) track.write(buffer, 0, read * 2)
+        if (read < frames) Thread.sleep(2)
       }
     }
     thread.name = "moonfin.game.audio"
@@ -227,6 +267,7 @@ class LibretroBridge(flutterEngine: FlutterEngine) {
   // Called from JNI on the host run-loop thread when the core geometry changes.
   fun onGeometry(width: Int, height: Int, aspect: Double) {
     mainHandler.post {
+      surfaceProducer?.setSize(width, height)
       eventSink?.success(
         mapOf("event" to "videoGeometry", "width" to width, "height" to height,
           "aspect" to aspect))

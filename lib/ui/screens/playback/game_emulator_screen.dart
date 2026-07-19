@@ -11,6 +11,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../widgets/adaptive/adaptive_glass.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../util/game_cores.dart';
 import '../../../util/platform_detection.dart';
 import '../../../util/focus/gamepad/gamepad_suppressor.dart';
 import '../../../util/focus/gamepad/android_gamepad_channel.dart';
@@ -137,7 +138,7 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen> {
 
     var hasSave = false;
     try {
-      final existing = await games.getSave(widget.gameId);
+      final existing = await games.getSave(gameStateKey(widget.gameId));
       hasSave = existing != null && existing.isNotEmpty;
     } catch (_) {}
     _hasSave = hasSave;
@@ -443,7 +444,7 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen> {
     final games = _client.gamesApi;
     if (games != null) {
       try {
-        final bytes = await games.getSave(widget.gameId);
+        final bytes = await games.getSave(gameStateKey(widget.gameId));
         if (bytes != null && bytes.isNotEmpty) {
           final b64 = base64.encode(bytes);
           await _controller?.evaluateJavascript(
@@ -481,7 +482,7 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen> {
       final value = result?.value;
       if (value is String && value.isNotEmpty) {
         final bytes = base64.decode(value);
-        await games.putSave(widget.gameId, bytes);
+        await games.putSave(gameStateKey(widget.gameId), bytes);
       }
     } catch (_) {}
   }

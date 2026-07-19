@@ -37,16 +37,30 @@ typedef struct {
 // libretro allows one session per process, so the context is a single global.
 static native_ctx g_ctx;
 
+// Guards the window against swaps: Flutter recreates the Surface around
+// backgrounding, so the render thread must never blit into a window that
+// nativeSetSurface is releasing. Held across the whole blit, which makes
+// nativeSetSurface(NULL) a barrier: once it returns, no blit touches the old
+// window.
+static pthread_mutex_t g_window_lock = PTHREAD_MUTEX_INITIALIZER;
+
 // Copies the host's latest frame into the output surface. ANativeWindow_lock
 // blocks while the compositor holds the buffers, so this runs on its own thread
 // rather than the emulation thread, which stays paced by audio.
 static void blit_frame(native_ctx *c) {
+  pthread_mutex_lock(&g_window_lock);
   ANativeWindow *window = c->window;
-  if (!window) return;
+  if (!window) {
+    pthread_mutex_unlock(&g_window_lock);
+    return;
+  }
 
   const void *data;
   int width, height, stride;
-  if (!lh_get_frame(c->host, &data, &width, &height, &stride)) return;
+  if (!lh_get_frame(c->host, &data, &width, &height, &stride)) {
+    pthread_mutex_unlock(&g_window_lock);
+    return;
+  }
 
   // Renegotiating the buffer queue every frame stalls rendering, so only set
   // the geometry when the frame size changes.
@@ -57,7 +71,10 @@ static void blit_frame(native_ctx *c) {
     c->window_height = height;
   }
   ANativeWindow_Buffer buffer;
-  if (ANativeWindow_lock(window, &buffer, NULL) != 0) return;
+  if (ANativeWindow_lock(window, &buffer, NULL) != 0) {
+    pthread_mutex_unlock(&g_window_lock);
+    return;
+  }
 
   const uint8_t *src = (const uint8_t *)data;
   uint8_t *dst = (uint8_t *)buffer.bits;
@@ -68,6 +85,7 @@ static void blit_frame(native_ctx *c) {
     memcpy(dst + (size_t)y * dst_stride, src + (size_t)y * stride, row_bytes);
   }
   ANativeWindow_unlockAndPost(window);
+  pthread_mutex_unlock(&g_window_lock);
 }
 
 static void *render_loop(void *arg) {
@@ -119,10 +137,12 @@ static void teardown(JNIEnv *env) {
     lh_destroy(g_ctx.host);
     g_ctx.host = NULL;
   }
+  pthread_mutex_lock(&g_window_lock);
   if (g_ctx.window) {
     ANativeWindow_release(g_ctx.window);
     g_ctx.window = NULL;
   }
+  pthread_mutex_unlock(&g_window_lock);
   if (g_ctx.bridge) {
     (*env)->DeleteGlobalRef(env, g_ctx.bridge);
     g_ctx.bridge = NULL;
@@ -212,6 +232,7 @@ JNI(jdoubleArray, nativeLoad)(
 
 JNI(void, nativeSetSurface)(JNIEnv *env, jobject thiz, jobject surface) {
   (void)thiz;
+  pthread_mutex_lock(&g_window_lock);
   if (g_ctx.window) {
     ANativeWindow_release(g_ctx.window);
     g_ctx.window = NULL;
@@ -221,6 +242,7 @@ JNI(void, nativeSetSurface)(JNIEnv *env, jobject thiz, jobject surface) {
   if (surface) {
     g_ctx.window = ANativeWindow_fromSurface(env, surface);
   }
+  pthread_mutex_unlock(&g_window_lock);
 }
 
 JNI(void, nativeStart)(JNIEnv *env, jobject thiz) {

@@ -29,8 +29,8 @@ const Map<String, String> _coreLicenseNames = {
 };
 
 /// Adds the emulator cores present on this device to LicenseRegistry so they
-/// appear on the licenses screen: the bundled set on tvOS, the downloaded set
-/// on Android and desktop. Cores without a bundled license file are skipped.
+/// appear on the licenses screen: the bundled set on tvOS and macOS, the
+/// downloaded set elsewhere. Cores without a bundled license file are skipped.
 void registerGameCoreLicenses() {
   LicenseRegistry.addLicense(() async* {
     for (final coreId in _presentCoreIds()) {
@@ -46,6 +46,10 @@ void registerGameCoreLicenses() {
 /// The core ids whose binaries are on this device.
 Set<String> _presentCoreIds() {
   if (PlatformDetection.isAppleTV) return tvosBundledCores;
+  // macOS ships every downloadable core inside the app bundle.
+  if (bundlesGameCores) {
+    return downloadableCores.map((core) => core.coreId).toSet();
+  }
   if (!GetIt.instance.isRegistered<PreferenceStore>()) return const {};
   final installed = GetIt.instance<PreferenceStore>()
       .getStringList(installedCoresPreferenceKey);

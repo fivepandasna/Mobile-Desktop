@@ -8394,6 +8394,13 @@ class AppLocalizationsTe extends AppLocalizations {
   String get settingsOfflineDownloads => 'ఆఫ్‌లైన్ డౌన్‌లోడ్‌లు';
 
   @override
+  String get useNativeEmulator => 'Native Emulation';
+
+  @override
+  String get useNativeEmulatorSubtitle =>
+      'Play games with native cores instead of the EmulatorJS web player';
+
+  @override
   String get emulatorCores => 'Emulator Cores';
 
   @override
