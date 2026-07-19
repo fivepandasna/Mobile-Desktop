@@ -37,7 +37,8 @@ class UserPreferences extends ChangeNotifier {
   final PreferenceStore _store;
 
   UserPreferences(this._store) {
-    _migrateOverlayPreferences();
+    _adoptNewlyScopedPreferences();
+    _repairMediaBarContentType();
     _migrateDefaultAudioLanguagePreference();
     _migrateSeerrPreferenceKeys();
     _migrateSeerrRowsVisibility();
@@ -86,9 +87,76 @@ class UserPreferences extends ChangeNotifier {
     _store.remove(legacyKey);
   }
 
-  void _migrateOverlayPreferences() {
-    _setIfMissing(navbarOpacity, get(mediaBarOverlayOpacity));
-    _setIfMissing(navbarColor, get(mediaBarOverlayColor));
+  // Navbar colour and opacity once inherited their values from the media bar overlay
+  // settings. That carry-over is gone on purpose.
+  //
+  // Both preferences are stored per server and user. The old code wrote the bare keys while
+  // reads went through the scoped ones, so for anyone signed in it quietly did nothing for
+  // several releases. Routing it through the scoped keys woke it up, and because a scoped
+  // value is missing for every server and user the app hasn't seen yet, it re-ran on each
+  // new one and stamped the media bar's colour and opacity onto a navbar the user had
+  // already styled. The result was then pushed to the plugin and handed to every other
+  // client. There is no way to carry the old values across now that reads are scoped, so
+  // the navbar simply keeps its own defaults.
+
+  // A preference that moves to per server storage leaves its old value under the bare key,
+  // where nothing reads it any more, so the setting looks like it was reset. Hand that value
+  // to the server the user is on and drop the bare key, which leaves any other server to
+  // start from its own defaults rather than inheriting a choice made for a different one.
+  void _adoptNewlyScopedPreferences() {
+    final suffix = _activeProfileScopeSuffix();
+    if (suffix == null) return;
+
+    for (final key in _scopedPreferenceKeys) {
+      if (!_store.containsKey(key)) continue;
+
+      final scopedKey = '${key}_$suffix';
+      if (!_store.containsKey(scopedKey)) {
+        _copyStoredValue(key, scopedKey);
+      }
+      _store.remove(key);
+    }
+  }
+
+  // The store is typed per getter and doesn't record which type a key holds, so each one is
+  // tried in turn. Reading a key as the wrong type throws on some platforms.
+  void _copyStoredValue(String from, String to) {
+    try {
+      final asBool = _store.getBool(from);
+      if (asBool != null) {
+        _store.setBool(to, asBool);
+        return;
+      }
+    } catch (_) {}
+
+    try {
+      final asInt = _store.getInt(from);
+      if (asInt != null) {
+        _store.setInt(to, asInt);
+        return;
+      }
+    } catch (_) {}
+
+    try {
+      final asString = _store.getString(from);
+      if (asString != null) _store.setString(to, asString);
+    } catch (_) {}
+  }
+
+  // Media bar item types and media bar source once shared a key with other clients, so a
+  // source of "library" could land in the item type preference. The picker never offered
+  // that value, so it showed as a selection the user could look at but not choose again.
+  // Put any such value back to a real one, across every stored scope.
+  void _repairMediaBarContentType() {
+    for (final key in _store.keys.toList()) {
+      if (key != mediaBarContentType.key &&
+          !key.startsWith('${mediaBarContentType.key}_')) {
+        continue;
+      }
+      final stored = _store.getString(key);
+      if (stored == null || mediaBarContentTypeValues.contains(stored)) continue;
+      _store.setString(key, normalizeMediaBarContentType(stored));
+    }
   }
 
   void _migrateDefaultAudioLanguagePreference() {
@@ -105,10 +173,13 @@ class UserPreferences extends ChangeNotifier {
   // On first run, default the 12h/24h clock to the device's locale so users in
   // 24h regions aren't stuck on 12h. Runs once; an explicit choice is kept.
   void _seedClockFormatFromSystem() {
-    if (_store.containsKey(use24HourClock.key)) return;
-    if (ui.PlatformDispatcher.instance.alwaysUse24HourFormat) {
-      _store.set(use24HourClock, true);
-    }
+    if (!ui.PlatformDispatcher.instance.alwaysUse24HourFormat) return;
+
+    // This preference is stored per server and user, so the seed has to go through the
+    // effective key. Writing the bare key put the value somewhere nothing reads it.
+    final effective = getEffectivePreference(use24HourClock);
+    if (_store.containsKey(effective.key)) return;
+    _store.set(effective, true);
   }
 
   /// Initialize local language preferences from the current server's
@@ -162,6 +233,90 @@ class UserPreferences extends ChangeNotifier {
   }
 
   static final Set<String> _scopedPreferenceKeys = {
+    // Newly synced settings. Anything that goes to the server profile has to be stored
+    // per server and user, or one server's value is read back on the next.
+    'all_genres_image_type',
+    'ass_enabled',
+    'audio_night_mode',
+    'confirm_exit',
+    'defaultFavoritesFilter',
+    'download_default_quality',
+    'download_report_as_activity',
+    'download_storage_limit_mb',
+    'download_wifi_only',
+    'imdb_lowest_rated_movies_enabled',
+    'imdb_most_popular_movies_enabled',
+    'imdb_most_popular_tv_shows_enabled',
+    'imdb_top_250_movies_enabled',
+    'imdb_top_250_tv_shows_enabled',
+    'imdb_top_english_movies_enabled',
+    'live_tv_channel_sort_by',
+    'osdLockEnabled',
+    'pgs_enabled',
+    'player_zoom_mode',
+    'pref_audio_rows_sort_by',
+    'pref_diagnostic_logging_enabled',
+    'pref_epg_mobile_view',
+    'pref_favorites_view_style',
+    'pref_group_items_into_collections',
+    'pref_home_row_info_overlay',
+    'pref_interface_style',
+    'pref_live_direct',
+    'pref_max_bitrate',
+    'pref_max_video_resolution',
+    'pref_playlists_row_sort_by',
+    'pref_recommendations_apply_parental_rating_cap',
+    'pref_resume_last_queue_on_play',
+    'pref_screensaver_clock_mode',
+    'pref_screensaver_dimming',
+    'pref_screensaver_enabled',
+    'pref_screensaver_max_age_rating',
+    'pref_screensaver_mode',
+    'pref_screensaver_require_rating',
+    'pref_screensaver_timeout',
+    'pref_syncplay_enabled',
+    'showDescriptionOnPause',
+    'since_you_watched_1_enabled',
+    'since_you_watched_2_enabled',
+    'since_you_watched_3_enabled',
+    'since_you_watched_4_enabled',
+    'since_you_watched_5_enabled',
+    'skipBackLength',
+    'skipForwardLength',
+    'syncplay_advanced_correction_enabled',
+    'syncplay_enable_sync_correction',
+    'syncplay_extra_time_offset',
+    'syncplay_max_delay_speed_to_sync',
+    'syncplay_min_delay_skip_to_sync',
+    'syncplay_min_delay_speed_to_sync',
+    'syncplay_speed_to_sync_duration',
+    'syncplay_use_skip_to_sync',
+    'syncplay_use_speed_to_sync',
+    'unpauseRewindDuration',
+    'update_notifications_enabled',
+    'video_start_delay',
+    // These sync to the server profile, which is per server and per user, so they have
+    // to be scoped as well. While they were not, a value set on one server was read
+    // back on the next one the user signed in to and then pushed into its profile.
+    'hidden_continue_watching_items',
+    'hidden_next_up_series',
+    'pref_recommendation_system_source',
+    'pref_detail_screen_style',
+    'pref_detail_expanded_tabs',
+    'pref_detail_show_technical_details',
+    'pref_display_audio_rows',
+    'pref_display_since_you_watched_rows',
+    'pref_since_you_watched_source',
+    'pref_since_you_watched_source_type',
+    'pref_since_you_watched_source_item',
+    'pref_since_you_watched_include_watched',
+    'pref_display_playlists_rows',
+    'pref_display_rewatch_row',
+    'pref_rewatch_sort_by',
+    'pref_rewatch_include_movies',
+    'pref_rewatch_include_shows',
+    'pref_rewatch_include_collections',
+    'seerr_enabled',
     'pref_enable_tv_queuing',
     'pref_enable_cinema_mode',
     'pref_resume_preroll',
@@ -210,6 +365,8 @@ class UserPreferences extends ChangeNotifier {
     'pref_watched_indicator_behavior',
     'pref_card_focus_expansion',
     'pref_home_rows_style',
+    'pref_modern_home_rows_padding',
+    'pref_classic_home_rows_padding',
     'poster_size',
     'pref_display_favorites_rows',
     'pref_display_collections_rows',
@@ -621,6 +778,28 @@ class UserPreferences extends ChangeNotifier {
     return normalizeMediaBarMode(mode) != mediaBarModeOff;
   }
 
+  /// Item types the media bar can show.
+  ///
+  /// Separate from where it draws items, which other clients call the source type. The two
+  /// once shared a key, so a source of "library" could arrive here and sit in the picker as
+  /// a value it never offered.
+  static const mediaBarContentTypeBoth = 'both';
+  static const mediaBarContentTypeMovies = 'movies';
+  static const mediaBarContentTypeTvShows = 'tvshows';
+  static const mediaBarContentTypeValues = <String>{
+    mediaBarContentTypeBoth,
+    mediaBarContentTypeMovies,
+    mediaBarContentTypeTvShows,
+  };
+
+  static String normalizeMediaBarContentType(String? contentType) {
+    final normalized = (contentType ?? '').trim().toLowerCase();
+    if (mediaBarContentTypeValues.contains(normalized)) {
+      return normalized;
+    }
+    return mediaBarContentTypeBoth;
+  }
+
   static final posterSize = EnumPreference(
     key: 'poster_size',
     defaultValue: PosterSize.medium,
@@ -890,8 +1069,8 @@ class UserPreferences extends ChangeNotifier {
     values: GlassSettledQuality.values,
   );
 
-  /// Structural style for the media detail screen. Global (not scoped per
-  /// server/user), so it is deliberately omitted from [_scopedPreferenceKeys].
+  /// Structural style for the media detail screen. Stored per server and user,
+  /// because it syncs to that server's profile.
   static final detailScreenStyle = EnumPreference(
     key: 'pref_detail_screen_style',
     defaultValue: DetailScreenStyle.modern,
@@ -901,21 +1080,21 @@ class UserPreferences extends ChangeNotifier {
   /// When on, the modern detail tabs behave like the search tabs: the first
   /// tab starts expanded and moving focus across tabs shows their content
   /// without pressing select. When off, tabs start collapsed on TV and each
-  /// one is opened/closed by pressing it. Global like [detailScreenStyle].
+  /// one is opened/closed by pressing it. Stored per server like [detailScreenStyle].
   static final detailExpandedTabs = Preference(
     key: 'pref_detail_expanded_tabs',
     defaultValue: true,
   );
 
-  /// When on, the modern detail screen shows codec and stream technical details.
-  /// Global like [detailScreenStyle], so it is deliberately omitted from [_scopedPreferenceKeys].
+  /// When on, the modern detail screen shows codec and stream technical details. Stored per
+  /// server like [detailScreenStyle].
   static final detailShowTechnicalDetails = Preference(
     key: 'pref_detail_show_technical_details',
     defaultValue: false,
   );
 
-  /// Algorithm source for the similar items recommendation system. Global
-  /// (not scoped per server/user), so it is deliberately omitted from [_scopedPreferenceKeys].
+  /// Algorithm source for the similar items recommendation system. Stored per server and
+  /// user, because it syncs to that server's profile.
   static final recommendationSystemSource = EnumPreference(
     key: 'pref_recommendation_system_source',
     defaultValue: RecommendationSystemSource.local,

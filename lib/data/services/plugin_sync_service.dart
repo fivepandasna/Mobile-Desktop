@@ -12,6 +12,7 @@ import 'package:server_core/server_core.dart';
 
 import '../../data/repositories/seerr_repository.dart';
 import 'storage_path_service.dart';
+import 'synced_fields.dart';
 import '../../ui/widgets/navigation_layout.dart';
 import '../../preference/home_section_config.dart';
 import '../../preference/preference_constants.dart' as prefs;
@@ -1006,6 +1007,13 @@ class PluginSyncService extends ChangeNotifier {
           }
         }
 
+      // Everything describable as a key, preference and codec comes from one table, so
+      // the send and receive directions can't drift apart. The settings that need
+      // real logic follow below.
+      for (final field in syncedFields) {
+        _applySyncedField(resolved, field);
+      }
+
         var mdblistVal = resolved['mdblistApiKey'] as String?;
         if (mdblistVal == null || mdblistVal.isEmpty || mdblistVal == 'null') {
           final localMdblistVal = _store.get(_prefs.getEffectivePreference(UserPreferences.mdblistApiKey));
@@ -1015,407 +1023,9 @@ class PluginSyncService extends ChangeNotifier {
         }
       }
 
-      _applyString(
-        resolved,
-        'hiddenContinueWatchingItems',
-        UserPreferences.hiddenContinueWatchingItems,
-      );
-      _applyString(
-        resolved,
-        'hiddenNextUpSeries',
-        UserPreferences.hiddenNextUpSeries,
-      );
-
-      _applyString(
-        resolved,
-        'visualTheme',
-        UserPreferences.visualTheme,
-        enumValues: prefs.VisualThemeId.values,
-      );
-      _applyString(resolved, 'customThemeId', UserPreferences.customThemeId);
-      _applyString(
-        resolved,
-        'navbarPosition',
-        UserPreferences.navbarPosition,
-        enumValues: NavigationLayout.availableNavbarPositions,
-      );
-      _applyString(
-        resolved,
-        'focusColor',
-        UserPreferences.focusColor,
-        enumValues: prefs.AppTheme.values,
-      );
-      _applyString(
-        resolved,
-        'watchedIndicator',
-        UserPreferences.watchedIndicatorBehavior,
-        enumValues: prefs.WatchedIndicatorBehavior.values,
-      );
-      _applyBool(
-        resolved,
-        'cardFocusExpansion',
-        UserPreferences.cardFocusExpansion,
-      );
-      _applyString(
-        resolved,
-        'homeRowsStyle',
-        UserPreferences.homeRowsStyle,
-        enumValues: prefs.HomeRowsStyle.values,
-      );
-      _applyInt(
-        resolved,
-        'modernHomeRowsPadding',
-        UserPreferences.modernHomeRowsPadding,
-      );
-      _applyInt(
-        resolved,
-        'classicHomeRowsPadding',
-        UserPreferences.classicHomeRowsPadding,
-      );
-      _applyString(
-        resolved,
-        'recommendationSystemSource',
-        UserPreferences.recommendationSystemSource,
-        enumValues: prefs.RecommendationSystemSource.values,
-      );
-      _applyString(
-        resolved,
-        'detailScreenStyle',
-        UserPreferences.detailScreenStyle,
-        enumValues: prefs.DetailScreenStyle.values,
-      );
-      _applyBool(
-        resolved,
-        'detailExpandedTabs',
-        UserPreferences.detailExpandedTabs,
-      );
-      _applyBool(
-        resolved,
-        'detailShowTechnicalDetails',
-        UserPreferences.detailShowTechnicalDetails,
-      );
-      _applyBool(
-        resolved,
-        'fullScreenRows',
-        UserPreferences.fullScreenRows,
-      );
-      _applyString(
-        resolved,
-        'homeImageTypeContinueWatching',
-        UserPreferences.homeRowImageType(prefs.HomeSectionType.resume),
-        enumValues: prefs.ImageType.values,
-      );
-      _applyString(
-        resolved,
-        'posterSize',
-        UserPreferences.posterSize,
-        enumValues: prefs.PosterSize.values,
-      );
-      _applyBool(
-        resolved,
-        'displayFavoritesRows',
-        UserPreferences.displayFavoritesRows,
-      );
-      _applyBool(
-        resolved,
-        'displayCollectionsRows',
-        UserPreferences.displayCollectionsRows,
-      );
-      _applyBool(
-        resolved,
-        'displayGenresRows',
-        UserPreferences.displayGenresRows,
-      );
-      _applyBool(
-        resolved,
-        'displayAudioRows',
-        UserPreferences.displayAudioRows,
-      );
-      _applyBool(
-        resolved,
-        'displaySinceYouWatchedRows',
-        UserPreferences.displaySinceYouWatchedRows,
-      );
-      _applyString(
-        resolved,
-        'sinceYouWatchedSource',
-        UserPreferences.sinceYouWatchedSource,
-        enumValues: prefs.SinceYouWatchedSource.values,
-      );
       _applySinceYouWatchedNumRows(resolved);
-      _applyString(
-        resolved,
-        'sinceYouWatchedSourceType',
-        UserPreferences.sinceYouWatchedSourceType,
-        enumValues: prefs.SinceYouWatchedSourceType.values,
-      );
-      _applyString(
-        resolved,
-        'sinceYouWatchedSourceItem',
-        UserPreferences.sinceYouWatchedSourceItem,
-        enumValues: prefs.SinceYouWatchedSourceItem.values,
-      );
-      _applyBool(
-        resolved,
-        'sinceYouWatchedIncludeWatched',
-        UserPreferences.sinceYouWatchedIncludeWatched,
-      );
-      _applyBool(
-        resolved,
-        'displayPlaylistsRows',
-        UserPreferences.displayPlaylistsRows,
-      );
-      _applyBool(
-        resolved,
-        'displayRewatchRow',
-        UserPreferences.displayRewatchRow,
-      );
-      _applyString(
-        resolved,
-        'rewatchSortBy',
-        UserPreferences.rewatchSortBy,
-        enumValues: prefs.RewatchSortBy.values,
-      );
-      _applyBool(
-        resolved,
-        'rewatchIncludeMovies',
-        UserPreferences.rewatchIncludeMovies,
-      );
-      _applyBool(
-        resolved,
-        'rewatchIncludeShows',
-        UserPreferences.rewatchIncludeShows,
-      );
-      _applyBool(
-        resolved,
-        'rewatchIncludeCollections',
-        UserPreferences.rewatchIncludeCollections,
-      );
-      _applyBool(
-        resolved,
-        'useDetailedSubHeadings',
-        UserPreferences.useDetailedSubHeadings,
-      );
-      _applyString(
-        resolved,
-        'favoritesRowSortBy',
-        UserPreferences.favoritesRowSortBy,
-        enumValues: prefs.LibrarySortBy.values,
-      );
-      _applyString(
-        resolved,
-        'collectionsRowSortBy',
-        UserPreferences.collectionsRowSortBy,
-        enumValues: prefs.LibrarySortBy.values,
-      );
-      _applyString(
-        resolved,
-        'genresRowSortBy',
-        UserPreferences.genresRowSortBy,
-        enumValues: prefs.LibrarySortBy.values,
-      );
-      _applyString(
-        resolved,
-        'genresRowItemFilter',
-        UserPreferences.genresRowItemFilter,
-        enumValues: prefs.GenresRowItemFilter.values,
-      );
-      _applyBool(
-        resolved,
-        'showShuffleButton',
-        UserPreferences.showShuffleButton,
-      );
-      _applyBool(
-        resolved,
-        'showGenresButton',
-        UserPreferences.showGenresButton,
-      );
-      _applyBool(
-        resolved,
-        'showFavoritesButton',
-        UserPreferences.showFavoritesButton,
-      );
-      _applyBool(
-        resolved,
-        'showSyncPlayButton',
-        UserPreferences.showSyncPlayButton,
-      );
-      _applyBool(
-        resolved,
-        'showLibrariesInToolbar',
-        UserPreferences.showLibrariesInToolbar,
-      );
-      _applyString(
-        resolved,
-        'shuffleContentType',
-        UserPreferences.shuffleContentType,
-      );
-      _applyBool(
-        resolved,
-        'mergeContinueWatchingNextUp',
-        UserPreferences.mergeContinueWatchingNextUp,
-      );
-      _applyBool(
-        resolved,
-        'enableMultiServerLibraries',
-        UserPreferences.enableMultiServerLibraries,
-      );
-      _applyBool(
-        resolved,
-        'enableFolderView',
-        UserPreferences.enableFolderView,
-      );
-      _applyString(
-        resolved,
-        'seasonalSurprise',
-        UserPreferences.seasonalSurprise,
-      );
-
       _applyMediaBarMode(resolved);
-      _applyString(
-        resolved,
-        'mediaBarSourceType',
-        UserPreferences.mediaBarContentType,
-      );
-      _applyInt(
-        resolved,
-        'mediaBarItemCount',
-        UserPreferences.mediaBarItemCount,
-      );
-      _applyInt(
-        resolved,
-        'mediaBarOpacity',
-        UserPreferences.mediaBarOverlayOpacity,
-      );
-      _applyString(
-        resolved,
-        'mediaBarOverlayColor',
-        UserPreferences.mediaBarOverlayColor,
-      );
-      _applyInt(resolved, 'navbarOpacity', UserPreferences.navbarOpacity);
-      _applyString(resolved, 'navbarColor', UserPreferences.navbarColor);
-      _applyBool(resolved, 'navbarAlwaysExpanded', UserPreferences.navbarAlwaysExpanded);
-      _applyBool(
-        resolved,
-        'mediaBarAutoAdvance',
-        UserPreferences.mediaBarAutoAdvance,
-      );
-      _applyInt(
-        resolved,
-        'mediaBarIntervalMs',
-        UserPreferences.mediaBarIntervalMs,
-      );
-      _applyBool(
-        resolved,
-        'mediaBarTrailerPreview',
-        UserPreferences.mediaBarTrailerPreview,
-      );
-      _applyBool(
-        resolved,
-        'mediaBarTrailerAudio',
-        UserPreferences.mediaBarTrailerAudio,
-      );
-      _applyBool(
-        resolved,
-        'episodePreviewEnabled',
-        UserPreferences.episodePreviewEnabled,
-      );
-      _applyBool(
-        resolved,
-        'previewAudioEnabled',
-        UserPreferences.previewAudioEnabled,
-      );
-
-      _applyStringList(
-        resolved,
-        'mediaBarLibraryIds',
-        UserPreferences.mediaBarLibraryIds,
-      );
-      _applyStringList(
-        resolved,
-        'mediaBarCollectionIds',
-        UserPreferences.mediaBarCollectionIds,
-      );
-      _applyStringList(
-        resolved,
-        'mediaBarExcludedGenres',
-        UserPreferences.mediaBarExcludedGenres,
-      );
-
-      _applyBool(
-        resolved,
-        'themeMusicEnabled',
-        UserPreferences.themeMusicEnabled,
-      );
-      _applyInt(resolved, 'themeMusicVolume', UserPreferences.themeMusicVolume);
-      _applyBool(
-        resolved,
-        'themeMusicOnHomeRows',
-        UserPreferences.themeMusicOnHomeRows,
-      );
-      _applyBool(resolved, 'themeMusicLoop', UserPreferences.themeMusicLoop);
-
-      _applyBool(
-        resolved,
-        'homeRowsImageTypeOverride',
-        UserPreferences.homeRowsUniversalOverride,
-      );
-      _applyString(
-        resolved,
-        'homeRowsImageType',
-        UserPreferences.homeRowsUniversalImageType,
-        enumValues: prefs.ImageType.values,
-      );
-      _applyBool(
-        resolved,
-        'homeImageUseSeriesImage',
-        UserPreferences.seriesThumbnailsEnabled,
-      );
-
-      _applyBool(resolved, 'backdropEnabled', UserPreferences.backdropEnabled);
-      _applyString(
-        resolved,
-        'detailsScreenBlur',
-        UserPreferences.detailsBackgroundBlurAmount,
-        intFromString: true,
-      );
-      _applyString(
-        resolved,
-        'browsingBlur',
-        UserPreferences.browsingBackgroundBlurAmount,
-        intFromString: true,
-      );
-
-      _applyBool(
-        resolved,
-        'mdblistEnabled',
-        UserPreferences.enableAdditionalRatings,
-      );
-      _applyString(resolved, 'mdblistApiKey', UserPreferences.mdblistApiKey);
-      _applyBool(
-        resolved,
-        'mdblistShowRatingNames',
-        UserPreferences.showRatingLabels,
-      );
-      _applyBool(
-        resolved,
-        'mdblistShowRatingBadges',
-        UserPreferences.showRatingBadges,
-      );
-      _applyBool(
-        resolved,
-        'tmdbEpisodeRatingsEnabled',
-        UserPreferences.enableEpisodeRatings,
-      );
-      _applyString(resolved, 'tmdbApiKey', UserPreferences.tmdbApiKey);
-
-      _applyBool(resolved, 'seerrEnabled', UserPreferences.seerrEnabled);
-      _applyBool(
-        resolved,
-        'seerrBlockNsfw',
-        UserPreferences.seerrBlockNsfw,
-      );
-
+      _applyMediaBarContentType(resolved);
       if (resolved['mdblistRatingSources'] is List) {
         final sources = (resolved['mdblistRatingSources'] as List)
             .cast<String>()
@@ -1664,6 +1274,106 @@ class PluginSyncService extends ChangeNotifier {
     return order;
   }
 
+  /// Applies one table-driven field from an incoming profile.
+  void _applySyncedField(Map<String, dynamic> data, SyncedField field) {
+    switch (field.codec) {
+      case SyncCodec.boolean:
+        _applyBool(data, field.serverKey, field.pref as Preference<bool>);
+      case SyncCodec.integer:
+      case SyncCodec.textAsInt:
+        _applyInt(data, field.serverKey, field.pref);
+      case SyncCodec.text:
+        _applyString(data, field.serverKey, field.pref);
+      case SyncCodec.enumName:
+        _applyString(data, field.serverKey, field.pref,
+            enumValues: field.enumValues);
+      case SyncCodec.intAsText:
+        _applyString(data, field.serverKey, field.pref, intFromString: true);
+      case SyncCodec.decimal:
+        _applyDouble(data, field.serverKey, field.pref as Preference<double>);
+      case SyncCodec.colorAsText:
+        _applyColor(data, field.serverKey, field.pref as Preference<int>);
+      case SyncCodec.csvList:
+        _applyStringList(
+            data, field.serverKey, field.pref as Preference<String>);
+    }
+  }
+
+  /// Serializes one table-driven field for the outgoing profile.
+  dynamic _encodeSyncedField(SyncedField field) {
+    switch (field.codec) {
+      case SyncCodec.boolean:
+      case SyncCodec.integer:
+      case SyncCodec.text:
+      case SyncCodec.decimal:
+        return _prefs.get(field.pref);
+      case SyncCodec.enumName:
+        return (_prefs.get(field.pref) as Enum).name;
+      case SyncCodec.intAsText:
+        return _prefs.get(field.pref).toString();
+      case SyncCodec.textAsInt:
+        return int.tryParse(_prefs.get(field.pref) as String) ??
+            field.fallbackInt ??
+            0;
+      case SyncCodec.colorAsText:
+        return _formatArgb(_prefs.get(field.pref) as int);
+      case SyncCodec.csvList:
+        return _csvToList(field.pref as Preference<String>);
+    }
+  }
+
+  void _applyDouble(
+    Map<String, dynamic> data,
+    String serverKey,
+    Preference<double> pref,
+  ) {
+    // JSON hands back an int when the value has no fractional part.
+    final value = data[serverKey];
+    if (value is num) {
+      _store.set(_prefs.getEffectivePreference(pref), value.toDouble());
+    }
+  }
+
+  void _applyColor(
+    Map<String, dynamic> data,
+    String serverKey,
+    Preference<int> pref,
+  ) {
+    final value = data[serverKey];
+    if (value is! String) return;
+
+    final parsed = _parseArgb(value);
+    if (parsed == null) return;
+    _store.set(_prefs.getEffectivePreference(pref), parsed);
+  }
+
+  /// Reads a #AARRGGBB or #RRGGBB colour, returning null for anything else.
+  static int? _parseArgb(String value) {
+    var hex = value.trim();
+    if (hex.startsWith('#')) hex = hex.substring(1);
+    if (hex.length == 6) hex = 'FF$hex';
+    if (hex.length != 8) return null;
+    return int.tryParse(hex, radix: 16);
+  }
+
+  static String _formatArgb(int value) =>
+      '#${value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+
+  // Reads the media bar item types, ignoring anything outside the known set.
+  //
+  // This used to arrive under mediaBarSourceType, which the other clients use to say where
+  // the media bar draws from rather than which item types it shows. Their "library" landed
+  // here as an item type and stuck, leaving the picker displaying a value it never offered.
+  void _applyMediaBarContentType(Map<String, dynamic> data) {
+    final value = _readString(data, 'mediaBarContentType');
+    if (value == null) return;
+
+    _store.set(
+      _prefs.getEffectivePreference(UserPreferences.mediaBarContentType),
+      UserPreferences.normalizeMediaBarContentType(value),
+    );
+  }
+
   void _applyBool(
     Map<String, dynamic> data,
     String serverKey,
@@ -1814,133 +1524,16 @@ class PluginSyncService extends ChangeNotifier {
     );
     final mediaBarEnabled = UserPreferences.isMediaBarModeEnabled(mediaBarMode);
     final payload = <String, dynamic>{
-      'visualTheme': _prefs.get(UserPreferences.visualTheme).name,
-      'customThemeId': _prefs.get(UserPreferences.customThemeId),
-      'navbarPosition': _prefs.get(UserPreferences.navbarPosition).name,
-      'focusColor': _prefs.get(UserPreferences.focusColor).name,
-      'watchedIndicator': _prefs
-          .get(UserPreferences.watchedIndicatorBehavior)
-          .name,
-      'cardFocusExpansion': _prefs.get(UserPreferences.cardFocusExpansion),
-      'homeRowsStyle': _prefs.get(UserPreferences.homeRowsStyle).name,
-      'modernHomeRowsPadding': _prefs.get(
-        UserPreferences.modernHomeRowsPadding,
-      ),
-      'classicHomeRowsPadding': _prefs.get(
-        UserPreferences.classicHomeRowsPadding,
-      ),
-      'recommendationSystemSource':
-          _prefs.get(UserPreferences.recommendationSystemSource).name,
-      'detailScreenStyle': _prefs.get(UserPreferences.detailScreenStyle).name,
-      'detailExpandedTabs': _prefs.get(UserPreferences.detailExpandedTabs),
-      'detailShowTechnicalDetails': _prefs.get(
-        UserPreferences.detailShowTechnicalDetails,
-      ),
-      'homeImageTypeContinueWatching': _prefs
-          .get(UserPreferences.homeRowImageType(prefs.HomeSectionType.resume))
-          .name,
-      'posterSize': _prefs.get(UserPreferences.posterSize).name,
-      'displayFavoritesRows': _prefs.get(UserPreferences.displayFavoritesRows),
-      'displayCollectionsRows': _prefs.get(
-        UserPreferences.displayCollectionsRows,
-      ),
-      'displayGenresRows': _prefs.get(UserPreferences.displayGenresRows),
-      'displayAudioRows': _prefs.get(UserPreferences.displayAudioRows),
-      'displaySinceYouWatchedRows': _prefs.get(UserPreferences.displaySinceYouWatchedRows),
-      'sinceYouWatchedSource': _prefs.get(UserPreferences.sinceYouWatchedSource).name,
+      // Everything the field table describes. The bespoke entries below cover the
+      // settings that need real logic rather than a straight codec.
+      for (final field in syncedFields)
+        if (!field.receiveOnly) field.serverKey: _encodeSyncedField(field),
       'sinceYouWatchedNumRows': _prefs.get(UserPreferences.sinceYouWatchedNumRows).value,
-      'sinceYouWatchedSourceType': _prefs.get(UserPreferences.sinceYouWatchedSourceType).name,
-      'sinceYouWatchedSourceItem': _prefs.get(UserPreferences.sinceYouWatchedSourceItem).name,
-      'sinceYouWatchedIncludeWatched': _prefs.get(UserPreferences.sinceYouWatchedIncludeWatched),
-      'displayPlaylistsRows': _prefs.get(UserPreferences.displayPlaylistsRows),
-      'displayRewatchRow': _prefs.get(UserPreferences.displayRewatchRow),
-      'rewatchSortBy': _prefs.get(UserPreferences.rewatchSortBy).name,
-      'rewatchIncludeMovies': _prefs.get(UserPreferences.rewatchIncludeMovies),
-      'rewatchIncludeShows': _prefs.get(UserPreferences.rewatchIncludeShows),
-      'rewatchIncludeCollections': _prefs.get(UserPreferences.rewatchIncludeCollections),
-      'fullScreenRows': _prefs.get(UserPreferences.fullScreenRows),
-      'useDetailedSubHeadings': _prefs.get(
-        UserPreferences.useDetailedSubHeadings,
-      ),
-      'favoritesRowSortBy': _prefs.get(UserPreferences.favoritesRowSortBy).name,
-      'collectionsRowSortBy': _prefs
-          .get(UserPreferences.collectionsRowSortBy)
-          .name,
-      'genresRowSortBy': _prefs.get(UserPreferences.genresRowSortBy).name,
-      'genresRowItemFilter': _prefs
-          .get(UserPreferences.genresRowItemFilter)
-          .name,
-      'showShuffleButton': _prefs.get(UserPreferences.showShuffleButton),
-      'showGenresButton': _prefs.get(UserPreferences.showGenresButton),
-      'showFavoritesButton': _prefs.get(UserPreferences.showFavoritesButton),
-      'showSyncPlayButton': _prefs.get(UserPreferences.showSyncPlayButton),
-      'showLibrariesInToolbar': _prefs.get(
-        UserPreferences.showLibrariesInToolbar,
-      ),
-      'shuffleContentType': _prefs.get(UserPreferences.shuffleContentType),
-      'mergeContinueWatchingNextUp': _prefs.get(
-        UserPreferences.mergeContinueWatchingNextUp,
-      ),
-      'enableMultiServerLibraries': _prefs.get(
-        UserPreferences.enableMultiServerLibraries,
-      ),
-      'enableFolderView': _prefs.get(UserPreferences.enableFolderView),
-      'seasonalSurprise': _prefs.get(UserPreferences.seasonalSurprise),
       'mediaBarEnabled': mediaBarEnabled,
       'mediaBarMode': mediaBarMode,
-      'mediaBarSourceType': _prefs.get(UserPreferences.mediaBarContentType),
-      'mediaBarItemCount':
-          int.tryParse(_prefs.get(UserPreferences.mediaBarItemCount)) ?? 10,
-      'mediaBarOpacity': _prefs.get(UserPreferences.mediaBarOverlayOpacity),
-      'mediaBarOverlayColor': _prefs.get(UserPreferences.mediaBarOverlayColor),
-      'navbarOpacity': _prefs.get(UserPreferences.navbarOpacity),
-      'navbarColor': _prefs.get(UserPreferences.navbarColor),
-      'navbarAlwaysExpanded': _prefs.get(UserPreferences.navbarAlwaysExpanded),
-      'mediaBarAutoAdvance': _prefs.get(UserPreferences.mediaBarAutoAdvance),
-      'mediaBarIntervalMs': _prefs.get(UserPreferences.mediaBarIntervalMs),
-      'mediaBarTrailerPreview': _prefs.get(
-        UserPreferences.mediaBarTrailerPreview,
+      'mediaBarContentType': UserPreferences.normalizeMediaBarContentType(
+        _prefs.get(UserPreferences.mediaBarContentType),
       ),
-      'mediaBarTrailerAudio': _prefs.get(UserPreferences.mediaBarTrailerAudio),
-      'episodePreviewEnabled': _prefs.get(
-        UserPreferences.episodePreviewEnabled,
-      ),
-      'previewAudioEnabled': _prefs.get(UserPreferences.previewAudioEnabled),
-      'mediaBarLibraryIds': _csvToList(UserPreferences.mediaBarLibraryIds),
-      'mediaBarCollectionIds': _csvToList(
-        UserPreferences.mediaBarCollectionIds,
-      ),
-      'mediaBarExcludedGenres': _csvToList(
-        UserPreferences.mediaBarExcludedGenres,
-      ),
-      'themeMusicEnabled': _prefs.get(UserPreferences.themeMusicEnabled),
-      'themeMusicVolume': _prefs.get(UserPreferences.themeMusicVolume),
-      'themeMusicOnHomeRows': _prefs.get(UserPreferences.themeMusicOnHomeRows),
-      'themeMusicLoop': _prefs.get(UserPreferences.themeMusicLoop),
-      'homeRowsImageTypeOverride': _prefs.get(
-        UserPreferences.homeRowsUniversalOverride,
-      ),
-      'homeRowsImageType': _prefs
-          .get(UserPreferences.homeRowsUniversalImageType)
-          .name,
-      'homeImageUseSeriesImage': _prefs.get(
-        UserPreferences.seriesThumbnailsEnabled,
-      ),
-      'backdropEnabled': _prefs.get(UserPreferences.backdropEnabled),
-      'detailsScreenBlur': _prefs
-          .get(UserPreferences.detailsBackgroundBlurAmount)
-          .toString(),
-      'browsingBlur': _prefs
-          .get(UserPreferences.browsingBackgroundBlurAmount)
-          .toString(),
-      'mdblistEnabled': _prefs.get(UserPreferences.enableAdditionalRatings),
-      'mdblistShowRatingNames': _prefs.get(UserPreferences.showRatingLabels),
-      'mdblistShowRatingBadges': _prefs.get(UserPreferences.showRatingBadges),
-      'tmdbEpisodeRatingsEnabled': _prefs.get(
-        UserPreferences.enableEpisodeRatings,
-      ),
-      'seerrEnabled': _prefs.get(UserPreferences.seerrEnabled),
-      'seerrBlockNsfw': _prefs.get(UserPreferences.seerrBlockNsfw),
       'mdblistRatingSources': _csvToList(UserPreferences.enabledRatings)
           .map((s) => _clientToServerRatingSource[s] ?? s)
           .toList(),
@@ -1954,10 +1547,7 @@ class PluginSyncService extends ChangeNotifier {
         'rowOrder': _seerrPrefs.activeRows
             .map((t) => t.serializedName)
             .toList(),
-      },
-      'hiddenContinueWatchingItems': _prefs.get(UserPreferences.hiddenContinueWatchingItems),
-      'hiddenNextUpSeries': _prefs.get(UserPreferences.hiddenNextUpSeries),
-    };
+      },};
 
     final mdblistKey = _prefs.get(UserPreferences.mdblistApiKey);
     payload['mdblistApiKey'] = (mdblistKey.isNotEmpty && mdblistKey != 'null') ? mdblistKey : null;
