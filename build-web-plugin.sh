@@ -2,22 +2,31 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SIBLING_PLUGIN_TARGET="$REPO_ROOT/../Plugin/frontend"
+PLUGIN_ROOT="$REPO_ROOT/../Plugin"
+DEFAULT_JELLYFIN_TARGET="$PLUGIN_ROOT/Jellyfin/frontend"
+DEFAULT_EMBY_TARGET="$PLUGIN_ROOT/Emby/web"
 
 print_help() {
   cat <<'EOF'
 Usage:
-  ./build-web-plugin.sh [TARGET_PLUGIN_FRONTEND_DIR]
+  ./build-web-plugin.sh [TARGET_DIR ...]
+
+With no arguments this builds once and syncs into both plugin frontends:
+  ../Plugin/Jellyfin/frontend
+  ../Plugin/Emby/web
+
+Pass one or more target directories to override that.
 
 Environment:
   FLUTTER_BIN                    Optional absolute path to flutter executable
-  MOONFIN_PLUGIN_FRONTEND_DIR    Optional default target dir when arg is omitted
+  MOONFIN_PLUGIN_FRONTEND_DIR    Overrides the Jellyfin target
+  MOONFIN_EMBY_WEB_DIR           Overrides the Emby target
 
 Notes:
-  - This script builds Flutter web with base-href /Moonfin/Web/
-  - It syncs build/web -> TARGET_PLUGIN_FRONTEND_DIR
-  - config.json is excluded because the Plugin serves /Moonfin/Web/config.json dynamically
-  - theme/ is protected from build/web delete-sync and synced from web/theme
+  - Builds Flutter web once with base-href /Moonfin/Web/, then syncs to each target
+  - Both plugins serve the app at /Moonfin/Web/, so one build works for both
+  - config.json is excluded because the plugins serve /Moonfin/Web/config.json dynamically
+  - theme/ is protected from the build/web delete-sync and synced from web/theme
 EOF
 }
 
@@ -26,14 +35,22 @@ if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
   exit 0
 fi
 
-TARGET_DIR="${1:-${MOONFIN_PLUGIN_FRONTEND_DIR:-}}"
-if [ -z "$TARGET_DIR" ]; then
-  if [ -d "$SIBLING_PLUGIN_TARGET" ] || [ -f "$SIBLING_PLUGIN_TARGET/.gitkeep" ]; then
-    TARGET_DIR="$SIBLING_PLUGIN_TARGET"
-  else
-    echo "Error: target plugin frontend directory is required when Plugin repo is not a sibling checkout." >&2
-    echo "Provide it as: ./build-web-plugin.sh /absolute/path/to/Plugin/frontend" >&2
-    echo "Or set MOONFIN_PLUGIN_FRONTEND_DIR." >&2
+TARGETS=()
+if [ "$#" -gt 0 ]; then
+  TARGETS=("$@")
+else
+  for candidate in \
+    "${MOONFIN_PLUGIN_FRONTEND_DIR:-$DEFAULT_JELLYFIN_TARGET}" \
+    "${MOONFIN_EMBY_WEB_DIR:-$DEFAULT_EMBY_TARGET}"; do
+    if [ -d "$candidate" ] || [ -d "$(dirname "$candidate")" ]; then
+      TARGETS+=("$candidate")
+    fi
+  done
+
+  if [ "${#TARGETS[@]}" -eq 0 ]; then
+    echo "Error: no target found. The Plugin repo is not a sibling checkout." >&2
+    echo "Provide targets as: ./build-web-plugin.sh /path/to/Plugin/Jellyfin/frontend /path/to/Plugin/Emby/web" >&2
+    echo "Or set MOONFIN_PLUGIN_FRONTEND_DIR and MOONFIN_EMBY_WEB_DIR." >&2
     exit 1
   fi
 fi
@@ -67,22 +84,27 @@ resolve_flutter() {
   exit 1
 }
 
+sync_target() {
+  local target="$1"
+  mkdir -p "$target"
+  rsync -a --delete --exclude config.json --exclude theme/ "$REPO_ROOT/build/web/" "$target/"
+
+  # Theme Editor assets live outside Flutter's build/web output so the delete-sync
+  # above cant wipe them from the target.
+  if [ -d "$REPO_ROOT/web/theme" ]; then
+    rsync -a --delete "$REPO_ROOT/web/theme/" "$target/theme/"
+  else
+    echo "Warning: web/theme not found. Existing theme assets in $target were preserved."
+  fi
+
+  echo "Synced build/web -> $target"
+}
+
 FLUTTER="$(resolve_flutter)"
 
 echo "Building Flutter web bundle for Moonfin plugin mode..."
 "$FLUTTER" build web --wasm --release --base-href "/Moonfin/Web/"
 
-mkdir -p "$TARGET_DIR"
-rsync -a --delete --exclude config.json --exclude theme/ "$REPO_ROOT/build/web/" "$TARGET_DIR/"
-
-# Keep Theme Editor assets outside Flutter's build/web output so rsync --delete
-# cannot wipe them from the plugin frontend during sync.
-if [ -d "$REPO_ROOT/web/theme" ]; then
-  mkdir -p "$TARGET_DIR/theme"
-  rsync -a --delete "$REPO_ROOT/web/theme/" "$TARGET_DIR/theme/"
-else
-  echo "Warning: web/theme not found. Existing theme assets in target were preserved."
-fi
-
-echo "Synced build/web -> $TARGET_DIR"
-echo "config.json is excluded because Plugin serves /Moonfin/Web/config.json dynamically."
+for target in "${TARGETS[@]}"; do
+  sync_target "$target"
+done

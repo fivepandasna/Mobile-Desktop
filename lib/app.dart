@@ -26,9 +26,11 @@ import 'data/services/topshelf_service.dart';
 import 'data/services/watch_next_service.dart';
 import 'di/providers.dart';
 import 'l10n/app_localizations.dart';
+import 'preference/preference_constants.dart' show GlassSettledQuality;
 import 'preference/user_preferences.dart';
 import 'syncplay/syncplay_manager.dart';
 import 'ui/navigation/app_router.dart';
+import 'ui/navigation/deep_link_navigator.dart';
 import 'ui/navigation/home_refresh_bus.dart';
 import 'ui/theme/app_theme.dart';
 import 'ui/theme/app_theme_controller.dart';
@@ -49,6 +51,7 @@ import 'util/platform_detection.dart';
 import 'ui/widgets/overlay_sheet.dart';
 import 'package:moonfin_design/moonfin_design.dart';
 import 'util/focus/key_event_utils.dart';
+import 'util/focus/gamepad/gamepad_navigation_scope.dart';
 import 'ui/widgets/focus/request_initial_focus.dart';
 import 'package:custom_tv_text_field/custom_tv_text_field.dart';
 
@@ -77,7 +80,7 @@ class _MoonfinAppState extends State<MoonfinApp> {
     _prefs.addListener(_syncIdiomFromPrefs);
     _prefs.addListener(_syncGlassFromPrefs);
     if (PlatformDetection.isAppleTV) {
-      TopShelfService().startDeepLinkListener(appRouter.go);
+      TopShelfService().startDeepLinkListener(navigateWhenReady);
       TvRemoteController.instance.init();
       TvRemoteController.instance.config = const TvRemoteConfig(
         shortSwipeThreshold: 0.45,
@@ -88,7 +91,7 @@ class _MoonfinAppState extends State<MoonfinApp> {
       );
     }
     if (PlatformDetection.isAndroid && PlatformDetection.isTV) {
-      WatchNextService().startDeepLinkListener(appRouter.go);
+      WatchNextService().startDeepLinkListener(navigateWhenReady);
     }
   }
 
@@ -105,11 +108,41 @@ class _MoonfinAppState extends State<MoonfinApp> {
   }
 
   void _syncGlassFromPrefs() {
-    final before = GlassSettings.tier;
+    final beforeTier = GlassSettings.tier;
+    final beforePackage = GlassSettings.usePackageRenderer;
     GlassCapability.apply(_prefs.get(UserPreferences.glassQuality));
-    if (GlassSettings.tier != before && mounted) {
+    if ((GlassSettings.tier != beforeTier ||
+            GlassSettings.usePackageRenderer != beforePackage) &&
+        mounted) {
       setState(() {});
     }
+  }
+
+  /// The settled quality persisted by [_onGlassQualityChanged] last session,
+  /// or null to run the warm-up benchmark on a first launch.
+  GlassQuality? _settledGlassInitialQuality() {
+    switch (_prefs.get(UserPreferences.glassSettledQuality)) {
+      case GlassSettledQuality.minimal:
+        return GlassQuality.minimal;
+      case GlassSettledQuality.standard:
+        return GlassQuality.standard;
+      case GlassSettledQuality.premium:
+        return GlassQuality.premium;
+      case GlassSettledQuality.unset:
+        return null;
+    }
+  }
+
+  void _onGlassQualityChanged(GlassQuality from, GlassQuality to) {
+    GlassCapability.onAdaptiveQualityChanged(from, to);
+    unawaited(_prefs.set(UserPreferences.glassSettledQuality, switch (to) {
+      GlassQuality.minimal => GlassSettledQuality.minimal,
+      GlassQuality.standard => GlassSettledQuality.standard,
+      GlassQuality.premium => GlassSettledQuality.premium,
+    }));
+    // GlassBackdrop reads GlassSettings.cheapBackdrop in build, so a
+    // throttle step needs a shell rebuild to collapse or restore the bloom.
+    if (mounted) setState(() {});
   }
 
   void _syncLocaleFromPrefs() {
@@ -221,7 +254,7 @@ class _MoonfinAppState extends State<MoonfinApp> {
                         // never restructures the shell below it. Restructuring
                         // would tear down the navigator subtree and drop the
                         // screen the user is on (e.g. an open settings page).
-                        final Widget content = Stack(
+                        Widget content = Stack(
                           fit: StackFit.expand,
                           children: [
                             Positioned.fill(
@@ -235,18 +268,38 @@ class _MoonfinAppState extends State<MoonfinApp> {
                             if (PlatformDetection.isTV) const ScreensaverHost(),
                           ],
                         );
-                        return InputModeTracker(
-                          child: _GlobalShortcutScope(
-                            child: Material(
-                              type: MaterialType.transparency,
-                              child: CupertinoTheme(
-                                data: CupertinoThemeData(
-                                  brightness: Brightness.dark,
-                                  primaryColor: AppColorScheme.accent,
-                                  scaffoldBackgroundColor:
-                                      AppColorScheme.background,
+                        if (GlassSettings.usePackageRenderer) {
+                          // Governs every package-rendered glass pane below.
+                          // Benchmarks the device, throttles quality under
+                          // GPU and thermal pressure, and recovers when it
+                          // cools. The persisted settled quality skips the
+                          // warm-up on repeat launches.
+                          // ignore: experimental_member_use
+                          content = GlassAdaptiveScope(
+                            maxQuality: GlassCapability.adaptiveMaxQuality,
+                            initialQuality: _settledGlassInitialQuality(),
+                            onQualityChanged: _onGlassQualityChanged,
+                            child: content,
+                          );
+                        }
+                        // Has to sit inside MaterialApp for ScrollIntent to
+                        // resolve, above the router so every route is covered,
+                        // and inside the Overlay so dialogs and sheets share
+                        // the same focus subtree.
+                        return GamepadNavigationScope(
+                          child: InputModeTracker(
+                            child: _GlobalShortcutScope(
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: CupertinoTheme(
+                                  data: CupertinoThemeData(
+                                    brightness: Brightness.dark,
+                                    primaryColor: AppColorScheme.accent,
+                                    scaffoldBackgroundColor:
+                                        AppColorScheme.background,
+                                  ),
+                                  child: content,
                                 ),
-                                child: content,
                               ),
                             ),
                           ),
@@ -325,6 +378,9 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
     _hardwareKeyHandler = _onHardwareKeyEvent;
     HardwareKeyboard.instance.addHandler(_hardwareKeyHandler);
     _screensaverController.visible.addListener(_onScreensaverVisibleChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _screensaverController.refreshWakeLock();
+    });
     if (_trackMouseThumbHistory) {
       appRouter.routerDelegate.addListener(_onRouterStateChanged);
       _onRouterStateChanged();
@@ -563,6 +619,13 @@ class _GlobalShortcutScopeState extends State<_GlobalShortcutScope>
     if (key.isBackKey) {
       if (isBackspace && _isEditingText()) {
         return false;
+      }
+      // Back with the on-screen keyboard up should dismiss the keyboard rather
+      // than navigate. This runs ahead of the focus tree and the field has no
+      // key handling of its own, so without it the route pops out from under
+      // an open keyboard.
+      if (CustomTVTextField.closeTopKeyboard()) {
+        return true;
       }
       if (OverlaySheetController.closeTopSheet()) {
         return true;

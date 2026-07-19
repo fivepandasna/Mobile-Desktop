@@ -127,6 +127,10 @@ object MediaCodecCapabilities {
     private val modelsWithDoViHdr10PlusBug = setOf(
         "AFTKA",
         "AFTKM",
+        // MediaTek Sony BRAVIA models hard crash on Dolby Vision profile 8
+        // streams that carry HDR10+ dynamic metadata, so they transcode
+        // that range type like the MediaTek Fire TV models above.
+        "BRAVIA 4K VH22",
     )
 
     private fun readBuildStringField(name: String): String? {

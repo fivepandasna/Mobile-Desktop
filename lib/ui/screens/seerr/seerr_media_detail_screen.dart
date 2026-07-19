@@ -9,6 +9,7 @@ import '../../../data/repositories/seerr_repository.dart';
 import '../../../data/services/seerr/seerr_api_models.dart';
 import '../../../data/services/seerr/seerr_error.dart';
 import '../../../data/viewmodels/seerr_media_detail_view_model.dart';
+import '../../../data/viewmodels/seerr_discover_view_model.dart';
 import '../../../preference/preference_constants.dart';
 import '../../../preference/seerr_preferences.dart';
 import '../../../preference/user_preferences.dart';
@@ -672,7 +673,8 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     final canManage = vm.canManageRequests;
     final trailer = s.bestTrailer;
     final showTrailer = trailer != null;
-    final showCancel = s.activeRequests.isNotEmpty && !s.isFullyAvailable;
+    final hasOpenRequest = s.activeRequests.isNotEmpty && !s.isFullyAvailable;
+    final showCancel = hasOpenRequest && s.cancelableRequests.isNotEmpty;
 
     final tiles = <Widget>[];
     FocusNode? nextFirstNode = _firstActionFocusNode;
@@ -690,6 +692,16 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
           onTap: s.isRequesting ? null : () => _showCancelDialog(s),
           primary: !(s.isFullyAvailable || s.isPartiallyAvailable),
           focusNode: takeFirst(),
+        ),
+      );
+    } else if (hasOpenRequest) {
+      tiles.add(
+        _ActionTile(
+          icon: Icons.check,
+          label: l10n.seerrRequestedStatus,
+          onTap: null,
+          primary: false,
+          focusNode: null,
         ),
       );
     } else if (canShowRequest) {
@@ -1244,6 +1256,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
         ? l10n.requestMore
         : l10n.request;
     final canManage = vm.canManageRequests;
+    final hasOpenRequest = s.activeRequests.isNotEmpty && !s.isFullyAvailable;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 16, 32, 0),
@@ -1318,7 +1331,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                     foregroundColor: Colors.white,
                   ),
                 ),
-              if (s.activeRequests.isNotEmpty && !s.isFullyAvailable)
+              if (hasOpenRequest && s.cancelableRequests.isNotEmpty)
                 OutlinedButton.icon(
                   onPressed: s.isRequesting ? null : () => _showCancelDialog(s),
                   icon: const Icon(Icons.close, size: 18),
@@ -1327,6 +1340,18 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
                     foregroundColor: Colors.red[300],
                     side: ThemeRegistry.active.borders.chipBorder.copyWith(
                       color: Colors.red[300]!,
+                    ),
+                  ),
+                )
+              else if (hasOpenRequest)
+                OutlinedButton.icon(
+                  onPressed: null,
+                  icon: const Icon(Icons.check, size: 18),
+                  label: Text(l10n.seerrRequestedStatus),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white54,
+                    side: ThemeRegistry.active.borders.chipBorder.copyWith(
+                      color: Colors.white24,
                     ),
                   ),
                 ),
@@ -1465,7 +1490,7 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
 
   void _showCancelDialog(SeerrMediaDetailState s) {
     final l10n = AppLocalizations.of(context);
-    final active = s.activeRequests;
+    final active = s.cancelableRequests;
     if (active.isEmpty) return;
 
     final title = s.displayTitle;
@@ -1505,6 +1530,18 @@ class _SeerrMediaDetailScreenState extends State<SeerrMediaDetailScreen> {
     final vm = _vm;
     if (vm == null) return;
     await vm.cancelRequests(requests.map((r) => r.id).toList());
+    if (!mounted || vm.state.requestError != null) return;
+
+    // Discover caches the rows that still list this request, so drop them
+    // before the user lands back on it.
+    if (GetIt.instance.isRegistered<SeerrDiscoverViewModel>()) {
+      GetIt.instance<SeerrDiscoverViewModel>().refresh();
+    }
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(Destinations.seerrDiscover);
+    }
   }
 
   Future<void> _playInMoonfin(SeerrMediaDetailState s) async {
@@ -1864,6 +1901,7 @@ class _ActionTileState extends State<_ActionTile> with FocusStateMixin {
     return Focus(
       focusNode: widget.focusNode,
       onFocusChange: setFocused,
+      canRequestFocus: !disabled,
       onKeyEvent: (node, event) {
         if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
           return KeyEventResult.ignored;
@@ -1885,44 +1923,45 @@ class _ActionTileState extends State<_ActionTile> with FocusStateMixin {
               : SystemMouseCursors.click,
           onEnter: (_) => setHovered(true),
           onExit: (_) => setHovered(false),
-          child: AnimatedScale(
-            scale: showFocusBorder ? 1.05 : 1.0,
-            duration: const Duration(milliseconds: 150),
-            child: SizedBox(
-              width: 96,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 88,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      color: bg,
-                      borderRadius: AppRadius.circular(14),
-                      border: showFocusBorder
-                          ? Border.fromBorderSide(
-                              ThemeRegistry.active.borders.focusBorder.copyWith(
-                                color: focusColor,
-                                width: 3,
-                              ),
-                            )
-                          : null,
+          child: Opacity(
+            opacity: disabled ? 0.5 : 1.0,
+            child: AnimatedScale(
+              scale: showFocusBorder ? 1.05 : 1.0,
+              duration: const Duration(milliseconds: 150),
+              child: SizedBox(
+                width: 96,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        color: bg,
+                        borderRadius: AppRadius.circular(14),
+                        border: showFocusBorder
+                            ? Border.fromBorderSide(
+                                ThemeRegistry.active.borders.focusBorder
+                                    .copyWith(color: focusColor, width: 3),
+                              )
+                            : null,
+                      ),
+                      child: Icon(widget.icon, color: fg, size: 38),
                     ),
-                    child: Icon(widget.icon, color: fg, size: 38),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    widget.label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                    const SizedBox(height: 8),
+                    Text(
+                      widget.label,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -1962,6 +2001,7 @@ class _RequestDialogState extends State<_RequestDialog> {
     _advanced = SeerrAdvancedRequestController(
       isTv: widget.isTv,
       isAnime: widget.vm.state.isAnime,
+      is4k: _is4k,
     );
     _applySavedPreferences(resetSelection: false);
     if (widget.vm.canRequestAdvanced) {
@@ -1989,6 +2029,7 @@ class _RequestDialogState extends State<_RequestDialog> {
       profileId: _is4k ? vm.saved4kProfileId : vm.savedProfileId,
       rootFolderId: _is4k ? vm.saved4kRootFolderId : vm.savedRootFolderId,
       resetSelection: resetSelection,
+      is4k: _is4k,
     );
   }
 

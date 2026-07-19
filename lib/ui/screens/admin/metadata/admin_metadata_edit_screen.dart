@@ -361,13 +361,41 @@ class _AdminMetadataEditScreenState extends State<AdminMetadataEditScreen> {
     }
   }
 
+  static const _preservedItemFields = <String>[
+    'Id',
+    'IndexNumber',
+    'ParentIndexNumber',
+    'AirsBeforeSeasonNumber',
+    'AirsAfterSeasonNumber',
+    'AirsBeforeEpisodeNumber',
+    'Album',
+    'AlbumArtists',
+    'ArtistItems',
+    'Status',
+    'AirDays',
+    'AirTime',
+    'DateCreated',
+    'Height',
+    'AspectRatio',
+    'Video3DFormat',
+    'CustomRating',
+    'LockData',
+    'LockedFields',
+    'PreferredMetadataLanguage',
+    'PreferredMetadataCountryCode',
+    'RunTimeTicks',
+    'ProductionLocations',
+    'DisplayOrder',
+  ];
+
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
     final sortName = _sortNameController.text.trim();
     final tagline = _taglineController.text.trim();
 
     final update = <String, dynamic>{
-      ..._raw,
+      for (final key in _preservedItemFields)
+        if (_raw.containsKey(key)) key: _raw[key],
       'Name': _nameController.text.trim(),
       'ForcedSortName': _nullIfEmpty(sortName),
       'OriginalTitle': _originalTitleController.text.trim(),
@@ -402,7 +430,7 @@ class _AdminMetadataEditScreenState extends State<AdminMetadataEditScreen> {
       await _api.updateItem(widget.itemId, update);
       if (!mounted) return;
       setState(() {
-        _raw = update;
+        _raw = {..._raw, ...update};
         _saving = false;
       });
       ScaffoldMessenger.of(

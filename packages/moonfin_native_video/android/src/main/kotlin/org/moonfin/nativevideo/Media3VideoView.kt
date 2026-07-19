@@ -9,6 +9,9 @@ import android.content.ContextWrapper
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Typeface
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.media.MediaCodecList
 import android.media.audiofx.AudioEffect
 import android.net.Uri
@@ -49,6 +52,7 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.decoder.av1.Dav1dLibrary
 import androidx.media3.decoder.av1.Libdav1dVideoRenderer
+import androidx.media3.decoder.ffmpeg.FfmpegLibrary
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.DecoderReuseEvaluation
@@ -334,6 +338,31 @@ private class AdjustableAudioDelayProcessor : BaseAudioProcessor() {
     }
 }
 
+// Once per process: the bundled FFmpeg audio extension runs against a media3
+// runtime forced to a different version (see android/build.gradle.kts), so a
+// broken registration would silently drop the renderer. Surfacing its state
+// makes "TrueHD is silent / transcoding" reports attributable.
+private var ffmpegDecoderDiagnosticsEmitted = false
+
+@UnstableApi
+private fun emitFfmpegDecoderDiagnosticsOnce() {
+    if (ffmpegDecoderDiagnosticsEmitted) return
+    ffmpegDecoderDiagnosticsEmitted = true
+    val available = runCatching { FfmpegLibrary.isAvailable() }.getOrDefault(false)
+    val version = runCatching { FfmpegLibrary.getVersion() }.getOrNull()
+    val supportsTrueHd = runCatching {
+        FfmpegLibrary.supportsFormat(MimeTypes.AUDIO_TRUEHD)
+    }.getOrDefault(false)
+    Media3Bridge.emitEvent(
+        mapOf(
+            "event" to "ffmpegDecoderDiagnostics",
+            "available" to available,
+            "version" to (version ?: ""),
+            "supportsTrueHd" to supportsTrueHd,
+        ),
+    )
+}
+
 @UnstableApi
 class Media3VideoView(
     private val context: Context,
@@ -522,7 +551,27 @@ class Media3VideoView(
     private var stereoDownmixRetryAttemptedForCurrentSource = false
     // Sticky once a device proves it cannot open a >2-channel PCM AudioTrack, so
     // subsequent sources start downmixed instead of glitching on every item.
+    // Cleared when the audio output devices change: plugging in an AVR or
+    // headphones invalidates the "stereo only" conclusion.
     private var deviceRequiresStereoDownmix = false
+    private var tunnelingRetryAttemptedForCurrentSource = false
+
+    // AudioDeviceCallback needs API 23, and minSdk is 21. The guard keeps the
+    // anonymous subclass from ever loading on older devices.
+    private val audioDeviceCallback: AudioDeviceCallback? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            object : AudioDeviceCallback() {
+                override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
+                    onAudioOutputDevicesChanged()
+                }
+
+                override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
+                    onAudioOutputDevicesChanged()
+                }
+            }
+        } else {
+            null
+        }
     // Guards the container/source-error transcode fallback against re-emitting.
     private var containerFallbackAttempted = false
 
@@ -568,6 +617,11 @@ class Media3VideoView(
     private var audioOffloadRetryAttemptedForCurrentSource = false
     private var sessionTunnelingDisabled = Media3Bridge.sessionTunnelingDisabledEnabled()
     private var currentAudioIsBitstream = false
+    // True while the active audio track is TrueHD/MLP, which must never run
+    // tunneled (see applyTrackSelectorForCurrentSource). Seeded from the
+    // setSource payload and kept current by onAudioInputFormatChanged so
+    // mid-play track switches re-gate tunneling.
+    private var currentAudioIsLossless = false
     private var tunnelingActive = false
     private var audioRekickRunnable: Runnable? = null
     private var suppressStateEmissionsForRekick = false
@@ -618,6 +672,17 @@ class Media3VideoView(
         MimeTypes.AUDIO_DTS_X -> true
         else -> false
     }
+
+    // Media3 maps both TrueHD and its MLP substream to
+    // [MimeTypes.AUDIO_TRUEHD], so the mime check below covers both names.
+    private fun isLosslessAudioCodecName(codec: String?): Boolean =
+        when (codec?.trim()?.lowercase()) {
+            "truehd", "mlp" -> true
+            else -> false
+        }
+
+    private fun isLosslessAudioMime(mime: String?): Boolean =
+        mime == MimeTypes.AUDIO_TRUEHD
 
     private fun scheduleAudioRekickAfterSeek() {
         if (!player.playWhenReady) return
@@ -714,16 +779,14 @@ class Media3VideoView(
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            val offloadRetryTriggered = retryAudioWithoutOffloadIfNeeded(error)
-            // If offload retry didn't apply, try an in-place stereo downmix
-            // before falling back to a server transcode (handles 7.1 PCM that
-            // the device can't open as an 8-channel AudioTrack).
-            val downmixRetryTriggered = if (offloadRetryTriggered) {
-                false
-            } else {
+            // Recovery order matters: an init failure under tunneling is
+            // retried untunneled before any downmix so a tunnel failure
+            // can't stick the whole session to stereo. The downmix retry
+            // stays last and handles 7.1 PCM that the device can't open as
+            // an 8-channel AudioTrack.
+            val nativeRetryTriggered = retryAudioWithoutOffloadIfNeeded(error) ||
+                retryAudioWithoutTunnelingIfNeeded(error) ||
                 retryAudioWithStereoDownmixIfNeeded(error)
-            }
-            val nativeRetryTriggered = offloadRetryTriggered || downmixRetryTriggered
             emitRecoverablePlayerError(error, nativeRetryTriggered)
             Media3Bridge.emitEvent(
                 mapOf(
@@ -860,6 +923,15 @@ class Media3VideoView(
             decoderReuseEvaluation: DecoderReuseEvaluation?,
         ) {
             currentAudioIsBitstream = isBitstreamAudioMime(format.sampleMimeType)
+            val lossless = isLosslessAudioMime(format.sampleMimeType)
+            if (lossless != currentAudioIsLossless) {
+                // A mid-play track switch moved onto (or off) TrueHD/MLP:
+                // re-apply the selector so the tunneling gate follows the
+                // active track. Posted to avoid re-entering the selector
+                // while a selection is being committed.
+                currentAudioIsLossless = lossless
+                mainHandler.post { applyTrackSelectorForCurrentSource() }
+            }
         }
 
         override fun onAudioSinkError(
@@ -946,6 +1018,16 @@ class Media3VideoView(
         startTicker()
         Media3Bridge.registerView(platformViewId, this)
         Media3Bridge.attachView(this)
+
+        // Route changes invalidate the sticky stereo-downmix conclusion.
+        // Registration fires the callback once immediately with the current
+        // devices, which is a no-op while the downmix isn't engaged.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+            audioDeviceCallback != null
+        ) {
+            context.getSystemService<AudioManager>()
+                ?.registerAudioDeviceCallback(audioDeviceCallback, mainHandler)
+        }
     }
 
     override fun getView(): View = containerView
@@ -1023,6 +1105,12 @@ class Media3VideoView(
         // Unregister before the audio early return so a disposed view can
         // never be re-activated.
         Media3Bridge.unregisterView(platformViewId, this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+            audioDeviceCallback != null
+        ) {
+            context.getSystemService<AudioManager>()
+                ?.unregisterAudioDeviceCallback(audioDeviceCallback)
+        }
         if (currentMediaType == "audio") {
             player.clearVideoSurface()
             return
@@ -1033,6 +1121,7 @@ class Media3VideoView(
     }
 
     private fun createPlayer(): ExoPlayer {
+        emitFfmpegDecoderDiagnosticsOnce()
         // Fresh selector for every player; see the trackSelector field comment.
         trackSelector = DefaultTrackSelector(context)
         audioDelayProcessor.setDelayMs(audioDelayMs)
@@ -1543,6 +1632,11 @@ class Media3VideoView(
         val isPreview = args["preview"] as? Boolean ?: false
 
         currentMediaType = nextMediaType
+        // Seed losslessness from the source's default audio stream so the
+        // very first track selection already avoids tunneling for TrueHD/MLP.
+        // onAudioInputFormatChanged keeps it current across track switches.
+        currentAudioIsLossless =
+            isLosslessAudioCodecName(args["audioCodec"]?.toString())
 
         if (mediaTypeChanged || (!isAudio && (decoderPreferenceDirty || playerHasLoadedSource))) {
             rebuildPlayerForDecoderPreference()
@@ -1566,6 +1660,7 @@ class Media3VideoView(
             ?.takeIf { it.isNotEmpty() }
         audioOffloadRetryAttemptedForCurrentSource = false
         stereoDownmixRetryAttemptedForCurrentSource = false
+        tunnelingRetryAttemptedForCurrentSource = false
         containerFallbackAttempted = false
         // Start each source with the downmix state the device has proven it
         // needs (sticky once an AudioTrack init failure was recovered).
@@ -1970,7 +2065,11 @@ class Media3VideoView(
         val shouldEnableTunneling =
             !isAudioContent &&
                 !hasExternalSubtitle &&
-                !sessionTunnelingDisabled
+                !sessionTunnelingDisabled &&
+                // Tunneled TrueHD/MLP passthrough can be silent with no sink
+                // exception on some AVR chains. Tunneling is only a latency
+                // optimization, so drop it whenever a lossless track is active.
+                !currentAudioIsLossless
 
         tunnelingActive = shouldEnableTunneling
 
@@ -2441,7 +2540,7 @@ class Media3VideoView(
         val language = args["language"]?.toString()
         val title = args["title"]?.toString()
 
-        val subtitleBuilder = MediaItem.SubtitleConfiguration.Builder(Uri.parse(url))
+        val subtitleBuilder = MediaItem.SubtitleConfiguration.Builder(parseUri(url))
             .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
             // ass-media matches selected Media3 text tracks back to libass tracks by ID.
             .setId((EXTERNAL_SUBTITLE_ID_BASE + externalSubtitleConfigurations.size).toString())
@@ -2526,7 +2625,7 @@ class Media3VideoView(
 
         val subtitleConfigurations = externalSubtitleConfigurations.toList()
         val mediaItemBuilder = MediaItem.Builder()
-            .setUri(url)
+            .setUri(parseUri(url))
             .setSubtitleConfigurations(subtitleConfigurations)
             .setMediaMetadata(buildNowPlayingMetadata())
         val inferredMimeType = inferStreamMimeType(url, currentContainer, currentMediaType)
@@ -2575,7 +2674,7 @@ class Media3VideoView(
             }
             if (artworkUrl.isNotEmpty()) {
                 runCatching {
-                    setArtworkUri(Uri.parse(artworkUrl))
+                    setArtworkUri(parseUri(artworkUrl))
                 }
             }
         }.build()
@@ -2697,6 +2796,60 @@ class Media3VideoView(
 
             else -> null
         }
+    }
+
+    /**
+     * The set of audio output devices changed (AVR or headphones plugged or
+     * unplugged). Any sticky "this device can only open a stereo AudioTrack"
+     * conclusion was drawn against hardware that is no longer the sink, so
+     * drop it and let the next failure (if any) re-establish it.
+     */
+    private fun onAudioOutputDevicesChanged() {
+        if (!deviceRequiresStereoDownmix && !stereoDownmixEnabled) {
+            return
+        }
+        deviceRequiresStereoDownmix = false
+        stereoDownmixRetryAttemptedForCurrentSource = false
+        applyStereoDownmix(false)
+        Media3Bridge.emitEvent(
+            mapOf(
+                "event" to "stereoDownmixReset",
+                "reason" to "audioRouteChanged",
+            ),
+        )
+    }
+
+    /**
+     * An AudioTrack init failure while tunneling is active is frequently the
+     * tunnel configuration failing, not the channel count. Retry untunneled
+     * first so a tunneling problem doesn't condemn the session to a sticky
+     * stereo downmix.
+     */
+    private fun retryAudioWithoutTunnelingIfNeeded(error: PlaybackException): Boolean {
+        val isRetryableError =
+            error.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED
+
+        if (!isRetryableError ||
+            !tunnelingActive ||
+            sessionTunnelingDisabled ||
+            tunnelingRetryAttemptedForCurrentSource
+        ) {
+            return false
+        }
+
+        val mediaItem = player.currentMediaItem ?: return false
+        tunnelingRetryAttemptedForCurrentSource = true
+        val retryPositionMs = player.currentPosition.coerceAtLeast(0L)
+        val playWhenReady = player.playWhenReady
+
+        disableTunnelingForSession()
+        Media3Bridge.emitEvent(
+            mapOf("event" to "tunnelingDisabledOnAudioTrackFailure"),
+        )
+        player.setMediaItem(mediaItem, retryPositionMs)
+        player.prepare()
+        player.playWhenReady = playWhenReady
+        return true
     }
 
     private fun retryAudioWithoutOffloadIfNeeded(error: PlaybackException): Boolean {
@@ -2968,7 +3121,7 @@ class Media3VideoView(
         // the request the same way. Comparing a parsed uri to the raw string
         // misses whenever Android normalizes it, dropping us to positional
         // selection which is off for externals.
-        val target = Uri.parse(url)
+        val target = parseUri(url)
         val configIndex = externalSubtitleConfigurations.indexOfFirst {
             it.uri == target
         }
@@ -3113,6 +3266,13 @@ class Media3VideoView(
     private fun emitState() {
         if (suppressStateEmissionsForRekick) return
         Media3Bridge.emitEvent(stateMap() + ("event" to "state"))
+    }
+
+    // Offline playback hands us bare filesystem paths. Media3 needs a scheme to
+    // pick a data source, so anything arriving without one becomes a file uri.
+    private fun parseUri(url: String): Uri {
+        val parsed = Uri.parse(url)
+        return if (parsed.scheme.isNullOrEmpty()) Uri.fromFile(File(url)) else parsed
     }
 
     private fun startTicker() {

@@ -34,6 +34,9 @@ class EmbyConnectService {
       'Accept': 'application/json',
     };
 
+    // The form-urlencoded POST is the call the official Emby clients use and the
+    // only one that authenticates. A GET is tried first, but its 401 isn't final
+    // since it 401s even for valid credentials, so it falls through to the POST.
     Response<dynamic> response;
     try {
       response = await _dio.get<dynamic>(
@@ -41,14 +44,13 @@ class EmbyConnectService {
         queryParameters: credentials,
         options: Options(headers: headers, responseType: ResponseType.json),
       );
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) rethrow;
+    } on DioException {
       response = await _dio.post<dynamic>(
         'user/authenticate',
         data: credentials,
         options: Options(
           headers: headers,
-          contentType: Headers.jsonContentType,
+          contentType: Headers.formUrlEncodedContentType,
           responseType: ResponseType.json,
         ),
       );

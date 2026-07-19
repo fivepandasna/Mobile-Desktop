@@ -30,6 +30,8 @@ import '../../../util/locale_names.dart';
 import '../../../util/overlay_color_palette.dart';
 import '../../../util/game_cores.dart';
 import '../../../util/platform_detection.dart';
+import '../../../util/tv_image_cache_stub.dart'
+    if (dart.library.io) '../../../util/tv_image_cache_io.dart';
 import '../../../util/app_distribution.dart';
 import '../../../util/app_exit.dart';
 import '../../widgets/app_update_dialog.dart';

@@ -25,6 +25,7 @@ final class AppleTvPlayerViewController: UIViewController {
     private var didAttachSurface = false
     private var updateTimer: Timer?
     private var lastShowAt: TimeInterval = 0
+    private var osdDismissed = false
     private var subtitlesRaised = false
 
     private var skipForwardMs = 30000
@@ -1246,6 +1247,11 @@ final class AppleTvPlayerViewController: UIViewController {
                     showOsd()
                     return
                 }
+                if !osdDismissed && osdContainer.alpha > 0.5 {
+                    osdDismissed = true
+                    hideOsd()
+                    return
+                }
             case .upArrow:
                 if isLive {
                     showOsd()
@@ -2003,6 +2009,7 @@ final class AppleTvPlayerViewController: UIViewController {
 
     private func showOsd() {
         lastShowAt = CACurrentMediaTime()
+        osdDismissed = false
         setSubtitlesRaised(true)
         if osdContainer.alpha < 1 {
             UIView.animate(withDuration: 0.2) {
@@ -2070,8 +2077,9 @@ final class AppleTvPlayerViewController: UIViewController {
         updateLoadingOverlay()
 
         let shouldShow =
-            isPaused() || scrubTargetMs != nil
-            || (CACurrentMediaTime() - lastShowAt < 4.0)
+            !osdDismissed
+            && (isPaused() || scrubTargetMs != nil
+                || (CACurrentMediaTime() - lastShowAt < 4.0))
         let visible = osdContainer.alpha > 0.5
         if shouldShow && !visible {
             setSubtitlesRaised(true)

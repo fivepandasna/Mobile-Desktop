@@ -8,6 +8,7 @@ class KnownDefects {
     'AFTKA',
     'AFTKM',
     'AFTKRT',
+    'BRAVIA 4K VH22',
   };
 
   static const Set<String> modelsWithDolbyVisionProfile7ElDirectPlayDefault =

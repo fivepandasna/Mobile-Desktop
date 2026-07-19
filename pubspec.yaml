@@ -1,11 +1,11 @@
 name: moonfin
 description: "Moonfin - Jellyfin & Emby media client for mobile, tablet, and desktop"
 publish_to: 'none'
-version: 2.2.0+30000139
+version: 2.3.0+30000142
 
 moonfin:
-  android_tv_version: 2.2.0
-  android_tv_build_number: 2000008
+  android_tv_version: 2.3.0
+  android_tv_build_number: 2000009
 
 environment:
   sdk: ^3.11.0
@@ -68,6 +68,16 @@ dependencies:
 
   # Connectivity
   connectivity_plus: ^7.1.1
+
+  # Gamepad UI navigation on desktop and iOS. Android is left out on purpose,
+  # because this plugin's setup wants to override the same Activity methods
+  # MainActivity already uses for the emulator, and pads there already arrive
+  # as key events anyway.
+  #
+  # Raw input stream only. The companion flutter_gamepads widget layer isn't
+  # used, since it drops input when nothing has focus and can't repeat a held
+  # direction. See GamepadNavigationScope.
+  gamepads: ^0.1.10
 
   # Notifications
   flutter_local_notifications: ^21.0.0

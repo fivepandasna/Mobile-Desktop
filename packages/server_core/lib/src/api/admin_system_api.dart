@@ -24,6 +24,7 @@ abstract class AdminSystemApi {
   /// ParentalRatings: `Name`/`Value`).
   Future<List<Map<String, dynamic>>> getCultures();
   Future<List<Map<String, dynamic>>> getCountries();
+  Future<List<Map<String, dynamic>>> getLocalizationOptions();
   Future<List<Map<String, dynamic>>> getParentalRatings();
 
   /// Available authentication / password-reset providers as `{Name, Id}` maps,

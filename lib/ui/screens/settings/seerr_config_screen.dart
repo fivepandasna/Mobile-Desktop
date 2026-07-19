@@ -1,6 +1,8 @@
+import 'package:animated_reorderable_list/animated_reorderable_list.dart';
 import 'package:custom_tv_text_field/custom_tv_text_field.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
@@ -16,6 +18,7 @@ import '../../../preference/preference_constants.dart';
 import '../../../preference/seerr_preferences.dart';
 import '../../../preference/seerr_row_config.dart';
 import '../../../preference/user_preferences.dart';
+import '../../../util/focus/scroll_utils.dart';
 import '../../../util/extensions.dart';
 import '../../../util/focus/dpad_keys.dart';
 import '../../../util/platform_detection.dart';
@@ -346,26 +349,11 @@ class _SeerrConfigScreenState extends State<SeerrConfigScreen> {
   }
 
   void _focusRowAndEnsureVisible(int index) {
-    if (!mounted || index < 0 || index >= _focusNodes.length) return;
-    final node = _focusNodes[index];
-    if (!node.hasFocus) {
-      node.requestFocus();
-    }
-
-    // Defer the scroll until the reorder rebuild commits, so the target row's
-    // context exists.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || index < 0 || index >= _focusNodes.length) return;
-      final targetContext = _focusNodes[index].context;
-      if (targetContext == null) return;
-      Scrollable.ensureVisible(
-        targetContext,
-        duration: const Duration(milliseconds: 140),
-        curve: Curves.easeOut,
-        alignment: 0.2,
-        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-      );
-    });
+    focusItemAndEnsureVisible(
+      isMounted: () => mounted,
+      focusNodes: _focusNodes,
+      index: index,
+    );
   }
 
   Future<void> _resetRows() async {
@@ -399,11 +387,7 @@ class _SeerrConfigScreenState extends State<SeerrConfigScreen> {
       _focusNodes.insert(newIndex, node);
     });
     _saveRows();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _focusNodes[newIndex].requestFocus();
-      }
-    });
+    _focusRowAndEnsureVisible(newIndex);
   }
 
   String _rowLabel(SeerrRowType type, AppLocalizations l10n) => switch (type) {
@@ -652,41 +636,54 @@ class _SeerrConfigScreenState extends State<SeerrConfigScreen> {
     bool seerrAvailable,
     bool showSeerrSettings,
   ) {
-    return ListView.builder(
-      itemCount: (showSeerrSettings ? _rows.length : 0) + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return _buildRowsHeader(
+    return CustomScrollView(
+      scrollCacheExtent: const ScrollCacheExtent.pixels(3000.0),
+      slivers: [
+        SliverToBoxAdapter(
+          child: _buildRowsHeader(
             context,
             l10n,
             seerrAvailable,
             showSeerrSettings,
-          );
-        }
-        final rowIndex = index - 1;
-        final row = _rows[rowIndex];
-        return _SeerrReorderableTile(
-          key: ValueKey(row.type),
-          focusNode: _focusNodes[rowIndex],
-          label: _rowLabel(row.type, l10n),
-          enabled: row.enabled,
-          enabledLabel: l10n.enabled,
-          hiddenLabel: l10n.hidden,
-          isFirst: rowIndex == 0,
-          isLast: rowIndex == _rows.length - 1,
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (rowIndex != 0) const Icon(Icons.arrow_left, size: 18),
-              if (rowIndex != _rows.length - 1)
-                const Icon(Icons.arrow_right, size: 18),
-            ],
           ),
-          onToggle: (enabled) => _toggleSeerrRow(rowIndex, enabled),
-          onMoveUp: () => _moveSeerrRowTo(rowIndex, rowIndex - 1),
-          onMoveDown: () => _moveSeerrRowTo(rowIndex, rowIndex + 1),
-        );
-      },
+        ),
+        if (showSeerrSettings)
+          ReorderableAnimatedListImpl<SeerrRowConfig>(
+            items: _rows,
+            scrollDirection: Axis.vertical,
+            // Comparing the enabled state and turning off swap detection makes
+            // a toggled row read as a removal from its old slot and an insert
+            // at its sorted slot, so it animates instead of jumping.
+            isSameItem: (a, b) => a.type == b.type && a.enabled == b.enabled,
+            enableSwap: true,
+            enterTransition: [FadeIn(), SizeAnimation()],
+            exitTransition: [FadeIn(), SizeAnimation()],
+            itemBuilder: (context, rowIndex) {
+              final row = _rows[rowIndex];
+              return _SeerrReorderableTile(
+                key: ValueKey('${row.type}:${row.enabled}'),
+                focusNode: _focusNodes[rowIndex],
+                label: _rowLabel(row.type, l10n),
+                enabled: row.enabled,
+                enabledLabel: l10n.enabled,
+                hiddenLabel: l10n.hidden,
+                isFirst: rowIndex == 0,
+                isLast: rowIndex == _rows.length - 1,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (rowIndex != 0) const Icon(Icons.arrow_left, size: 18),
+                    if (rowIndex != _rows.length - 1)
+                      const Icon(Icons.arrow_right, size: 18),
+                  ],
+                ),
+                onToggle: (enabled) => _toggleSeerrRow(rowIndex, enabled),
+                onMoveUp: () => _moveSeerrRowTo(rowIndex, rowIndex - 1),
+                onMoveDown: () => _moveSeerrRowTo(rowIndex, rowIndex + 1),
+              );
+            },
+          ),
+      ],
     );
   }
 
@@ -1822,27 +1819,30 @@ class _SeerrReorderableTileState extends State<_SeerrReorderableTile> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 90),
           decoration: _tileDecoration(context, focused: _focused),
-          child: ListTile(
-            onTap: () => widget.onToggle(!widget.enabled),
-            leading: Icon(
-              widget.enabled ? Icons.check_box : Icons.check_box_outline_blank,
-              color: widget.enabled
-                  ? (_focused ? AppColors.black : colorScheme.primary)
-                  : iconColor,
-            ),
-            title: Text(
-              widget.label,
-              style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(
-              widget.enabled ? widget.enabledLabel : widget.hiddenLabel,
-              style: TextStyle(
-                color: _focused
-                    ? AppColors.black.withValues(alpha: 0.6)
-                    : colorScheme.onSurfaceVariant,
+          child: Material(
+            type: MaterialType.transparency,
+            child: ListTile(
+              onTap: () => widget.onToggle(!widget.enabled),
+              leading: Icon(
+                widget.enabled ? Icons.check_box : Icons.check_box_outline_blank,
+                color: widget.enabled
+                    ? (_focused ? AppColors.black : colorScheme.primary)
+                    : iconColor,
               ),
+              title: Text(
+                widget.label,
+                style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(
+                widget.enabled ? widget.enabledLabel : widget.hiddenLabel,
+                style: TextStyle(
+                  color: _focused
+                      ? AppColors.black.withValues(alpha: 0.6)
+                      : colorScheme.onSurfaceVariant,
+                ),
+              ),
+              trailing: widget.trailing,
             ),
-            trailing: widget.trailing,
           ),
         ),
       ),

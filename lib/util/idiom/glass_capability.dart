@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:moonfin_design/moonfin_design.dart'
-    show AppColorScheme, GlassSettings, GlassTier;
+    show AppColorScheme, GlassQuality, GlassSettings, GlassTier;
 
 import '../../preference/preference_constants.dart';
 import '../platform_detection.dart';
@@ -10,6 +10,21 @@ export 'package:moonfin_design/moonfin_design.dart' show GlassTier;
 
 class GlassCapability {
   GlassCapability._();
+
+  /// Kill switch for the liquid_glass_widgets renderer. When true, every
+  /// platform stays on the hand-rolled BackdropFilter path.
+  static const bool useLegacyGlass = false;
+
+  /// Ceiling handed to the app-shell GlassAdaptiveScope. Premium is
+  /// Impeller-only and unreliable inside scroll views, and Moonfin is
+  /// scroll-heavy, so the ceiling stays at standard.
+  static const GlassQuality adaptiveMaxQuality = GlassQuality.standard;
+
+  /// Called by the app shell whenever the adaptive scope settles on a new
+  /// quality, so sigma caps and the root backdrop track device pressure.
+  static void onAdaptiveQualityChanged(GlassQuality from, GlassQuality to) {
+    GlassSettings.packageQuality = to;
+  }
 
   /// Whether the glass look applies at adaptive call sites. Always true under
   /// Apple idioms (including leanback), and under the glass theme on every
@@ -49,6 +64,17 @@ class GlassCapability {
   static void apply(GlassQualityMode quality) {
     final tier = resolve(quality);
     GlassSettings.tier = tier;
-    GlassSettings.animatedBackdrop = tier == GlassTier.liquid;
+    // Blur-capable tiers delegate their frosted layer to the
+    // liquid_glass_widgets renderer, governed by the app-shell adaptive
+    // scope. Sheen and solid keep the hand-rolled zero-blur path, which is
+    // cheaper than anything the package offers, so it stays the floor for
+    // weak TV boxes, web, and the reduced preference.
+    GlassSettings.usePackageRenderer = !useLegacyGlass &&
+        (tier == GlassTier.liquid || tier == GlassTier.frost);
+    // The 16s backdrop drift redrew the full-screen bloom stack every frame
+    // and was the single largest continuous GPU draw on the liquid tier, a
+    // major contributor to iPhones running hot on the glass theme. The
+    // backdrop stays static on every tier now.
+    GlassSettings.animatedBackdrop = false;
   }
 }

@@ -256,12 +256,14 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     // 1. Local Jellyfin items
     for (final f in _vm.filmographyMovies) {
       if (f.backdropImageTags.isNotEmpty) {
-        candidates.add(_vm.imageApi.getBackdropImageUrl(f.id, tag: f.backdropImageTags.first));
+        candidates.add(_vm.imageApi.getBackdropImageUrl(f.id,
+            tag: f.backdropImageTags.first, maxWidth: 1920));
       }
     }
     for (final f in _vm.filmographySeries) {
       if (f.backdropImageTags.isNotEmpty) {
-        candidates.add(_vm.imageApi.getBackdropImageUrl(f.id, tag: f.backdropImageTags.first));
+        candidates.add(_vm.imageApi.getBackdropImageUrl(f.id,
+            tag: f.backdropImageTags.first, maxWidth: 1920));
       }
     }
 
@@ -2847,9 +2849,19 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                 itemType: entry.type,
                 watchedBehavior:
                     widget.prefs.get(UserPreferences.watchedIndicatorBehavior),
-                onTap: () => context.push(
-                  Destinations.item(entry.id, serverId: entry.serverId),
-                ),
+                onTap: () {
+                  if (entry.serverId == 'seerr') {
+                    final mediaType = entry.seerrMediaType ??
+                        (entry.type == 'Series' ? 'tv' : 'movie');
+                    context.push(
+                      Destinations.seerrMedia(entry.id, mediaType: mediaType),
+                    );
+                  } else {
+                    context.push(
+                      Destinations.item(entry.id, serverId: entry.serverId),
+                    );
+                  }
+                },
               );
             },
           ),
@@ -2919,9 +2931,19 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
                         : null,
                     watchedBehavior: widget.prefs
                         .get(UserPreferences.watchedIndicatorBehavior),
-                    onTap: () => context.push(
-                      Destinations.item(entry.id, serverId: entry.serverId),
-                    ),
+                    onTap: () {
+                      if (entry.serverId == 'seerr') {
+                        final mediaType = entry.seerrMediaType ??
+                            (entry.type == 'Series' ? 'tv' : 'movie');
+                        context.push(
+                          Destinations.seerrMedia(entry.id, mediaType: mediaType),
+                        );
+                      } else {
+                        context.push(
+                          Destinations.item(entry.id, serverId: entry.serverId),
+                        );
+                      }
+                    },
                   );
                 },
               ),
@@ -4159,6 +4181,10 @@ class _ModernDetailContentState extends State<ModernDetailContent> {
     final tag = item.primaryImageTag;
     if (tag != null && !item.id.startsWith('tmdb:')) {
       return _vm.imageApi.getPrimaryImageUrl(item.id, maxHeight: 360, tag: tag);
+    }
+    final posterPath = item.rawData['PosterPath'] as String?;
+    if (posterPath != null && posterPath.isNotEmpty) {
+      return 'https://image.tmdb.org/t/p/w342$posterPath';
     }
     final profilePath = item.rawData['ProfilePath'] as String?;
     if (profilePath != null && profilePath.isNotEmpty) {

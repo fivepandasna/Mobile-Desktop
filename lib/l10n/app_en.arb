@@ -421,6 +421,10 @@
   "@gameSaveState": {
     "description": "In-game menu action to save the game state"
   },
+  "games": "Games",
+  "@games": {
+    "description": "Label for the games category tab in search results"
+  },
   "gameLoadState": "Load state",
   "@gameLoadState": {
     "description": "In-game menu action to load the saved game state"
@@ -1166,10 +1170,6 @@
   "@itemListPlaceholder": {
     "description": "Placeholder text for an empty item list screen"
   },
-  "favoriteTracksPlaceholder": "Favorite tracks will appear here",
-  "@favoriteTracksPlaceholder": {
-    "description": "Placeholder text for an empty music favorites screen"
-  },
   "failedToLoad": "Failed to load",
   "@failedToLoad": {
     "description": "Error message when item detail fails to load"
@@ -1509,6 +1509,16 @@
   "failedToDeleteItem": "Failed to delete item",
   "@failedToDeleteItem": {
     "description": "Error message when item deletion fails"
+  },
+  "failedToDeleteItemWithError": "Deletion operation failed with the following error: {error}",
+  "@failedToDeleteItemWithError": {
+    "description": "Error message when item deletion fails, including the specific error details",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Permission denied"
+      }
+    }
   },
   "renamePlaylist": "Rename Playlist",
   "@renamePlaylist": {
@@ -4114,6 +4124,8 @@
   "@wifiOnlyDownloads": {
     "description": "Setting for wifi-only downloads"
   },
+  "reportDownloadsActivity": "Show downloads on the server",
+  "reportDownloadsActivitySubtitle": "Let the server admin see your transcoded downloads in the dashboard",
   "onlyDownloadOnWifi": "Only download when connected to WiFi",
   "@onlyDownloadOnWifi": {
     "description": "Description for wifi-only downloads"
@@ -4614,6 +4626,14 @@
   "fullScreenRowsDescription": "Limit home rows to 1 row per screen",
   "@fullScreenRowsDescription": {
     "description": "Description for full screen home rows"
+  },
+  "homeRowsPadding": "Home Row Padding",
+  "@homeRowsPadding": {
+    "description": "Title for home rows padding setting"
+  },
+  "homeRowsPaddingDescription": "Customize padding between home rows",
+  "@homeRowsPaddingDescription": {
+    "description": "Description for home rows padding setting"
   },
   "perRowImageType": "Per Row Image Type",
   "@perRowImageType": {
@@ -5202,6 +5222,18 @@
       }
     }
   },
+  "mbValue": "{value} MB",
+  "@mbValue": {
+    "description": "Megabyte value display",
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "imageCacheLimit": "Image cache limit",
+  "clearImageCache": "Clear image cache",
+  "imageCacheCleared": "Image cache cleared",
   "clear": "Clear",
   "@clear": {
     "description": "Button to clear"
@@ -6800,10 +6832,42 @@
     }
   },
   "adminAddTuner": "Add Tuner",
+  "adminEditTuner": "Edit Tuner",
+  "adminTunerTypeM3u": "M3U Tuner",
+  "adminTunerTypeHdHomerun": "HDHomeRun",
+  "adminTunerFileOrUrl": "File or URL",
+  "adminTunerIpAddress": "Tuner IP address",
+  "adminTunerFriendlyName": "Friendly name",
+  "adminTunerUserAgent": "User agent",
+  "adminTunerCount": "Simultaneous connection limit",
+  "adminTunerCountHelp": "The maximum number of streams the tuner allows at once. Set to 0 for unlimited.",
+  "adminTunerFallbackBitrate": "Fallback max streaming bitrate",
+  "adminTunerImportFavoritesOnly": "Import only favorite channels",
+  "adminTunerAllowHwTranscoding": "Allow hardware transcoding",
+  "adminTunerAllowFmp4": "Allow fMP4 transcoding container",
+  "adminTunerAllowStreamSharing": "Allow stream sharing",
+  "adminTunerEnableStreamLooping": "Enable stream looping",
+  "adminTunerIgnoreDts": "Ignore DTS",
+  "adminTunerReadAtNativeFramerate": "Read input at native frame rate",
+  "adminEditProvider": "Edit Provider",
+  "adminProviderXmltv": "XMLTV",
+  "adminProviderSchedulesDirect": "Schedules Direct",
+  "adminXmltvPath": "File or URL",
+  "adminXmltvMoviePrefix": "Movie prefix",
+  "adminXmltvMovieCategories": "Movie categories",
+  "adminXmltvCategoriesHelp": "Separate multiple categories with a vertical bar.",
+  "adminXmltvKidsCategories": "Kids categories",
+  "adminXmltvNewsCategories": "News categories",
+  "adminXmltvSportsCategories": "Sports categories",
+  "adminSdUsername": "Username",
+  "adminSdPassword": "Password",
+  "adminSdCountry": "Country",
+  "adminSdCountrySelect": "Select a country",
+  "adminSdPostalCode": "Postal code",
+  "adminSdGetListings": "Get listings",
+  "adminSdListings": "Listings",
+  "adminEnableAllTuners": "Enable all tuners",
   "adminTunerType": "Tuner Type",
-  "adminTunerTypeHint": "HDHomeRun, M3U, Other",
-  "adminUrlPath": "URL / Path",
-  "adminNameOptional": "Name (optional)",
   "adminTunerAdded": "Tuner added",
   "adminTunerAddFailed": "Failed to add tuner: {error}",
   "@adminTunerAddFailed": {
@@ -6813,9 +6877,6 @@
   },
   "adminAddGuideProvider": "Add Guide Provider",
   "adminProviderType": "Provider Type",
-  "adminProviderTypeHint": "SchedulesDirect or XMLTV",
-  "adminUsernameOptional": "Username (optional)",
-  "adminRefreshInterval": "Refresh interval (hours)",
   "adminProviderAdded": "Provider added",
   "adminProviderAddFailed": "Failed to add provider: {error}",
   "@adminProviderAddFailed": {
@@ -7226,11 +7287,14 @@
   "adminPlaybackTonemappingDesat": "Tone mapping desaturation",
   "adminPlaybackTonemappingPeak": "Tone mapping peak",
   "adminPlaybackTonemappingParam": "Tone mapping parameter",
+  "adminPlaybackVppTonemappingBrightness": "VPP tone mapping brightness",
+  "adminPlaybackVppTonemappingContrast": "VPP tone mapping contrast",
   "adminPlaybackPresetsQuality": "Presets & Quality",
   "adminPlaybackEncoderPreset": "Encoder preset",
   "adminPlaybackH264Crf": "H.264 encoding CRF",
   "adminPlaybackH265Crf": "H.265 (HEVC) encoding CRF",
   "adminPlaybackDeinterlaceMethod": "Deinterlace method",
+  "adminPlaybackDeinterlaceDoubleRate": "Double the frame rate when deinterlacing",
   "adminPlaybackAudioSection": "Audio",
   "adminPlaybackEnableAudioVbr": "Enable audio VBR encoding",
   "adminPlaybackDownmixBoost": "Audio downmix boost",
@@ -7401,6 +7465,8 @@
   "adminPlaybackSegmentDeletion": "Allow segment deletion",
   "adminPlaybackSegmentKeep": "Segment keep (seconds)",
   "adminPlaybackThrottleBuffering": "Throttle buffering",
+  "adminPlaybackThrottleDelay": "Throttle delay (seconds)",
+  "adminPlaybackEnableSubtitleExtraction": "Allow subtitle extraction on the fly",
 
   "adminResumeMinPct": "Minimum resume percentage",
   "adminResumeMinPctSubtitle": "Content must be played past this percentage to save progress",
@@ -7435,6 +7501,7 @@
   "adminGeneralCachePath": "Cache path",
   "adminGeneralMetadataPath": "Metadata path",
   "adminGeneralServerName": "Server name",
+  "adminGeneralDisplayLanguage": "Preferred display language",
   "adminSettingsLoadFailed": "Failed to load settings",
   "adminDiscover": "Discover",
   "adminChannelMappingsUpdateFailed": "Failed to update mappings: {error}",
@@ -8098,6 +8165,10 @@
   "showMediaDetailsOnLibraryPageDescription": "Show details of the selected item at the top of Library pages.",
   "@showMediaDetailsOnLibraryPageDescription": {
     "description": "Setting description to show/hide focused media details at the top of the library page"
+  },
+  "hideBackdropsInLibraries": "Hide Backdrops while Browsing?",
+  "@hideBackdropsInLibraries": {
+    "description": "Setting title to show/hide backdrops when browsing library pages"
   },
   "useDetailedSubHeadings": "Use Detailed Sub-Headings",
   "@useDetailedSubHeadings": {

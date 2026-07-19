@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/widgets.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as lgw;
 
 import '../theme/glass_settings.dart';
 
@@ -101,12 +102,35 @@ Widget glassPane({
     case GlassTier.frost:
     case GlassTier.liquid:
       final capped = GlassSettings.capSigmaFor(tier, sigma);
-      final blur = ImageFilter.blur(sigmaX: capped, sigmaY: capped);
-      Widget frost = ColoredBox(color: veilOverride ?? GlassRecipe.veil);
-      final grouped = context != null && BackdropGroup.of(context) != null;
-      frost = grouped
-          ? BackdropFilter.grouped(filter: blur, child: frost)
-          : BackdropFilter(filter: blur, child: frost);
+      Widget frost;
+      if (GlassSettings.usePackageRenderer) {
+        // Package-backed frosted layer. Quality resolves from the app's
+        // ambient GlassAdaptiveScope, so panes cheapen under GPU and thermal
+        // pressure and recover when the device cools. Settings match the raw
+        // path, same veil and sigma with no lens distortion or specular
+        // extras, and Moonfin's own highlight, hairline and scrim still draw
+        // on top in _pane.
+        frost = lgw.GlassContainer(
+          shape: lgw.LiquidRoundedRectangle(borderRadius: cornerRadius),
+          settings: lgw.LiquidGlassSettings(
+            glassColor: veilOverride ?? GlassRecipe.veil,
+            blur: capped,
+            thickness: 0,
+            chromaticAberration: 0,
+            saturation: 1.0,
+            glowIntensity: 0,
+            lightIntensity: 0,
+            shadowElevation: 0,
+          ),
+        );
+      } else {
+        final blur = ImageFilter.blur(sigmaX: capped, sigmaY: capped);
+        frost = ColoredBox(color: veilOverride ?? GlassRecipe.veil);
+        final grouped = context != null && BackdropGroup.of(context) != null;
+        frost = grouped
+            ? BackdropFilter.grouped(filter: blur, child: frost)
+            : BackdropFilter(filter: blur, child: frost);
+      }
       return _pane(
         radius: radius,
         cornerRadius: cornerRadius,

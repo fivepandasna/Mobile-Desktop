@@ -59,6 +59,10 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
 
   PosterSize get _posterSize => _prefs.resolveLibraryPosterSize();
 
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
@@ -66,6 +70,7 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
       if (mounted) setState(() => _backdropUrl = url);
     });
     _backdropUrl = _backgroundService.currentUrl;
+    _prefs.addListener(_onChanged);
     _load();
   }
 
@@ -73,6 +78,7 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
   void dispose() {
     _disposed = true;
     _backgroundSub?.cancel();
+    _prefs.removeListener(_onChanged);
     super.dispose();
   }
 
@@ -332,7 +338,8 @@ class _LibraryGenresScreenState extends State<LibraryGenresScreen> {
 
   Widget _buildContent(BuildContext context) {
     final isMobile = _isCompact(context);
-    final hasBackdrop = !isMobile && _backdropUrl != null;
+    final hideBackdrops = _prefs.get(UserPreferences.hideBackdropsInLibraries);
+    final hasBackdrop = !isMobile && !hideBackdrops && _backdropUrl != null;
     return Scaffold(
       backgroundColor: _navyBackground,
       body: Stack(

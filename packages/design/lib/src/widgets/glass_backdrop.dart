@@ -77,8 +77,10 @@ class _GlassBackdropState extends State<GlassBackdrop>
     // gradients, veil, and darkening gradient) into a single gradient pass.
     // Six full-screen draws per frame are too expensive for the TV boxes and
     // web renderers that resolve to sheen, and Impeller re-renders them every
-    // frame because it has no raster cache.
-    if (GlassSettings.tier == GlassTier.sheen) {
+    // frame because it has no raster cache. The same collapse applies when
+    // the adaptive glass scope has throttled to minimal quality, since a
+    // device under pressure shouldn't pay for the bloom stack either.
+    if (GlassSettings.cheapBackdrop) {
       return const RepaintBoundary(
         child: DecoratedBox(
           decoration: BoxDecoration(

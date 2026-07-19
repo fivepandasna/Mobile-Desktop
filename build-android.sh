@@ -127,6 +127,7 @@ echo "Building Android TV release APK..."
   --flavor androidTv \
   --build-name "$TV_VERSION" \
   --build-number "$TV_BUILD_NUMBER" \
+  --dart-define=MOONFIN_FORCE_TV=true \
   --dart-define=DISTRIBUTION_CHANNEL=android_tv_apk
 
 if [ ! -f "$TV_APK_SOURCE" ]; then
@@ -149,6 +150,7 @@ if ! "$FLUTTER" build appbundle --release \
   --flavor androidTv \
   --build-name "$TV_VERSION" \
   --build-number "$TV_BUILD_NUMBER" \
+  --dart-define=MOONFIN_FORCE_TV=true \
   --dart-define=DISTRIBUTION_CHANNEL=android_tv_aab; then
   echo "Flutter appbundle build failed. Retrying with Gradle bundleAndroidTvRelease fallback..."
   (

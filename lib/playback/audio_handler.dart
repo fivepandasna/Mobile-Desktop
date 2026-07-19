@@ -210,8 +210,10 @@ class MoonfinAudioHandler extends BaseAudioHandler
         _sessionConfigured = true;
       }
       final granted = await session.setActive(true);
-      if (!granted) {
-        // Focus denied; retry on the next playing/queue/backend event.
+      if (!granted && PlatformDetection.isAndroid) {
+        // Android focus denied; retry on the next playing/queue/backend event.
+        // iOS keeps the session flagged active so the app stays the Now Playing
+        // owner even when setActive momentarily reports false.
         _sessionActive = false;
       }
     } catch (_) {

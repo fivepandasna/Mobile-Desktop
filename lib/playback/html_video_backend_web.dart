@@ -250,7 +250,25 @@ class HtmlVideoBackend extends PlayerBackend {
     } catch (_) {}
   }
 
+  static bool _isCrossOrigin(String url) {
+    final target = Uri.tryParse(url);
+    if (target == null || !target.hasAuthority) return false;
+    final page = Uri.base;
+    return target.scheme != page.scheme ||
+        target.host != page.host ||
+        target.port != page.port;
+  }
+
   void _applyNativeSource(String url) {
+    // Subtitle tracks are fetched in whatever CORS mode the video element is
+    // in, so a remote server needs this. Asking for CORS on a same origin
+    // stream only gives playback another way to fail, and the element outlives
+    // the source, so it comes back off again.
+    if (_isCrossOrigin(url)) {
+      _videoElement.crossOrigin = 'anonymous';
+    } else {
+      _videoElement.removeAttribute('crossorigin');
+    }
     _videoElement.src = url;
     _videoElement.load();
   }
@@ -463,9 +481,21 @@ class HtmlVideoBackend extends PlayerBackend {
     try {
       final dynamic tracks = (_videoElement as dynamic).textTracks;
       final length = (tracks.length as num?)?.toInt() ?? 0;
+
+      dynamic targetTrackObj;
+      if (index >= 0 && index < _externalTracks.length) {
+        targetTrackObj = (_externalTracks[index] as dynamic).track;
+      } else {
+        targetTrackObj = index >= 0 && index < length ? tracks[index] : null;
+      }
+
       for (var i = 0; i < length; i++) {
         final dynamic track = tracks[i];
-        track.mode = i == index ? 'showing' : 'disabled';
+        track.mode = 'disabled';
+      }
+
+      if (targetTrackObj != null) {
+        targetTrackObj.mode = 'showing';
       }
     } catch (_) {}
   }

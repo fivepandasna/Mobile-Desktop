@@ -21,6 +21,14 @@ subprojects {
 subprojects {
     configurations.configureEach {
         resolutionStrategy.eachDependency {
+            // This force covers only the androidx.media3 group. The bundled
+            // FFmpeg audio extension (org.jellyfin.media3:media3-ffmpeg-decoder
+            // in moonfin_native_video) isn't rewritten and ships against
+            // media3 1.9.x, since no 1.10.x build of it exists yet.
+            // Media3VideoView emits an "ffmpegDecoderDiagnostics" event at
+            // first player build. If that ever reports unavailable, pin
+            // media3Version back to the decoder's line until jellyfin
+            // publishes a matched artifact.
             if (requested.group == "androidx.media3") {
                 useVersion(media3Version)
             }

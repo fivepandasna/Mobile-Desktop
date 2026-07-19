@@ -278,7 +278,8 @@ class BookshelfLayout extends StatelessWidget {
   }) {
     final baseColor = glowColorForGenres(item.genres);
     final imageApi = GetIt.instance<MediaServerClient>().imageApi;
-    final posterUrl = item.posterUrl ?? imageApi.getPrimaryImageUrl(item.itemId);
+    final posterUrl =
+        item.posterUrl ?? imageApi.getPrimaryImageUrl(item.itemId, maxWidth: 600);
 
     // Adjusted centering alignment: center within the cover face area (crease to right edge)
     final creaseWidth = width * 0.12;
@@ -301,7 +302,6 @@ class BookshelfLayout extends StatelessWidget {
     return OfflineAwareImage(
       imageUrl: posterUrl,
       memCacheWidth: cacheW,
-      maxWidthDiskCache: cacheW,
       fadeInDuration: const Duration(milliseconds: 250),
       fadeOutDuration: Duration.zero,
       placeholder: (context, url) => const SizedBox.shrink(),

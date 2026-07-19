@@ -17,6 +17,14 @@ class JellyfinAdminLiveTvApi implements AdminLiveTvApi {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> getTunerHostTypes() async {
+    final response = await _getWithFallback([
+      '/LiveTv/TunerHosts/Types',
+    ]);
+    return _asList(response.data);
+  }
+
+  @override
   Future<Map<String, dynamic>> addTunerHost(Map<String, dynamic> tunerInfo) async {
     final response = await _postWithFallback([
       '/LiveTv/TunerHosts',
@@ -64,11 +72,23 @@ class JellyfinAdminLiveTvApi implements AdminLiveTvApi {
   }
 
   @override
-  Future<Map<String, dynamic>> addListingProvider(Map<String, dynamic> providerInfo) async {
-    final response = await _postWithFallback([
-      '/LiveTv/ListingProviders',
-      '/LiveTv/Listings/Providers',
-    ], data: providerInfo);
+  Future<Map<String, dynamic>> addListingProvider(
+    Map<String, dynamic> providerInfo, {
+    bool validateLogin = false,
+    bool validateListings = false,
+  }) async {
+    final query = <String, dynamic>{
+      if (validateLogin) 'validateLogin': true,
+      if (validateListings) 'validateListings': true,
+    };
+    final response = await _postWithFallback(
+      [
+        '/LiveTv/ListingProviders',
+        '/LiveTv/Listings/Providers',
+      ],
+      data: providerInfo,
+      queryParameters: query.isEmpty ? null : query,
+    );
     return _asMap(response.data);
   }
 
@@ -80,6 +100,48 @@ class JellyfinAdminLiveTvApi implements AdminLiveTvApi {
       ],
       queryParameters: {'id': id},
     );
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getSchedulesDirectCountries() async {
+    final response = await _getWithFallback([
+      '/LiveTv/ListingProviders/SchedulesDirect/Countries',
+    ]);
+    final data = response.data;
+    final countries = <Map<String, dynamic>>[];
+    // The server groups countries by region, so flatten every region's list
+    // into a single ordered set of {ShortName, FullName} entries.
+    if (data is Map) {
+      for (final region in data.values) {
+        if (region is List) {
+          countries.addAll(
+            region.whereType<Map>().map((e) => e.cast<String, dynamic>()),
+          );
+        }
+      }
+    } else if (data is List) {
+      countries.addAll(
+        data.whereType<Map>().map((e) => e.cast<String, dynamic>()),
+      );
+    }
+    return countries;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getListingProviderLineups({
+    String? providerId,
+    required String location,
+    required String country,
+  }) async {
+    final response = await _getWithFallback(
+      ['/LiveTv/ListingProviders/Lineups'],
+      queryParameters: {
+        if (providerId != null && providerId.isNotEmpty) 'id': providerId,
+        'location': location,
+        'country': country,
+      },
+    );
+    return _asList(response.data);
   }
 
   @override
@@ -125,11 +187,14 @@ class JellyfinAdminLiveTvApi implements AdminLiveTvApi {
     return const {};
   }
 
-  Future<Response<dynamic>> _getWithFallback(List<String> paths) async {
+  Future<Response<dynamic>> _getWithFallback(
+    List<String> paths, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
     DioException? lastDioError;
     for (final path in paths) {
       try {
-        return await _dio.get(path);
+        return await _dio.get(path, queryParameters: queryParameters);
       } on DioException catch (e) {
         final status = e.response?.statusCode;
         if (status == 404 || status == 405 || status == 501) {
@@ -145,11 +210,12 @@ class JellyfinAdminLiveTvApi implements AdminLiveTvApi {
   Future<Response<dynamic>> _postWithFallback(
     List<String> paths, {
     Object? data,
+    Map<String, dynamic>? queryParameters,
   }) async {
     DioException? lastDioError;
     for (final path in paths) {
       try {
-        return await _dio.post(path, data: data);
+        return await _dio.post(path, data: data, queryParameters: queryParameters);
       } on DioException catch (e) {
         final status = e.response?.statusCode;
         if (status == 404 || status == 405 || status == 501) {

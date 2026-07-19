@@ -17,7 +17,7 @@
             }
         }
     },
-    "quickConnect": "Hızlı bağlantı",
+    "quickConnect": "Quick Connect",
     "@quickConnect": {
         "description": "Quick Connect toggle button label"
     },
@@ -49,7 +49,7 @@
     "@loginFailed": {
         "description": "Generic login failure message"
     },
-    "quickConnectUnavailable": "Hızlı Bağlantı kullanılamıyor: {detail}",
+    "quickConnectUnavailable": "QuickConnect kullanılamıyor: {detail}",
     "@quickConnectUnavailable": {
         "description": "Quick Connect generic error message",
         "placeholders": {
@@ -58,7 +58,7 @@
             }
         }
     },
-    "quickConnectUnavailableWithStatus": "Hızlı Bağlantı kullanılamıyor ({status}): {detail}",
+    "quickConnectUnavailableWithStatus": "QuickConnect kullanılamıyor ({status}): {detail}",
     "@quickConnectUnavailableWithStatus": {
         "description": "Quick Connect error message with HTTP status info",
         "placeholders": {
@@ -132,7 +132,7 @@
     "@cancel": {
         "description": "Generic cancel button label"
     },
-    "remove": "Sil",
+    "remove": "Kaldır",
     "@remove": {
         "description": "Remove button label in confirmation dialogs"
     },
@@ -923,10 +923,6 @@
     "@itemListPlaceholder": {
         "description": "Placeholder text for an empty item list screen"
     },
-    "favoriteTracksPlaceholder": "Favori parçalar burada görünecek",
-    "@favoriteTracksPlaceholder": {
-        "description": "Placeholder text for an empty music favorites screen"
-    },
     "failedToLoad": "Yüklenemedi",
     "@failedToLoad": {
         "description": "Error message when item detail fails to load"
@@ -1112,7 +1108,7 @@
     "@version": {
         "description": "Action button label for version/media source selection"
     },
-    "cast": "Yansıt",
+    "cast": "Yayınla",
     "@cast": {
         "description": "Action button label for casting to a device"
     },
@@ -1396,7 +1392,7 @@
     "@director": {
         "description": "Metadata label for director"
     },
-    "writers": "YAZARLAR",
+    "writers": "SENARİSTLER",
     "@writers": {
         "description": "Metadata label for writers"
     },
@@ -1809,7 +1805,7 @@
     "@transcodeReasons": {
         "description": "Stream info label for transcode reasons"
     },
-    "player": "Oyuncu",
+    "player": "Oynatıcı",
     "@player": {
         "description": "Stream info label for player engine"
     },
@@ -2818,7 +2814,7 @@
     "@refreshRateSwitching": {
         "description": "Setting for refresh rate switching"
     },
-    "disabled": "Devre Dışı",
+    "disabled": "Devre dışı",
     "@disabled": {
         "description": "Option: disabled"
     },
@@ -3675,10 +3671,6 @@
     "@lastUser": {
         "description": "Option: last user"
     },
-    "specificUser": "Belirli Kullanıcı",
-    "@specificUser": {
-        "description": "Option: specific user"
-    },
     "alwaysAuthenticate": "Daima Kimlik Doğrula",
     "@alwaysAuthenticate": {
         "description": "Setting for always authenticate"
@@ -4042,7 +4034,7 @@
     "@discoverRowsDescription": {
         "description": "Description for discover rows without plugin"
     },
-    "enabled": "Etkinleştirildi",
+    "enabled": "Etkin",
     "@enabled": {
         "description": "Status: enabled"
     },
@@ -4347,7 +4339,7 @@
     "@showMore": {
         "description": "Button to expand truncated content"
     },
-    "appearances": "Görünümler",
+    "appearances": "Rol aldığı yapımlar",
     "@appearances": {
         "description": "Section title for cast appearances"
     },
@@ -4397,11 +4389,11 @@
     "copy": "Kopyala",
     "create": "Oluştur",
     "disable": "Devre dışı bırak",
-    "done": "Tamamlandı",
+    "done": "Bitti",
     "edit": "Düzenle",
     "encoding": "Kodlama",
     "error": "Hata",
-    "forward": "İleri",
+    "forward": "İleri sar",
     "general": "Genel",
     "go": "Git",
     "install": "Kur",
@@ -4417,7 +4409,7 @@
     "profile": "Profil",
     "provider": "Sağlayıcı",
     "refresh": "Yenile",
-    "remote": "Uzak",
+    "remote": "Kumanda",
     "rename": "Yeniden adlandır",
     "revoke": "Geri çek",
     "role": "Rol",
@@ -4432,13 +4424,13 @@
     "stop": "Durdur",
     "streaming": "Akış",
     "time": "Zaman",
-    "trickplay": "Önizleme Resimleri",
+    "trickplay": "Trickplay",
     "uninstall": "Kaldır",
     "up": "Yukarı",
     "update": "Güncelleme",
     "upload": "Yükle",
     "unmute": "Sesini aç",
-    "mute": "Sesini kapat",
+    "mute": "Sessize al",
     "branding": "Markalaşma",
     "adminDrawerDashboard": "Kontrol Paneli",
     "adminDrawerAnalytics": "Analizler",
@@ -4447,9 +4439,9 @@
     "adminDrawerUsers": "Kullanıcılar",
     "adminDrawerLibraries": "Kütüphaneler",
     "adminDrawerTranscoding": "Kod dönüştür",
-    "adminDrawerResume": "Sürdür",
+    "adminDrawerResume": "Devam et",
     "adminDrawerStreaming": "Akış",
-    "adminDrawerTrickplay": "Önizleme Resimleri",
+    "adminDrawerTrickplay": "Trickplay",
     "adminDrawerDevices": "Cihazlar",
     "adminDrawerActivity": "Etkinlik",
     "adminDrawerNetworking": "Ağ oluşturma",
@@ -4543,12 +4535,12 @@
     "adminSetVolume": "Sesi Ayarla",
     "sessionPrev": "Önceki",
     "sessionRewind": "Geri sarma",
-    "sessionForward": "İleri",
+    "sessionForward": "İleri sar",
     "sessionNext": "Sonraki",
     "sessionVolumeDown": "Ses –",
     "sessionVolumeUp": "Ses +",
     "nowPlaying": "Şimdi Oynuyor",
-    "volume": "Ses",
+    "volume": "Ses düzeyi",
     "actions": "Eylemler",
     "videoCodec": "Video Kodeki",
     "audioCodec": "Ses Kodeki",
@@ -5209,8 +5201,8 @@
     "adminAllowSegmentDeletion": "Parça silmeye izin ver",
     "adminSegmentKeepSeconds": "Parça saklama süresi (saniye)",
     "adminThrottleBuffering": "Arabelleğe almayı sınırla",
-    "adminTrickplaySaved": "Önizleme ayarları kaydedildi",
-    "adminTrickplayLoadFailed": "Önizleme ayarları yüklenemedi",
+    "adminTrickplaySaved": "Trickplay ayarları kaydedildi",
+    "adminTrickplayLoadFailed": "Trickplay ayarları yüklenemedi",
     "adminEnableHardwareAcceleration": "Donanım hızlandırmayı etkinleştir",
     "adminEnableKeyFrameExtraction": "Yalnızca anahtar kare çıkartmayı etkinleştir",
     "adminKeyFrameSubtitle": "Daha hızlı ancak daha düşük doğruluk",
@@ -5286,7 +5278,6 @@
             }
         }
     },
-    "adminSearchRemotePerson": "Uzaktaki Kişiyi Ara",
     "adminNoRemoteMatches": "Uzak eşleşme bulunamadı",
     "adminRemoteResults": "Uzak Sonuçlar",
     "adminRemoteMetadataApplied": "Uzak meta veriler uygulandı",
@@ -5382,9 +5373,6 @@
     },
     "adminAddTuner": "Tuner Ekle",
     "adminTunerType": "Tuner Türü",
-    "adminTunerTypeHint": "HDHomeRun, M3U, Diğer",
-    "adminUrlPath": "URL / Yol",
-    "adminNameOptional": "Ad (isteğe bağlı)",
     "adminTunerAdded": "Ayarlayıcı eklendi",
     "adminTunerAddFailed": "Tuner eklenemedi: {error}",
     "@adminTunerAddFailed": {
@@ -5396,9 +5384,6 @@
     },
     "adminAddGuideProvider": "Rehber Sağlayıcı Ekle",
     "adminProviderType": "Sağlayıcı Türü",
-    "adminProviderTypeHint": "SchedulesDirect veya XMLTV",
-    "adminUsernameOptional": "Kullanıcı adı (isteğe bağlı)",
-    "adminRefreshInterval": "Yenileme aralığı (saat)",
     "adminProviderAdded": "Sağlayıcı eklendi",
     "adminProviderAddFailed": "Sağlayıcı eklenemedi: {error}",
     "@adminProviderAddFailed": {
@@ -5567,7 +5552,6 @@
     },
     "adminLogViewerNoMatches": "Eşleşen çizgi yok",
     "adminMetadataEditorTitle": "Meta Veri Düzenleyici",
-    "adminMetadataRemote": "Uzak",
     "adminMetadataType": "Tür",
     "adminMetadataDetails": "Detaylar",
     "adminMetadataExternalIds": "Harici Kimlikler",
@@ -5746,7 +5730,7 @@
             }
         }
     },
-    "adminReposRemove": "Kaldırmak",
+    "adminReposRemove": "Kaldır",
     "adminReposSaveFailed": "Depolar kaydedilemedi: {error}",
     "@adminReposSaveFailed": {
         "placeholders": {
@@ -5834,7 +5818,7 @@
     "adminTaskCancelling": "İptal...",
     "adminTaskRunning": "Çalışıyor...",
     "adminTaskNeverRun": "Asla çalışma",
-    "adminTaskStop": "Dur",
+    "adminTaskStop": "Durdur",
     "adminTaskRun": "Çalıştır",
     "adminTaskDetailLastExecution": "Son Yürütme",
     "adminTaskDetailStarted": "Başlatıldı",
@@ -5953,7 +5937,7 @@
             }
         }
     },
-    "adminTrickplayDescription": "Önizleme küçük resimlerini aramak için hileli görüntü oluşturmayı yapılandırın.",
+    "adminTrickplayDescription": "İleri sarma önizleme küçük resimleri için Trickplay görüntü oluşturmayı yapılandırın.",
     "adminNetworkingPublicHttpsPort": "Genel HTTPS bağlantı noktası",
     "adminNetworkingBaseUrl": "Temel URL",
     "adminNetworkingBaseUrlHint": "Örn. /jellyfin",
@@ -6081,14 +6065,14 @@
     "pinForgot": "PIN'inizi mi unuttunuz?",
     "pinClear": "Temizle",
     "pinBackspace": "Geri tuşu",
-    "quickConnectAuthorized": "Hızlı Bağlantı isteği onaylandı.",
-    "quickConnectInvalidOrExpired": "Hızlı Bağlantı kodu geçersiz veya süresi dolmuş.",
-    "quickConnectNotSupported": "Hızlı Bağlantı bu sunucuda desteklenmiyor.",
-    "quickConnectAuthorizeFailed": "Hızlı Bağlantı kodu yetkilendirilemedi.",
-    "quickConnectDisabled": "Hızlı Bağlantı bu sunucuda devre dışı bırakıldı.",
-    "quickConnectForbidden": "Hesabınız bu Hızlı Bağlantı isteğine yetki veremez.",
-    "quickConnectNotFound": "Hızlı Bağlantı kodu bulunamadı. Yeni bir kod deneyin.",
-    "quickConnectFailedWithMessage": "Hızlı Bağlantı başarısız oldu: {message}",
+    "quickConnectAuthorized": "Quick Connect isteği onaylandı.",
+    "quickConnectInvalidOrExpired": "Quick Connect kodu geçersiz veya süresi dolmuş.",
+    "quickConnectNotSupported": "Quick Connect bu sunucuda desteklenmiyor.",
+    "quickConnectAuthorizeFailed": "Quick Connect kodu yetkilendirilemedi.",
+    "quickConnectDisabled": "Quick Connect bu sunucuda devre dışı bırakıldı.",
+    "quickConnectForbidden": "Hesabınız bu Quick Connect isteğine yetki veremez.",
+    "quickConnectNotFound": "Quick Connect kodu bulunamadı. Yeni bir kod deneyin.",
+    "quickConnectFailedWithMessage": "Quick Connect başarısız oldu: {message}",
     "@quickConnectFailedWithMessage": {
         "placeholders": {
             "message": {
@@ -6168,7 +6152,7 @@
     "upNext": "Sonraki",
     "playNext": "Sonrakini Oynat",
     "stillWatchingContent": "Oynatma duraklatıldı. Hala izliyor musun?",
-    "stillWatchingStop": "Dur",
+    "stillWatchingStop": "Durdur",
     "stillWatchingContinue": "Devam et",
     "skipSegment": "{segment} geç",
     "@skipSegment": {
@@ -6224,7 +6208,7 @@
     "@playerTooltipExitFullscreen": {
         "description": "Tooltip label for exiting fullscreen in player"
     },
-    "playerTooltipPrevious": "Öncesi",
+    "playerTooltipPrevious": "Önceki",
     "@playerTooltipPrevious": {
         "description": "Tooltip label for previous item control in player"
     },
@@ -6779,7 +6763,7 @@
     "@musicVideos": {
         "description": "Section header for music videos filmography row"
     },
-    "record": "Kayıt",
+    "record": "Kaydet",
     "@record": {
         "description": "Button label to schedule a live TV recording"
     },
@@ -6810,18 +6794,6 @@
     "settingsAudioFallbackCodec": "Yedek Ses Kodeki",
     "@settingsAudioFallbackCodec": {
         "description": "Setting for fallback audio codec"
-    },
-    "settingsAudioFallbackAacStereo": "AAC Stereo",
-    "@settingsAudioFallbackAacStereo": {
-        "description": "Fallback codec option for AAC stereo"
-    },
-    "settingsAudioFallbackAc35_1": "AC3 5.1",
-    "@settingsAudioFallbackAc35_1": {
-        "description": "Fallback codec option for AC3 5.1"
-    },
-    "settingsAudioFallbackEac35_1": "EAC3 5.1",
-    "@settingsAudioFallbackEac35_1": {
-        "description": "Fallback codec option for EAC3 5.1"
     },
     "settingsAudioPassthroughAdvanced": "Doğrudan Geçiş(Passthrough) (Gelişmiş)",
     "@settingsAudioPassthroughAdvanced": {
@@ -7237,7 +7209,7 @@
     "adminServerPathImageCache": "Görsel Önbelleği",
     "adminServerPathCache": "Önbellek",
     "adminServerPathLogs": "Günlükler",
-    "adminServerPathMetadata": "Metadata",
+    "adminServerPathMetadata": "Meta Veri",
     "adminServerPathTranscode": "Dönüştür",
     "adminServerPathWeb": "Web",
     "adminNoServerPathsReturned": "Bu sunucu tarafından hiçbir sunucu yolu döndürülmedi.",
@@ -7256,7 +7228,7 @@
     "adminDrawerSectionPlayback": "Oynatma",
     "adminDrawerSectionDevices": "Cihazlar",
     "adminDrawerSectionAdvanced": "Gelişmiş",
-    "adminDrawerSectionPlugins": "Plugins",
+    "adminDrawerSectionPlugins": "Eklentiler",
     "adminDrawerSectionLiveTv": "Canlı TV",
     "homeVideos": "Kişisel Videolar",
     "mixedContent": "Karma İçerik",
@@ -7367,7 +7339,7 @@
     "@scrollWheelActionOff": {
         "description": "Scroll wheel action option: do nothing"
     },
-    "scrollWheelActionVolume": "Ses",
+    "scrollWheelActionVolume": "Ses düzeyi",
     "@scrollWheelActionVolume": {
         "description": "Scroll wheel action option: adjust volume"
     },
@@ -7379,7 +7351,7 @@
     "@systemLanguageDefault": {
         "description": "Label for using the system default language in settings"
     },
-    "playerTooltipVolume": "Ses",
+    "playerTooltipVolume": "Ses düzeyi",
     "@playerTooltipVolume": {
         "description": "Tooltip for the volume control button in the player OSD"
     },
@@ -8034,7 +8006,7 @@
     "adminPlaybackTonemappingMode": "Ton eşleme modu",
     "adminPlaybackTonemappingRange": "Ton eşleme aralığı",
     "adminPlaybackTonemappingDesat": "Ton eşleme doygunluk azaltma",
-    "adminGeneralQuickConnect": "Hızlı Bağlantıyı Etkinleştir",
+    "adminGeneralQuickConnect": "Quick Connect'i Etkinleştir",
     "adminGeneralSectionServer": "Sunucu",
     "adminGeneralSectionMetadata": "Meta Veri",
     "adminGeneralSectionPaths": "Yollar",
@@ -8153,7 +8125,7 @@
     "navButtons": "Butonlar",
     "keyboard": "Klavye",
     "rendering": "Render Etme",
-    "directStreamRemux": "Direct Stream (Remux)",
+    "directStreamRemux": "Doğrudan Akış (Remux)",
     "@directStreamRemux": {
         "description": "Play method label for direct stream with remuxing"
     },
@@ -8963,5 +8935,76 @@
     "imdbMostPopularMovies": "IMDB En Popüler Filmler",
     "imdbMostPopularTvShows": "IMDB En Popüler Diziler",
     "imdbLowestRatedMovies": "IMDB En Düşük Puanlı Filmler",
-    "imdbTopEnglishMovies": "IMDB En Yüksek Puanlı İngilizce Filmler"
+    "imdbTopEnglishMovies": "IMDB En Yüksek Puanlı İngilizce Filmler",
+    "showTechnicalDetails": "Teknik Detaylar Gösterilsin Mi?",
+    "@showTechnicalDetails": {
+        "description": "Label for the detail screen setting to show stream/codec technical details"
+    },
+    "showTechnicalDetailsSubtitle": "Başlık özetinde kodek, çözünürlük ve akış bilgilerini göster",
+    "@showTechnicalDetailsSubtitle": {
+        "description": "Explanation under the show technical details setting"
+    },
+    "games": "Oyunlar",
+    "@games": {
+        "description": "Label for the games category tab in search results"
+    },
+    "reportDownloadsActivity": "İndirmeleri sunucuda göster",
+    "reportDownloadsActivitySubtitle": "Sunucu yöneticisinin, kodu dönüştürülmüş indirmelerinizi panelde görmesine izin verin",
+    "mbValue": "{value} MB",
+    "@mbValue": {
+        "description": "Megabyte value display",
+        "placeholders": {
+            "value": {
+                "type": "int"
+            }
+        }
+    },
+    "imageCacheLimit": "Görsel önbelleği sınırı",
+    "clearImageCache": "Görsel önbelleğini temizle",
+    "imageCacheCleared": "Görsel önbelleği temizlendi",
+    "adminEditTuner": "Tuner'i Düzenle",
+    "adminTunerTypeM3u": "M3U Tuner",
+    "adminTunerTypeHdHomerun": "HDHomeRun",
+    "adminTunerFileOrUrl": "Dosya veya URL",
+    "adminTunerIpAddress": "Tuner IP Adresi",
+    "adminTunerFriendlyName": "Görünen Ad",
+    "adminTunerUserAgent": "Kullanıcı Aracısı",
+    "adminTunerCount": "Eşzamanlı Bağlantı Sınırı",
+    "adminTunerCountHelp": "Alıcının aynı anda izin verdiği maksimum akış sayısı. Sınırsız yapmak için 0 olarak ayarlayın.",
+    "adminTunerFallbackBitrate": "Yedek Maksimum Akış Hızı",
+    "adminTunerImportFavoritesOnly": "Sadece favori kanalları aktar",
+    "adminTunerAllowHwTranscoding": "Donanım kod dönüştürmeye izin ver",
+    "adminTunerAllowFmp4": "fMP4 kod dönüştürme taşıyıcısına izin ver",
+    "adminTunerAllowStreamSharing": "Yayın paylaşımına izin ver",
+    "adminTunerEnableStreamLooping": "Yayın döngüsünü etkinleştir",
+    "adminTunerIgnoreDts": "DTS Ses Desteğini Yok Say",
+    "adminTunerReadAtNativeFramerate": "Girdiyi yerel kare hızında oku",
+    "adminEditProvider": "Sağlayıcıyı Düzenle",
+    "adminProviderXmltv": "XMLTV",
+    "adminProviderSchedulesDirect": "Schedules Direct",
+    "adminXmltvPath": "Dosya veya URL",
+    "adminXmltvMoviePrefix": "Film Ön Adı",
+    "adminXmltvMovieCategories": "Film Kategorileri",
+    "adminXmltvCategoriesHelp": "Birden çok kategoriyi dikey çizgi ile ayırın.",
+    "adminXmltvKidsCategories": "Çocuk Kategorileri",
+    "adminXmltvNewsCategories": "Haber Kategorileri",
+    "adminXmltvSportsCategories": "Spor Kategorileri",
+    "adminSdUsername": "Kullanıcı Adı",
+    "adminSdPassword": "Şifre",
+    "adminSdCountry": "Ülke",
+    "adminSdCountrySelect": "Ülke Seç",
+    "adminSdPostalCode": "Posta Kodu",
+    "adminSdGetListings": "Yayın Akışını Al",
+    "adminSdListings": "Yayın Akışları",
+    "adminEnableAllTuners": "Tüm tunerleri aktif et",
+    "adminPlaybackVppTonemappingBrightness": "VPP ton haritalama parlaklığı",
+    "adminPlaybackVppTonemappingContrast": "VPP ton haritalama kontrastı",
+    "adminPlaybackDeinterlaceDoubleRate": "Taramasızlaştırma yaparken kare hızını ikiye katla",
+    "adminPlaybackThrottleDelay": "Sınırlama gecikmesi (saniye)",
+    "adminPlaybackEnableSubtitleExtraction": "Anında altyazı çıkarılmasına izin ver",
+    "adminGeneralDisplayLanguage": "Tercih edilen görünüm dili",
+    "hideBackdropsInLibraries": "Göz atarken arka plan resimleri gizlensin mi?",
+    "@hideBackdropsInLibraries": {
+        "description": "Setting title to show/hide backdrops when browsing library pages"
+    }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
+import '../preference/preference_constants.dart';
 import '../util/platform_detection.dart';
 import 'audio_capability_profile.dart';
 
@@ -71,12 +72,35 @@ class AudioCapabilityProbe {
     }
   }
 
-  // A result that looks like the "nothing connected / not yet enumerated"
-  // fallback: no AVR route, no passthrough, stereo-only.
-  static bool _looksEmpty(AudioCapabilityProfile p) =>
+  /// A result that looks like the "nothing connected / not yet enumerated"
+  /// fallback: no AVR route, no passthrough, stereo-only. Public so the
+  /// audio settings screen can avoid locking in recommendations (like the
+  /// stereo preset) off a degenerate probe result.
+  static bool looksEmpty(AudioCapabilityProfile p) =>
       p.activeRouteType == AudioRouteType.other &&
       !p.hasCompressedPassthroughRoute &&
       p.maxPcmChannels <= 2;
+
+  /// Picks the preset the "Re-detect & apply recommended" action applies for
+  /// a probe result. A stereo-looking result on an unidentified route is
+  /// treated as a failed probe rather than a stereo sink, because
+  /// recommending the stereo preset there would lock users into forced
+  /// stereo off a transient enumeration failure.
+  static AudioPassthroughPreset recommendedPresetFor(
+    AudioCapabilityProfile? profile,
+  ) {
+    if (profile == null || looksEmpty(profile)) {
+      return AudioPassthroughPreset.auto;
+    }
+    if (profile.maxPcmChannels <= 2 &&
+        profile.activeRouteType != AudioRouteType.other) {
+      return AudioPassthroughPreset.stereo;
+    }
+    if (profile.isAvReceiverRoute && profile.hasCompressedPassthroughRoute) {
+      return AudioPassthroughPreset.surroundReceiver;
+    }
+    return AudioPassthroughPreset.auto;
+  }
 
   /// Queries with a short backoff so a startup race (audio outputs not yet
   /// enumerated when the app launches) doesn't strand detection on an empty
@@ -90,7 +114,7 @@ class AudioCapabilityProbe {
       final result = await query();
       if (result != null) {
         last = result;
-        if (!_looksEmpty(result)) return result;
+        if (!looksEmpty(result)) return result;
       }
       if (i < attempts - 1) {
         await Future<void>.delayed(delay);
@@ -114,11 +138,18 @@ class AudioCapabilityProbe {
     return channel.receiveBroadcastStream().listen(
       (event) {
         if (event is Map) {
-          apply(
-            AudioCapabilityProfile.fromMap(
-              event.map((key, value) => MapEntry(key.toString(), value)),
-            ),
+          final profile = AudioCapabilityProfile.fromMap(
+            event.map((key, value) => MapEntry(key.toString(), value)),
           );
+          // A route flap can transiently enumerate to "nothing connected"
+          // (route other, stereo, no passthrough). Never clobber a good
+          // snapshot with that. A genuine downgrade like unplugging an AVR
+          // reports a real route such as speaker and still applies.
+          if (looksEmpty(profile) &&
+              PlatformDetection.hasAudioCapabilities) {
+            return;
+          }
+          apply(profile);
         }
       },
       onError: (_) {},

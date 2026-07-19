@@ -83,6 +83,11 @@ class FavoritesViewModel extends ChangeNotifier {
   final Map<FavoriteTypeFilter, int> _rowTotalCounts = {};
   final Set<FavoriteTypeFilter> _inFlightPagingRowTypes = {};
 
+  /// Total number of favorites of [type] on the server, used for tab labels.
+  /// Falls back to the number of items already loaded when unknown.
+  int rowTotalCount(FavoriteTypeFilter type) =>
+      _rowTotalCounts[type] ?? (_rowItems[type]?.length ?? 0);
+
   FavoritesViewModel({
     required MediaServerClient client,
     required UserPreferences prefs,

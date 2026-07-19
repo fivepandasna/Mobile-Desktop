@@ -18,6 +18,7 @@ import '../../../preference/user_preferences.dart';
 import '../../../preference/seerr_preferences.dart';
 import '../../../preference/seerr_row_config.dart';
 import '../../../util/extensions.dart';
+import '../../../util/focus/scroll_utils.dart';
 import '../../../util/platform_detection.dart';
 import '../../navigation/route_lifecycle_observer.dart';
 import '../../widgets/overlay_sheet.dart';
@@ -1349,26 +1350,11 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
   }
 
   void _focusSectionAndEnsureVisible(int index) {
-    if (!mounted || index < 0 || index >= _focusNodes.length) return;
-    final node = _focusNodes[index];
-    if (!node.hasFocus) {
-      node.requestFocus();
-    }
-
-    // Defer the scroll until the reorder rebuild commits, so the target row's
-    // context exists.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || index < 0 || index >= _focusNodes.length) return;
-      final targetContext = _focusNodes[index].context;
-      if (targetContext == null) return;
-      Scrollable.ensureVisible(
-        targetContext,
-        duration: const Duration(milliseconds: 140),
-        curve: Curves.easeOut,
-        alignment: 0.2,
-        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-      );
-    });
+    focusItemAndEnsureVisible(
+      isMounted: () => mounted,
+      focusNodes: _focusNodes,
+      index: index,
+    );
   }
 
   void _sortSectionsEnabledAboveDisabled() {
@@ -1836,7 +1822,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
           // its sorted slot, so it animates instead of jumping.
           isSameItem: (a, b) =>
               a.stableId == b.stableId && a.enabled == b.enabled,
-          enableSwap: false,
+          enableSwap: true,
           enterTransition: [FadeIn(), SizeAnimation()],
           exitTransition: [FadeIn(), SizeAnimation()],
           onReorder: (oldIndex, newIndex) {
@@ -2321,7 +2307,7 @@ class _HomeSectionsScreenState extends State<HomeSectionsScreen>
           // its sorted slot, so it animates instead of jumping.
           isSameItem: (a, b) =>
               a.stableId == b.stableId && a.enabled == b.enabled,
-          enableSwap: false,
+          enableSwap: true,
           enterTransition: [FadeIn(), SizeAnimation()],
           exitTransition: [FadeIn(), SizeAnimation()],
           itemBuilder: (context, index) {
@@ -2879,97 +2865,100 @@ class _HomeSectionTileState extends State<_HomeSectionTile> {
                 UserPreferences.mergeContinueWatchingNextUp,
               ),
             ),
-            child: ListTile(
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              contentPadding: _kHomeSectionTileContentPadding,
-              minLeadingWidth: 44,
-              horizontalTitleGap: 14,
-              leading: buildSettingsLeadingIconShell(
-                context,
-                icon: Icon(
-                  (widget.enabled && !widget.isEmpty)
-                      ? Icons.check_box
-                      : Icons.check_box_outline_blank,
-                ),
-                focused: _focused,
-                iconColor: _focused
-                    ? AppColors.black.withValues(alpha: 0.54)
-                    : AppColorScheme.onSurface.withValues(alpha: 0.78),
-              ),
-              title: Row(
-                children: [
-                  Text(
-                    widget.label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: kCleanSettingsFontFamily,
-                      color: _focused
-                          ? AppColors.black.withValues(alpha: 0.87)
-                          : AppColorScheme.onSurface,
-                    ),
+            child: Material(
+              type: MaterialType.transparency,
+              child: ListTile(
+                focusColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                contentPadding: _kHomeSectionTileContentPadding,
+                minLeadingWidth: 44,
+                horizontalTitleGap: 14,
+                leading: buildSettingsLeadingIconShell(
+                  context,
+                  icon: Icon(
+                    (widget.enabled && !widget.isEmpty)
+                        ? Icons.check_box
+                        : Icons.check_box_outline_blank,
                   ),
-                  if (widget.isEmpty) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.15),
-                        borderRadius: AppRadius.circular(4),
-                        border: Border.all(
-                          color: Colors.red.withValues(alpha: 0.5),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Text(
-                        l10n.empty,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: kCleanSettingsFontFamily,
-                        ),
+                  focused: _focused,
+                  iconColor: _focused
+                      ? AppColors.black.withValues(alpha: 0.54)
+                      : AppColorScheme.onSurface.withValues(alpha: 0.78),
+                ),
+                title: Row(
+                  children: [
+                    Text(
+                      widget.label,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: kCleanSettingsFontFamily,
+                        color: _focused
+                            ? AppColors.black.withValues(alpha: 0.87)
+                            : AppColorScheme.onSurface,
                       ),
                     ),
+                    if (widget.isEmpty) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.15),
+                          borderRadius: AppRadius.circular(4),
+                          border: Border.all(
+                            color: Colors.red.withValues(alpha: 0.5),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          l10n.empty,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: kCleanSettingsFontFamily,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
-              ),
-              subtitle: widget.subtitle != null
-                  ? Text(
-                      widget.subtitle!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: kCleanSettingsFontFamily,
+                ),
+                subtitle: widget.subtitle != null
+                    ? Text(
+                        widget.subtitle!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: kCleanSettingsFontFamily,
+                          color: _focused
+                              ? AppColors.black.withValues(alpha: 0.54)
+                              : AppColorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                      )
+                    : null,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!widget.isFirst)
+                      Icon(
+                        Icons.arrow_left,
+                        size: 18,
                         color: _focused
                             ? AppColors.black.withValues(alpha: 0.54)
                             : AppColorScheme.onSurface.withValues(alpha: 0.7),
                       ),
-                    )
-                  : null,
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!widget.isFirst)
-                    Icon(
-                      Icons.arrow_left,
-                      size: 18,
-                      color: _focused
-                          ? AppColors.black.withValues(alpha: 0.54)
-                          : AppColorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                  if (!widget.isLast)
-                    Icon(
-                      Icons.arrow_right,
-                      size: 18,
-                      color: _focused
-                          ? AppColors.black.withValues(alpha: 0.54)
-                          : AppColorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                ],
+                    if (!widget.isLast)
+                      Icon(
+                        Icons.arrow_right,
+                        size: 18,
+                        color: _focused
+                            ? AppColors.black.withValues(alpha: 0.54)
+                            : AppColorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),

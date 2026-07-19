@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:server_core/server_core.dart';
+import 'package:dio/dio.dart';
 
 import '../../preference/preference_constants.dart';
 import '../../preference/user_preferences.dart';
@@ -24,6 +25,17 @@ enum CollectionSortOption {
 
 enum ItemDetailState { loading, ready, error }
 
+/// Why a delete request failed.
+///
+/// [detail] is a short status line safe to show the user. The raw response
+/// body never travels here because it can leak server paths.
+class DeleteItemFailure {
+  final int? statusCode;
+  final String? detail;
+
+  const DeleteItemFailure({this.statusCode, this.detail});
+}
+
 class ParentCollection {
   final String id;
   final String name;
@@ -33,8 +45,7 @@ class ParentCollection {
 }
 
 class ItemDetailViewModel extends ChangeNotifier {
-  static const _episodeOverviewFields =
-      'Overview,MediaStreams,MediaSources,RunTimeTicks,Trickplay,UserData,Chapters';
+  static const _episodeOverviewFields = 'Overview,RunTimeTicks,UserData';
 
   final MediaServerClient _client;
   final ItemMutationRepository _mutations;
@@ -578,12 +589,23 @@ class ItemDetailViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> deleteItem() async {
+  /// Returns `null` when the item was deleted, otherwise why it failed.
+  Future<DeleteItemFailure?> deleteItem() async {
     try {
       await _client.itemsApi.deleteItem(itemId);
-      return true;
-    } catch (_) {
-      return false;
+      return null;
+    } catch (e) {
+      if (e is DioException) {
+        // The body can be an HTML error page or JSON holding server paths, so
+        // it gets logged instead of shown.
+        debugPrint('[ItemDetailViewModel] Delete failed: ${e.response?.data}');
+        return DeleteItemFailure(
+          statusCode: e.response?.statusCode,
+          detail: e.response?.statusMessage ?? e.message,
+        );
+      }
+      debugPrint('[ItemDetailViewModel] Delete failed: $e');
+      return const DeleteItemFailure();
     }
   }
 

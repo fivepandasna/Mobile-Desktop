@@ -56,6 +56,10 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
   List<GenreCardData> _genres = [];
   bool _isLoading = true;
 
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
@@ -63,6 +67,7 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
       if (mounted) setState(() => _backdropUrl = url);
     });
     _backdropUrl = _backgroundService.currentUrl;
+    _prefs.addListener(_onChanged);
     _load();
   }
 
@@ -70,6 +75,7 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
   void dispose() {
     _disposed = true;
     _backgroundSub?.cancel();
+    _prefs.removeListener(_onChanged);
     super.dispose();
   }
 
@@ -307,7 +313,8 @@ class _AllGenresScreenState extends State<AllGenresScreen> {
   Widget _buildContent(BuildContext context) {
     final isMobile = _isCompact(context);
     final desktopScale = _desktopUiScaleFactor();
-    final hasBackdrop = !isMobile && _backdropUrl != null;
+    final hideBackdrops = _prefs.get(UserPreferences.hideBackdropsInLibraries);
+    final hasBackdrop = !isMobile && !hideBackdrops && _backdropUrl != null;
     return Scaffold(
       backgroundColor: _navyBackground,
       body: Stack(

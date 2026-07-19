@@ -15,6 +15,7 @@ import 'known_defects.dart';
 class Media3PlayerBackend extends PlayerBackend {
   static const _discontinuityWindowMs = 15000;
   static const _discontinuityThreshold = 3;
+  static const _audioSinkErrorThreshold = 2;
 
   Media3PlayerBackend(this._prefs) {
     _eventSub = _events.receiveBroadcastStream().listen(
@@ -30,6 +31,11 @@ class Media3PlayerBackend extends PlayerBackend {
 
   static Stream<Map<String, dynamic>> get activityActionStream =>
       _activityActionController.stream;
+
+  /// One-shot FFmpeg audio-extension state reported by the native side at
+  /// first player build. Read by the playback diagnostics so silent-TrueHD
+  /// reports show whether the bundled decoder registered at all.
+  static Map<String, dynamic>? ffmpegDecoderDiagnostics;
 
   final UserPreferences _prefs;
 
@@ -59,6 +65,7 @@ class Media3PlayerBackend extends PlayerBackend {
   bool _activityStarted = false;
   bool _sessionTunnelingDisabled = false;
   final List<int> _discontinuityTimestamps = <int>[];
+  final List<int> _audioSinkErrorTimestamps = <int>[];
   Timer? _audioDelayDebounce;
 
   // Freeze diagnostics: surface decode/render stalls into the in-app report so
@@ -230,6 +237,30 @@ class Media3PlayerBackend extends PlayerBackend {
           'Media3: audio sink error: ${map['message'] ?? ''}',
           level: LogLevel.warning,
         );
+        _onAudioSinkError();
+      case 'tunnelingDisabledOnAudioTrackFailure':
+        _sessionTunnelingDisabled = true;
+        _diag(
+          'Media3: AudioTrack init failed under tunneling, '
+          'retried untunneled for this session',
+          level: LogLevel.warning,
+        );
+      case 'stereoDownmixReset':
+        _diag(
+          'Media3: sticky stereo downmix cleared '
+          '(${map['reason'] ?? 'route change'})',
+        );
+      case 'ffmpegDecoderDiagnostics':
+        ffmpegDecoderDiagnostics = <String, dynamic>{
+          'available': map['available'] == true,
+          'version': map['version']?.toString() ?? '',
+          'supportsTrueHd': map['supportsTrueHd'] == true,
+        };
+        _diag(
+          'Media3: FFmpeg decoder available=${map['available']} '
+          'version=${map['version']} supportsTrueHd=${map['supportsTrueHd']}',
+          level: map['available'] == true ? LogLevel.info : LogLevel.warning,
+        );
       case 'playerRebuilt':
         _diag(
           'Media3: player rebuilt for new source '
@@ -261,6 +292,37 @@ class Media3PlayerBackend extends PlayerBackend {
 
     _discontinuityTimestamps.clear();
     unawaited(disableTunnelingFallback());
+  }
+
+  /// Tunneled sink failures don't always surface as discontinuity
+  /// exceptions. Some chains fail with generic sink errors, so repeated
+  /// bare sink errors while tunneling is active are treated as a tunneling
+  /// problem and trigger the same fallback as discontinuities.
+  void _onAudioSinkError() {
+    if (_sessionTunnelingDisabled) {
+      return;
+    }
+
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
+    _audioSinkErrorTimestamps.removeWhere(
+      (timestamp) => nowMs - timestamp > _discontinuityWindowMs,
+    );
+    _audioSinkErrorTimestamps.add(nowMs);
+
+    if (_audioSinkErrorTimestamps.length < _audioSinkErrorThreshold) {
+      return;
+    }
+
+    _audioSinkErrorTimestamps.clear();
+    _diag(
+      'Media3: repeated audio sink errors under tunneling, '
+      'disabling tunneling for this session',
+      level: LogLevel.warning,
+    );
+    // Session-only fallback. Generic sink errors are a weaker tunneling
+    // signal than discontinuity exceptions, so they don't persist the
+    // tunneling-disabled preference the way _onTunnelingDiscontinuity does.
+    unawaited(disableTunnelingFallback(persist: false));
   }
 
   void _diag(String message, {LogLevel level = LogLevel.debug}) {
@@ -444,6 +506,7 @@ class Media3PlayerBackend extends PlayerBackend {
     _textTrackCount = 0;
     _tracksReadyCompleter = null;
     _discontinuityTimestamps.clear();
+    _audioSinkErrorTimestamps.clear();
     if (isPreview) {
       // Muted previews/trailers are routinely canceled mid-load; disarm the
       // never-started watchdog instead of re-arming it and logging warnings.
@@ -632,6 +695,9 @@ class Media3PlayerBackend extends PlayerBackend {
       // codec decodes in software, so stereo routes downmix locally instead
       // of forcing a server transcode.
       universalAudioDecode: true,
+      // Media3 can bitstream TrueHD/MLP to a receiver instead of decoding
+      // locally, so lossless on AVR routes needs real passthrough.
+      losslessAudioRequiresPassthroughOnAvrRoutes: true,
       maxResolution: maxResolution,
       pgsDirectPlay: _prefs.get(UserPreferences.pgsDirectPlay) && canRenderBitmapSubtitles,
       assDirectPlay: _prefs.get(UserPreferences.assDirectPlay),

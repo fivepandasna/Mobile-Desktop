@@ -148,26 +148,33 @@ class UserConfiguration {
     Map<String, dynamic> raw = const {},
   }) : _raw = raw;
 
-  factory UserConfiguration.fromJson(Map<String, dynamic> json) =>
-      UserConfiguration(
-        orderedViews: _stringList(json['OrderedViews']),
-        latestItemsExcludes: _stringList(json['LatestItemsExcludes']),
-        myMediaExcludes: _stringList(json['MyMediaExcludes']),
-        groupedFolders: _stringList(json['GroupedFolders']),
-        hidePlayedInLatest: json['HidePlayedInLatest'] as bool? ?? true,
-        enableNextEpisodeAutoPlay:
-            json['EnableNextEpisodeAutoPlay'] as bool? ?? true,
-        playDefaultAudioTrack:
-            json['PlayDefaultAudioTrack'] as bool? ?? true,
-        rememberAudioSelections:
-            json['RememberAudioSelections'] as bool? ?? true,
-        rememberSubtitleSelections:
-            json['RememberSubtitleSelections'] as bool? ?? true,
-        audioLanguagePreference: _nonEmptyString(json['AudioLanguagePreference']),
-        subtitleLanguagePreference: _nonEmptyString(json['SubtitleLanguagePreference']),
-        subtitleMode: _subtitleModeString(json['SubtitleMode']),
-        raw: json,
-      );
+  factory UserConfiguration.fromJson(Map<String, dynamic> json) {
+    // Servers differ on casing, so read either spelling of each key.
+    Object? read(String key) => json[key] ?? json[_camelOf(key)];
+
+    return UserConfiguration(
+      orderedViews: _stringList(read('OrderedViews')),
+      latestItemsExcludes: _stringList(read('LatestItemsExcludes')),
+      myMediaExcludes: _stringList(read('MyMediaExcludes')),
+      groupedFolders: _stringList(read('GroupedFolders')),
+      hidePlayedInLatest: read('HidePlayedInLatest') as bool? ?? true,
+      enableNextEpisodeAutoPlay:
+          read('EnableNextEpisodeAutoPlay') as bool? ?? true,
+      playDefaultAudioTrack: read('PlayDefaultAudioTrack') as bool? ?? true,
+      rememberAudioSelections: read('RememberAudioSelections') as bool? ?? true,
+      rememberSubtitleSelections:
+          read('RememberSubtitleSelections') as bool? ?? true,
+      audioLanguagePreference: _nonEmptyString(read('AudioLanguagePreference')),
+      subtitleLanguagePreference: _nonEmptyString(
+        read('SubtitleLanguagePreference'),
+      ),
+      subtitleMode: _subtitleModeString(read('SubtitleMode')),
+      raw: json,
+    );
+  }
+
+  static String _camelOf(String pascal) =>
+      pascal[0].toLowerCase() + pascal.substring(1);
 
   static List<String> _stringList(dynamic value) {
     if (value is List) return value.cast<String>();
@@ -204,6 +211,7 @@ class UserConfiguration {
   UserConfiguration copyWith({
     List<String>? myMediaExcludes,
     List<String>? latestItemsExcludes,
+    String? subtitleMode,
   }) {
     return UserConfiguration(
       orderedViews: orderedViews,
@@ -217,12 +225,34 @@ class UserConfiguration {
       rememberSubtitleSelections: rememberSubtitleSelections,
       audioLanguagePreference: audioLanguagePreference,
       subtitleLanguagePreference: subtitleLanguagePreference,
+      subtitleMode: subtitleMode ?? this.subtitleMode,
       raw: _raw,
     );
   }
 
+  /// Every key this class owns, in the casing it writes back.
+  static const _ownedKeys = [
+    'OrderedViews',
+    'LatestItemsExcludes',
+    'MyMediaExcludes',
+    'GroupedFolders',
+    'HidePlayedInLatest',
+    'EnableNextEpisodeAutoPlay',
+    'PlayDefaultAudioTrack',
+    'RememberAudioSelections',
+    'RememberSubtitleSelections',
+    'AudioLanguagePreference',
+    'SubtitleLanguagePreference',
+    'SubtitleMode',
+  ];
+
   Map<String, dynamic> toJson() {
     final json = Map<String, dynamic>.from(_raw);
+    // The raw payload is the base, so drop any camel spelling that came in
+    // with it or a stale copy rides along beside the fresh value.
+    for (final key in _ownedKeys) {
+      json.remove(_camelOf(key));
+    }
     json['OrderedViews'] = orderedViews;
     json['LatestItemsExcludes'] = latestItemsExcludes;
     json['MyMediaExcludes'] = myMediaExcludes;
@@ -239,6 +269,9 @@ class UserConfiguration {
     }
     if (subtitleLanguagePreference != null) {
       json['SubtitleLanguagePreference'] = subtitleLanguagePreference;
+    }
+    if (subtitleMode != null) {
+      json['SubtitleMode'] = subtitleMode;
     }
     return json;
   }

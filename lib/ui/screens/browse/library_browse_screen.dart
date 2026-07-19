@@ -48,6 +48,7 @@ class LibraryBrowseScreen extends StatefulWidget {
   final String? genreName;
   final String? studioName;
   final List<String>? includeItemTypes;
+  final bool favoritesOnly;
 
   const LibraryBrowseScreen({
     super.key,
@@ -56,6 +57,7 @@ class LibraryBrowseScreen extends StatefulWidget {
     this.genreName,
     this.studioName,
     this.includeItemTypes,
+    this.favoritesOnly = false,
   });
 
   @override
@@ -66,6 +68,8 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
     with GridFocusNodeMixin<LibraryBrowseScreen> {
   late final LibraryBrowseViewModel _vm;
   final _scrollController = ScrollController();
+  Timer? _backdropDebounce;
+  bool? _hasSubtitlesCache;
   final _prefs = GetIt.instance<UserPreferences>();
   final _backgroundService = GetIt.instance<BackgroundService>();
   StreamSubscription<String?>? _backgroundSub;
@@ -84,6 +88,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
       studioName: widget.studioName,
       overrideName: widget.genreName ?? widget.studioName,
       includeItemTypes: widget.includeItemTypes,
+      favoritesOnly: widget.favoritesOnly,
     );
     _vm.addListener(_onChanged);
     _vm.load();
@@ -100,6 +105,7 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
   @override
   void dispose() {
     _allLetterFocusNode.dispose();
+    _backdropDebounce?.cancel();
     _backgroundSub?.cancel();
     _scrollController.dispose();
     _vm.removeListener(_onChanged);
@@ -127,8 +133,22 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
   }
 
   void _onChanged() {
+    _hasSubtitlesCache = null;
     if (mounted) setState(() {});
     _maybeBumpGridVersion();
+  }
+
+  // Scanning every loaded item is O(N) and the grid's LayoutBuilder re-runs on
+  // every focus move, so hold the answer until the items, the preferences or
+  // the locale actually change.
+  bool get _hasSubtitles => _hasSubtitlesCache ??= _vm.items.any(
+        (item) => (_cardSubtitle(item)?.isNotEmpty ?? false),
+      );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _hasSubtitlesCache = null;
   }
 
   void _onScroll() {
@@ -174,7 +194,14 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
 
   void _onItemFocused(AggregatedItem item) {
     _vm.setFocusedItem(item);
-    _backgroundService.setBackground(item, context: BlurContext.browsing);
+    // Debounced because holding the D-pad walks the grid a cell at a time and
+    // each backdrop is a fullscreen fetch, decode and blur. Only the item the
+    // user settles on is worth loading one for.
+    _backdropDebounce?.cancel();
+    _backdropDebounce = Timer(const Duration(milliseconds: 250), () {
+      if (!mounted) return;
+      _backgroundService.setBackground(item, context: BlurContext.browsing);
+    });
   }
 
   void _onItemTap(AggregatedItem item) {
@@ -495,7 +522,8 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
 
   Widget _buildContent(BuildContext context) {
     final isMobile = _isCompact(context);
-    final hasBackdrop = !isMobile && _backdropUrl != null;
+    final hideBackdrops = _prefs.get(UserPreferences.hideBackdropsInLibraries);
+    final hasBackdrop = !isMobile && !hideBackdrops && _backdropUrl != null;
     final blurAmount = _prefs
       .get(UserPreferences.browsingBackgroundBlurAmount)
       .toDouble();
@@ -522,6 +550,9 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
             children: [
               _LibraryHeader(
                 libraryName: () {
+                  if (_vm.favoritesOnly) {
+                    return AppLocalizations.of(context).favorites;
+                  }
                   if (_vm.includeItemTypes != null &&
                       _vm.includeItemTypes!.isNotEmpty) {
                     final type = _vm.includeItemTypes!.first;
@@ -552,7 +583,6 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                 allLetterFocusNode: _allLetterFocusNode,
                 isMusicBrowse: _vm.isMusicBrowse,
                 playedFilter: _vm.playedFilter,
-                favoriteFilter: _vm.favoriteFilter,
                 onBack: () => PlatformDetection.isWeb
                     ? context.popOrHome()
                     : context.pop(),
@@ -560,8 +590,6 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                 onSettings: () => _showSettingsDialog(context),
                 onLetterChanged: (l) => _vm.setLetterFilter(l),
                 onPlayedFilterChanged: (status) => _vm.setPlayedFilter(status),
-                onFavoriteFilterChanged: (value) =>
-                    _vm.setFavoriteFilter(value),
               ),
               Expanded(child: _buildBody()),
             ],
@@ -577,7 +605,9 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
       imageUrl: imageUrl,
       fit: BoxFit.cover,
       fadeInDuration: Duration.zero,
-      memCacheWidth: blurred ? 640 : null,
+      memCacheWidth: blurred
+          ? BackgroundService.backdropBlurredDecodeWidth
+          : BackgroundService.backdropMaxWidth,
       errorWidget: (_, _, _) => const SizedBox.shrink(),
     );
     if (!blurred) return image;
@@ -652,11 +682,8 @@ class _LibraryBrowseScreenState extends State<LibraryBrowseScreen>
                 (crossAxisCount - 1) * spacing) /
             crossAxisCount;
         final ar = _gridBaseAspectRatio();
-        final hasSubtitles = _vm.items.any(
-          (item) => (_cardSubtitle(item)?.isNotEmpty ?? false),
-        );
         final desktopTextScale = MediaQuery.textScalerOf(context).scale(1.0);
-        final textHeight = (hasSubtitles ? 42.0 : 24.0) * desktopTextScale;
+        final textHeight = (_hasSubtitles ? 42.0 : 24.0) * desktopTextScale;
         final childAspectRatio = cellWidth / (cellWidth / ar + textHeight);
 
         return CustomScrollView(
@@ -887,13 +914,11 @@ class _LibraryHeader extends StatelessWidget {
   final FocusNode? allLetterFocusNode;
   final bool isMusicBrowse;
   final PlayedStatusFilter playedFilter;
-  final bool favoriteFilter;
   final VoidCallback onBack;
   final VoidCallback onSort;
   final VoidCallback onSettings;
   final ValueChanged<String> onLetterChanged;
   final ValueChanged<PlayedStatusFilter> onPlayedFilterChanged;
-  final ValueChanged<bool> onFavoriteFilterChanged;
 
   const _LibraryHeader({
     required this.libraryName,
@@ -910,13 +935,11 @@ class _LibraryHeader extends StatelessWidget {
     this.allLetterFocusNode,
     this.isMusicBrowse = false,
     this.playedFilter = PlayedStatusFilter.all,
-    this.favoriteFilter = false,
     required this.onBack,
     required this.onSort,
     required this.onSettings,
     required this.onLetterChanged,
     required this.onPlayedFilterChanged,
-    required this.onFavoriteFilterChanged,
   });
 
   @override
@@ -1432,15 +1455,17 @@ class _FilterSortDialogState extends State<_FilterSortDialog> {
                 accent: accent,
                 onSurface: onSurface,
               ),
-            Divider(color: dividerColor),
-            _sectionHeader(l10n.filters, sectionColor),
-            _DialogCheckboxTile(
-              label: l10n.favorites,
-              checked: vm.favoriteFilter,
-              onTap: () => vm.setFavoriteFilter(!vm.favoriteFilter),
-              accent: accent,
-              onSurface: onSurface,
-            ),
+            if (!vm.favoritesOnly) ...[
+              Divider(color: dividerColor),
+              _sectionHeader(l10n.filters, sectionColor),
+              _DialogCheckboxTile(
+                label: l10n.favorites,
+                checked: vm.favoriteFilter,
+                onTap: () => vm.setFavoriteFilter(!vm.favoriteFilter),
+                accent: accent,
+                onSurface: onSurface,
+              ),
+            ],
             if (!vm.isMusicBrowse) ...[
               Divider(color: dividerColor),
               _sectionHeader(

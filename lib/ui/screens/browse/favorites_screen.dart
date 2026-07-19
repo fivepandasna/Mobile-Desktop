@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moonfin_design/moonfin_design.dart';
@@ -18,13 +19,13 @@ import '../../../util/focus/dpad_keys.dart';
 import '../../navigation/destinations.dart';
 import '../../widgets/focus/context_menu_sheet.dart';
 import '../../widgets/focus/focusable_toolbar_button.dart';
-import '../../widgets/focus/locked_focus_row.dart';
 import '../../widgets/focus/request_initial_focus.dart';
 import '../../widgets/fullscreen_backdrop_switcher.dart';
 import '../../widgets/media_card.dart';
+import '../../widgets/navigation_layout.dart';
 import '../../widgets/overlay_sheet.dart';
 import '../../widgets/rating_display.dart';
-import '../../widgets/horizontal_scroll_section.dart';
+import '../../widgets/sliding_pill_tabs.dart';
 import '../../../l10n/app_localizations.dart';
 
 Color get _navyBackground => AppColorScheme.background;
@@ -55,8 +56,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
   final _backgroundService = GetIt.instance<BackgroundService>();
   StreamSubscription<String?>? _backgroundSub;
   String? _backdropUrl;
-  bool _topSnapScheduled = false;
-  final Map<FavoriteTypeFilter, GlobalKey<LockedFocusRowState>> _rowKeys = {};
+  int _selectedTab = 0;
+  final _tabsFocusNode = FocusNode(debugLabel: 'favorites_tabs');
+
+  /// D-pad focus navigation applies on TV and desktop. Mobile is touch.
+  bool get _usesDpad =>
+      PlatformDetection.isTV || PlatformDetection.useDesktopUi;
 
   @override
   void initState() {
@@ -83,6 +88,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
     _vm.removeListener(_onChanged);
     _prefs.removeListener(_onChanged);
     _vm.dispose();
+    _tabsFocusNode.dispose();
     disposeGridFocusNodes();
     super.dispose();
   }
@@ -90,17 +96,32 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
   int _lastGridItemsLength = 0;
   Object? _lastGridFirstItemId;
 
+  List<AggregatedItem> _currentTabItems() {
+    final types = _visibleTypes();
+    if (_selectedTab < 0 || _selectedTab >= types.length) return const [];
+    return _vm.rowItems[types[_selectedTab]] ?? const [];
+  }
+
   void _maybeBumpGridVersion() {
-    if (_vm.viewStyle != FavoritesViewStyle.library) return;
-    final length = _vm.gridItems.length;
-    final firstId = length == 0 ? null : _vm.gridItems.first.id;
+    final current = _vm.viewStyle == FavoritesViewStyle.library
+        ? _vm.gridItems
+        : _currentTabItems();
+    final length = current.length;
+    final firstId = length == 0 ? null : current.first.id;
     if (length != _lastGridItemsLength || firstId != _lastGridFirstItemId) {
       _lastGridItemsLength = length;
       _lastGridFirstItemId = firstId;
       gridContentVersion++;
       cleanupGridFocusNodes(length);
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) restoreGridFocusIfNeeded();
+        if (!mounted) return;
+        final primary = FocusManager.instance.primaryFocus;
+        final inGrid =
+            primary != null &&
+            gridItemFocusNodes.values.any((n) => identical(n, primary));
+        if (primary == null || inGrid) {
+          restoreGridFocusIfNeeded();
+        }
       });
     }
   }
@@ -117,10 +138,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
-    if (_vm.viewStyle != FavoritesViewStyle.library) return;
     final pos = _scrollController.position;
-    if (pos.pixels > pos.maxScrollExtent - 400) {
+    if (pos.pixels <= pos.maxScrollExtent - 400) return;
+    if (_vm.viewStyle == FavoritesViewStyle.library) {
       _vm.loadMoreGrid();
+    } else {
+      final types = _visibleTypes();
+      if (_selectedTab >= 0 && _selectedTab < types.length) {
+        _vm.loadMoreForType(types[_selectedTab]);
+      }
     }
   }
 
@@ -158,60 +184,124 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
     };
   }
 
-  void _snapRowsToTop() {
-    if (_topSnapScheduled) return;
-    _topSnapScheduled = true;
+  List<FavoriteTypeFilter> _visibleTypes() {
+    final result = <FavoriteTypeFilter>[];
+    for (final type in FavoritesViewModel.rowTypes) {
+      final items = _vm.rowItems[type];
+      if (items != null && items.isNotEmpty) result.add(type);
+    }
+    return result;
+  }
+
+  void _selectTab(int index) {
+    if (index == _selectedTab) return;
+    setState(() => _selectedTab = index);
+    final items = _currentTabItems();
+    cleanupGridFocusNodes(items.length);
+    gridContentVersion++;
+    _lastGridItemsLength = items.length;
+    _lastGridFirstItemId = items.isEmpty ? null : items.first.id;
+    if (_scrollController.hasClients) _scrollController.jumpTo(0);
+  }
+
+  void _ensureVisibleNode(FocusNode node) {
+    final nodeContext = node.context;
+    if (nodeContext == null) return;
+    Scrollable.ensureVisible(
+      nodeContext,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      alignment: 0.2,
+      alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+    );
+  }
+
+  void _focusGridCell(int index) {
+    final node = getGridItemFocusNode(index);
+    if (node.context != null) {
+      node.requestFocus();
+      _ensureVisibleNode(node);
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _topSnapScheduled = false;
-      if (!mounted || !_scrollController.hasClients) return;
-      if (_scrollController.offset <= 1) return;
-      _scrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 160),
-        curve: Curves.easeOut,
-      );
+      if (!mounted) return;
+      final target = getGridItemFocusNode(index);
+      if (target.canRequestFocus) {
+        target.requestFocus();
+        _ensureVisibleNode(target);
+      }
     });
   }
 
-  bool _onRowVerticalNavigation(
-    List<FavoriteTypeFilter> visibleTypes,
-    FavoriteTypeFilter currentType,
-    bool isUp,
-  ) {
-    final currentIndex = visibleTypes.indexOf(currentType);
-    final targetIndex = currentIndex + (isUp ? -1 : 1);
-    if (targetIndex >= 0 && targetIndex < visibleTypes.length) {
-      final targetType = visibleTypes[targetIndex];
-      final targetKey = _rowKeys[targetType];
-      if (targetKey != null) {
-        final state = targetKey.currentState;
-        if (state != null) {
-          state.requestFocusFromMemory();
-        } else {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _rowKeys[targetType]?.currentState?.requestFocusFromMemory();
-          });
-        }
-        final ctx = targetKey.currentContext;
-        if (ctx != null) {
-          Scrollable.ensureVisible(
-            ctx,
-            duration: const Duration(milliseconds: 300),
-            alignment: 0.5,
-            curve: Curves.easeInOut,
-          );
-        }
-      }
-      return true;
-    }
-    return false;
+  void _focusFirstGridCell() {
+    if (!_usesDpad) return;
+    _focusGridCell(0);
   }
 
-  double _imageHeight(double aspectRatio) {
-    final base = aspectRatio >= 1
-        ? _vm.posterSize.landscapeHeight.toDouble()
-        : _vm.posterSize.portraitHeight.toDouble();
-    return base * _desktopUiScaleFactor();
+  bool _tryFocusSidebar() {
+    if (_prefs.get(UserPreferences.navbarPosition) != NavbarPosition.left) {
+      return false;
+    }
+    return _tryFocusNavbar();
+  }
+
+  bool _tryFocusNavbar() {
+    final focusNavbar = NavigationLayout.focusNavbarNotifier.value;
+    if (focusNavbar != null) {
+      focusNavbar();
+      return true;
+    }
+    return FocusScope.of(context).previousFocus();
+  }
+
+  KeyEventResult _onTabGridKey({
+    required FavoriteTypeFilter type,
+    required int index,
+    required int columns,
+    required int count,
+    required KeyEvent event,
+  }) {
+    if (!event.isActionable) return KeyEventResult.ignored;
+    final key = event.logicalKey;
+    final column = index % columns;
+
+    if (key.isLeftKey) {
+      if (column == 0) {
+        if (event is KeyDownEvent) {
+          return _tryFocusSidebar()
+              ? KeyEventResult.handled
+              : KeyEventResult.ignored;
+        }
+        return KeyEventResult.ignored;
+      }
+      _focusGridCell(index - 1);
+      return KeyEventResult.handled;
+    }
+    if (key.isRightKey) {
+      if (column == columns - 1 || index >= count - 1) {
+        return KeyEventResult.handled;
+      }
+      _focusGridCell(index + 1);
+      return KeyEventResult.handled;
+    }
+    if (key.isUpKey) {
+      if (index < columns) {
+        _tabsFocusNode.requestFocus();
+        return KeyEventResult.handled;
+      }
+      _focusGridCell(index - columns);
+      return KeyEventResult.handled;
+    }
+    if (key.isDownKey) {
+      final target = index + columns;
+      if (target >= count) {
+        _vm.loadMoreForType(type);
+        return KeyEventResult.handled;
+      }
+      _focusGridCell(target);
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   String? _imageUrl(
@@ -233,12 +323,16 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
   }
 
   @override
-  Widget build(BuildContext context) =>
-      RequestInitialFocus(child: _buildContent(context));
+  Widget build(BuildContext context) => RequestInitialFocus(
+    targetNode:
+        _vm.viewStyle == FavoritesViewStyle.home ? _tabsFocusNode : null,
+    child: _buildContent(context),
+  );
 
   Widget _buildContent(BuildContext context) {
     final isMobile = _isCompact(context);
-    final hasBackdrop = !isMobile && _backdropUrl != null;
+    final hideBackdrops = _prefs.get(UserPreferences.hideBackdropsInLibraries);
+    final hasBackdrop = !isMobile && !hideBackdrops && _backdropUrl != null;
     return Scaffold(
       backgroundColor: _navyBackground,
       body: Stack(
@@ -301,13 +395,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
         ),
       ),
       FavoritesState.ready => _vm.viewStyle == FavoritesViewStyle.home
-          ? _buildRows()
+          ? _buildTabs()
           : _buildGrid(),
     };
   }
 
-  Widget _buildRows() {
-    if (_vm.rowItems.isEmpty) {
+  Widget _buildTabs() {
+    final visibleTypes = _visibleTypes();
+    if (visibleTypes.isEmpty) {
       return Center(
         child: Text(
           AppLocalizations.of(context).noFavoritesYet,
@@ -316,155 +411,177 @@ class _FavoritesScreenState extends State<FavoritesScreen> with GridFocusNodeMix
       );
     }
 
-    final isMobile = _isCompact(context);
-    final navbarIsLeft = _prefs.get(UserPreferences.navbarPosition) == NavbarPosition.left;
-    final rowLeftInset = (!isMobile && navbarIsLeft) ? 56.0 : 0.0;
-    final focusColor = Color(_prefs.get(UserPreferences.focusColor).colorValue);
-    final cardFocusExpansion = _prefs.get(UserPreferences.cardFocusExpansion);
-    final watchedBehavior = _prefs.get(UserPreferences.watchedIndicatorBehavior);
-    final suppressFocusGlow = ThemeRegistry.active.borders.focusGlow.isNotEmpty;
-    final desktopScale = _desktopUiScaleFactor();
-
-    final visibleTypes = <FavoriteTypeFilter>[];
-    for (final type in FavoritesViewModel.rowTypes) {
-      final items = _vm.rowItems[type];
-      if (items != null && items.isNotEmpty) {
-        visibleTypes.add(type);
-      }
+    if (_selectedTab >= visibleTypes.length) {
+      _selectedTab = visibleTypes.length - 1;
     }
+    if (_selectedTab < 0) _selectedTab = 0;
 
-    final rows = <Widget>[];
-    for (final type in visibleTypes) {
-      final items = _vm.rowItems[type]!;
-      final isTopRow = rows.isEmpty;
+    final isMobile = _isCompact(context);
+    final horizontalPadding = isMobile ? 16.0 : _horizontalPadding;
 
-      final ar = MediaCard.aspectRatioForType(type.itemTypes?.first);
-      final imageH = _imageHeight(ar);
-      final rowHeight = imageH + 102;
+    final labels = [
+      for (final type in visibleTypes)
+        '${type.displayName}: ${_vm.rowTotalCount(type)}',
+    ];
 
-      _rowKeys.putIfAbsent(type, () => GlobalKey<LockedFocusRowState>());
+    final selectedType = visibleTypes[_selectedTab];
 
-      rows.add(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
         Padding(
-          padding: EdgeInsets.only(
-            left: rowLeftInset,
-            top: 4,
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            12,
+            horizontalPadding,
+            4,
           ),
-          child: HorizontalScrollSection(
-            title: type.displayName,
-            titleStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppColorScheme.onSurface,
-              fontWeight: FontWeight.w700,
-            ),
-            headerPadding: EdgeInsets.fromLTRB(
-              16 * desktopScale,
-              16 * desktopScale,
-              8 * desktopScale,
-              8 * desktopScale,
-            ),
-            contentSpacing: 0,
-            showControls: !isMobile && PlatformDetection.useDesktopUi,
-            builder: (context, scrollController) => NotificationListener<ScrollNotification>(
-              onNotification: (notification) {
-                // Page in more when a horizontal scroll gets within 600px of the end.
-                if (notification.metrics.axis == Axis.horizontal &&
-                    notification.metrics.maxScrollExtent -
-                            notification.metrics.pixels <
-                        600) {
-                  _vm.loadMoreForType(type);
-                }
-                return false;
-              },
-              child: LockedFocusRow<AggregatedItem>(
-                key: _rowKeys[type],
-                items: items,
-                hubKey: 'favorites_row_${type.name}',
-                controller: scrollController,
-                height: rowHeight,
-                itemExtent: imageH * ar,
-                itemSpacing: 12 * desktopScale,
-                padding: EdgeInsets.fromLTRB(
-                  20 * desktopScale,
-                  5 * desktopScale,
-                  20 * desktopScale,
-                  5 * desktopScale,
-                ),
-                onIndexChanged: (index, item) {
-                  _onItemFocused(item);
-                  if (index >= items.length - 8) {
-                    _vm.loadMoreForType(type);
-                  }
-                },
-                onVerticalNavigation: (isUp) {
-                  return _onRowVerticalNavigation(visibleTypes, type, isUp);
-                },
-                onLongPress: (index, item) => showContextMenu(
+          child: SlidingPillTabs(
+            labels: labels,
+            selectedIndex: _selectedTab,
+            onChanged: _selectTab,
+            focusNode: _tabsFocusNode,
+            onExitLeft: _tryFocusSidebar,
+            onVerticalNavigation: (isUp) {
+              if (isUp) {
+                // Let default directional focus reach the header toolbar,
+                // falling back to the navbar when nothing sits above.
+                if (FocusScope.of(
                   context,
-                  item,
-                  onChanged: () => setState(() {}),
-                ),
-                onTap: (index, item) => context.push(
-                  Destinations.itemOrPhoto(
-                    item.id,
-                    serverId: item.serverId,
-                    type: item.type,
-                  ),
-                ),
-                itemBuilder: (context, item, index, isFocused) {
-                  final width = imageH * ar;
-                  return MediaCard(
-                    title: item.name,
-                    subtitle: _cardSubtitle(item),
-                    imageUrl: _imageUrl(
-                      item,
-                      maxWidth: width.toInt(),
-                      maxHeight: imageH.toInt(),
-                    ),
-                    width: width,
-                    aspectRatio: ar,
-                    isFavorite: item.isFavorite,
-                    isPlayed: item.isPlayed,
-                    unplayedCount: item.unplayedItemCount,
-                    playedPercentage: item.playedPercentage,
-                    watchedBehavior: watchedBehavior,
-                    itemType: item.type,
-                    focusColor: focusColor,
-                    cardFocusExpansion: cardFocusExpansion,
-                    suppressFocusGlow: suppressFocusGlow,
-                    externalIsFocused: isFocused,
-                    onFocus: isMobile
-                        ? null
-                        : () {
-                            _onItemFocused(item);
-                            if (isTopRow && PlatformDetection.isTV) {
-                              _snapRowsToTop();
-                            }
-                          },
-                    onHoverStart: isMobile ? null : () => _onItemFocused(item),
-                    onHoverEnd: isMobile ? null : () => _vm.setFocusedItem(null),
-                    onTap: () => context.push(
-                      Destinations.itemOrPhoto(
-                        item.id,
-                        serverId: item.serverId,
-                        type: item.type,
-                      ),
-                    ),
-                  );
-                },
-              ), 
-            ),
+                ).focusInDirection(TraversalDirection.up)) {
+                  return true;
+                }
+                return _tryFocusNavbar();
+              }
+              _focusFirstGridCell();
+              return true;
+            },
           ),
         ),
-      );
-    }
+        Expanded(child: _buildTabGrid(selectedType, horizontalPadding)),
+      ],
+    );
+  }
 
-    return ListView(
-      controller: _scrollController,
-      padding: EdgeInsets.only(
-        top: isMobile ? 10 : 28,
-        bottom: 32,
+  Widget _buildTabGrid(FavoriteTypeFilter type, double horizontalPadding) {
+    final items = _vm.rowItems[type] ?? const <AggregatedItem>[];
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    final isMobile = _isCompact(context);
+    final cardWidth = _cardWidth();
+    final watchedBehavior = _prefs.get(
+      UserPreferences.watchedIndicatorBehavior,
+    );
+    final focusColor = Color(_prefs.get(UserPreferences.focusColor).colorValue);
+    final focusExpansion = _prefs.get(UserPreferences.cardFocusExpansion);
+    final suppressFocusGlow = ThemeRegistry.active.borders.focusGlow.isNotEmpty;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = 12.0;
+        final available = constraints.maxWidth - horizontalPadding * 2;
+        final columns = ((available + spacing) / (cardWidth + spacing))
+            .floor()
+            .clamp(2, 20);
+        final cellWidth = (available - (columns - 1) * spacing) / columns;
+        final ar = _gridBaseAspectRatio();
+        final hasSubtitles = items.any(
+          (item) => (_cardSubtitle(item)?.isNotEmpty ?? false),
+        );
+        final desktopTextScale = MediaQuery.textScalerOf(context).scale(1.0);
+        final textHeight = (hasSubtitles ? 42.0 : 24.0) * desktopTextScale;
+        final childAspectRatio = cellWidth / (cellWidth / ar + textHeight);
+
+        return GridView.builder(
+          controller: _scrollController,
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            12,
+            horizontalPadding,
+            32,
+          ),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: spacing,
+            childAspectRatio: childAspectRatio,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, index) => _buildTabGridCell(
+            type: type,
+            items: items,
+            index: index,
+            columns: columns,
+            cellWidth: cellWidth,
+            isMobile: isMobile,
+            focusColor: focusColor,
+            focusExpansion: focusExpansion,
+            suppressFocusGlow: suppressFocusGlow,
+            watchedBehavior: watchedBehavior,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTabGridCell({
+    required FavoriteTypeFilter type,
+    required List<AggregatedItem> items,
+    required int index,
+    required int columns,
+    required double cellWidth,
+    required bool isMobile,
+    required Color focusColor,
+    required bool focusExpansion,
+    required bool suppressFocusGlow,
+    required WatchedIndicatorBehavior watchedBehavior,
+  }) {
+    final item = items[index];
+    final itemAspectRatio = _itemAspectRatio(item);
+    return MediaCard(
+      title: item.name,
+      subtitle: _cardSubtitle(item),
+      imageUrl: _imageUrl(
+        item,
+        maxWidth: (cellWidth * 2).toInt(),
+        maxHeight: (cellWidth * 2 / itemAspectRatio).toInt(),
       ),
-      children: rows,
+      width: double.infinity,
+      aspectRatio: itemAspectRatio,
+      focusColor: focusColor,
+      focusNode: _usesDpad ? getGridItemFocusNode(index) : null,
+      cardFocusExpansion: focusExpansion,
+      suppressFocusGlow: suppressFocusGlow,
+      isPlayed: item.isPlayed,
+      isFavorite: item.isFavorite,
+      unplayedCount: item.unplayedItemCount,
+      playedPercentage: item.playedPercentage,
+      watchedBehavior: watchedBehavior,
+      itemType: item.type,
+      onFocus: isMobile ? null : () => _onItemFocused(item),
+      onHoverStart: isMobile ? null : () => _onItemFocused(item),
+      onHoverEnd: isMobile ? null : () => _vm.setFocusedItem(null),
+      onKeyEvent: _usesDpad
+          ? (node, event) => _onTabGridKey(
+              type: type,
+              index: index,
+              columns: columns,
+              count: items.length,
+              event: event,
+            )
+          : null,
+      onLongPress: () => showContextMenu(
+        context,
+        item,
+        onChanged: () => setState(() {}),
+      ),
+      onTap: () => context.push(
+        Destinations.itemOrPhoto(
+          item.id,
+          serverId: item.serverId,
+          type: item.type,
+        ),
+      ),
     );
   }
 

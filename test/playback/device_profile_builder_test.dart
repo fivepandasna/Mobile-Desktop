@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moonfin/playback/audio_capability_profile.dart';
 import 'package:moonfin/playback/device_profile_builder.dart';
@@ -215,6 +216,31 @@ void main() {
       expect(unsupportedRanges, contains('DOVI_WITH_HDR10_PLUS'));
       expect(unsupportedRanges, contains('DOVI_WITH_ELHDR10_PLUS'));
     });
+
+    test(
+      'skipping device defects keeps DoVi HDR10+ direct-playable on a buggy '
+      'model (external players decode with their own pipeline)',
+      () {
+        final profile = DeviceProfileBuilder.build(
+          supportsHevc: true,
+          supportsHevcMain10: true,
+          supportsHevcDolbyVision: true,
+          supportsHevcDolbyVisionEl: true,
+          supportsHevcHdr10: true,
+          supportsHevcHdr10Plus: true,
+          supportsDvProfile5: true,
+          supportsDvProfile7: true,
+          supportsDvProfile8: true,
+          knownHevcDoviHdr10PlusBug: true,
+          applyKnownDeviceDefects: false,
+        );
+
+        final unsupportedRanges = _hevcUnsupportedRangeTypes(profile);
+
+        expect(unsupportedRanges, isNot(contains('DOVI_WITH_HDR10_PLUS')));
+        expect(unsupportedRanges, isNot(contains('DOVI_WITH_ELHDR10_PLUS')));
+      },
+    );
   });
 
   group('DeviceProfileBuilder stereo AAC fallback', () {
@@ -244,8 +270,8 @@ void main() {
       expect(codecs, contains('eac3'));
       expect(codecs, contains('dts'));
       expect(codecs, contains('dca'));
-      // TrueHD/MLP are advertised on every platform: where there is no hardware
-      // decoder (Android) the bundled FFmpeg decoder handles them.
+      // Android has no hardware TrueHD/MLP decoder, but the bundled FFmpeg
+      // decoder handles them, so they stay advertised there.
       expect(codecs, contains('truehd'));
       expect(codecs, contains('mlp'));
     });
@@ -589,15 +615,46 @@ void main() {
       expect(codecs, isNot(contains('dca')));
     });
 
-    test('stereo output keeps a stereo transcode target via TranscodingProfiles', () {
+    test(
+      'stereo output keeps a stereo transcode target via TranscodingProfiles '
+      'for a non-universal player',
+      () {
+        final profile = DeviceProfileBuilder.build(
+          audioOutputMode: AudioOutputMode.forceStereo,
+          universalAudioDecode: false,
+        );
+
+        final channels = _transcodingMaxAudioChannels(profile);
+        expect(channels, isNotEmpty);
+        expect(channels, everyElement('2'));
+      },
+    );
+
+    test(
+      'stereo mode with universal decode doesn\'t cap the transcode target '
+      '(stereo comes from the local downmix, and a video-forced transcode '
+      'must keep multichannel audio)',
+      () {
+        final profile = DeviceProfileBuilder.build(
+          audioOutputMode: AudioOutputMode.forceStereo,
+          universalAudioDecode: true,
+        );
+
+        expect(_transcodingMaxAudioChannels(profile), isEmpty);
+        expect(_videoAudioChannelsConditionValue(profile), '8');
+      },
+    );
+
+    test('an explicit stereo channel cap also caps the transcode target', () {
       final profile = DeviceProfileBuilder.build(
-        audioOutputMode: AudioOutputMode.forceStereo,
+        maxAudioChannels: 2,
         universalAudioDecode: true,
       );
 
       final channels = _transcodingMaxAudioChannels(profile);
       expect(channels, isNotEmpty);
       expect(channels, everyElement('2'));
+      expect(_videoAudioChannelsConditionValue(profile), '2');
     });
 
     test('multichannel routes do not cap the transcode target', () {
@@ -621,6 +678,111 @@ void main() {
       expect(codecs, contains('ac3'));
       expect(codecs, contains('eac3'));
     });
+
+    test('does not advertise TrueHD on iOS, which ships no decoder for it', () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+      final profile = DeviceProfileBuilder.build(
+        audioCapabilityProfile: const AudioCapabilityProfile.appleMobile(),
+        universalAudioDecode: true,
+      );
+
+      final codecs = _videoDirectPlayAudioCodecs(profile);
+      expect(codecs, isNot(contains('truehd')));
+      expect(codecs, isNot(contains('mlp')));
+      // Everything else still decodes in software.
+      expect(codecs, containsAll(<String>['ac3', 'eac3', 'dts', 'flac']));
+    });
+  });
+
+  group('DeviceProfileBuilder lossless AVR-route gating (media3)', () {
+    test('arc route drops truehd/mlp (ARC can\'t carry TrueHD)', () {
+      final profile = DeviceProfileBuilder.build(
+        audioCapabilityProfile: _capabilityProfile(
+          activeRouteType: AudioRouteType.arc,
+        ),
+        universalAudioDecode: true,
+        losslessAudioRequiresPassthroughOnAvrRoutes: true,
+      );
+
+      final codecs = _videoDirectPlayAudioCodecs(profile);
+      expect(codecs, isNot(contains('truehd')));
+      expect(codecs, isNot(contains('mlp')));
+      // Non-lossless codecs are untouched by the gate.
+      expect(codecs, containsAll(<String>['ac3', 'eac3', 'flac']));
+    });
+
+    test('hdmi route keeps truehd when passthrough is enabled and capable', () {
+      final profile = DeviceProfileBuilder.build(
+        audioCapabilityProfile: _capabilityProfile(
+          activeRouteType: AudioRouteType.hdmi,
+          canPassthroughTrueHd: true,
+        ),
+        universalAudioDecode: true,
+        losslessAudioRequiresPassthroughOnAvrRoutes: true,
+        trueHdPassthroughEnabled: true,
+      );
+
+      final codecs = _videoDirectPlayAudioCodecs(profile);
+      expect(codecs, containsAll(<String>['truehd', 'mlp']));
+    });
+
+    test('hdmi route drops truehd when the passthrough toggle is off', () {
+      final profile = DeviceProfileBuilder.build(
+        audioCapabilityProfile: _capabilityProfile(
+          activeRouteType: AudioRouteType.hdmi,
+          canPassthroughTrueHd: true,
+        ),
+        universalAudioDecode: true,
+        losslessAudioRequiresPassthroughOnAvrRoutes: true,
+        trueHdPassthroughEnabled: false,
+      );
+
+      final codecs = _videoDirectPlayAudioCodecs(profile);
+      expect(codecs, isNot(contains('truehd')));
+      expect(codecs, isNot(contains('mlp')));
+    });
+
+    test(
+      'headphones and bluetooth routes keep truehd (pure local FFmpeg decode)',
+      () {
+        for (final route in <AudioRouteType>[
+          AudioRouteType.headphones,
+          AudioRouteType.bluetooth,
+        ]) {
+          final profile = DeviceProfileBuilder.build(
+            audioCapabilityProfile: _capabilityProfile(activeRouteType: route),
+            universalAudioDecode: true,
+            losslessAudioRequiresPassthroughOnAvrRoutes: true,
+          );
+
+          expect(
+            _videoDirectPlayAudioCodecs(profile),
+            containsAll(<String>['truehd', 'mlp']),
+            reason: 'route: $route',
+          );
+        }
+      },
+    );
+
+    test(
+      'hdmi route keeps truehd when the flag is not set (Apple TV and '
+      'media_kit decode locally via mpv)',
+      () {
+        final profile = DeviceProfileBuilder.build(
+          audioCapabilityProfile: _capabilityProfile(
+            activeRouteType: AudioRouteType.hdmi,
+          ),
+          universalAudioDecode: true,
+        );
+
+        expect(
+          _videoDirectPlayAudioCodecs(profile),
+          containsAll(<String>['truehd', 'mlp']),
+        );
+      },
+    );
   });
 
   group('KnownDefects model mapping', () {

@@ -28,6 +28,8 @@ import '../../../data/services/theme_music_service.dart';
 import '../../../data/viewmodels/item_detail_view_model.dart';
 import '../../../data/services/plugin_sync_service.dart';
 import '../../navigation/route_lifecycle_observer.dart';
+import '../../navigation/home_refresh_bus.dart';
+import '../../navigation/app_router.dart';
 import 'modern/modern_detail_content.dart';
 import '../../../data/repositories/seerr_repository.dart';
 import '../../../data/services/seerr/seerr_api_models.dart';
@@ -103,6 +105,59 @@ void _animateScrollToTop(ScrollPosition position) {
   );
 }
 
+const _destructiveRed = Color(0xFFD32F2F);
+const _destructiveRedDim = Color(0xFFB71C1C);
+
+String _deleteFailureMessage(
+  AppLocalizations l10n,
+  DeleteItemFailure failure, {
+  required bool isPlaylist,
+}) {
+  // Lacking the Jellyfin delete permission is the usual reason this fails, so
+  // it gets its own string.
+  if (failure.statusCode == 401 || failure.statusCode == 403) {
+    return l10n.requestErrorPermission;
+  }
+  final detail = failure.detail;
+  if (detail == null || detail.isEmpty) {
+    return isPlaylist ? l10n.failedToDeletePlaylist : l10n.failedToDeleteItem;
+  }
+  return l10n.failedToDeleteItemWithError(detail);
+}
+
+/// Runs the delete once the caller has navigated away, so the result comes
+/// back through the root navigator rather than the disposed detail screen.
+void _deleteItemInBackground(
+  ItemDetailViewModel viewModel, {
+  required bool isPlaylist,
+}) {
+  unawaited(
+    viewModel.deleteItem().then((failure) {
+      // Ask for the refresh before looking for a context, otherwise a missing
+      // navigator would also skip the refresh.
+      if (failure == null) {
+        homeRefreshBus.requestNowOrAfterNavigation();
+      }
+
+      final activeContext =
+          appRouter.routerDelegate.navigatorKey.currentContext;
+      if (activeContext == null || !activeContext.mounted) return;
+      final l10n = AppLocalizations.of(activeContext);
+
+      ScaffoldMessenger.of(activeContext).showSnackBar(
+        failure == null
+            ? SnackBar(content: Text(l10n.itemDeleted))
+            : SnackBar(
+                content: Text(
+                  _deleteFailureMessage(l10n, failure, isPlaylist: isPlaylist),
+                ),
+                backgroundColor: _destructiveRed,
+              ),
+      );
+    }),
+  );
+}
+
 Future<bool> _showDeleteConfirmationDialog(
   BuildContext context, {
   required String title,
@@ -117,17 +172,18 @@ Future<bool> _showDeleteConfirmationDialog(
       actions: [
         adaptiveDialogAction(
           onPressed: () => Navigator.pop(ctx, false),
-          child: Text(
-            AppLocalizations.of(ctx).cancel,
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
-          ),
+          focusRingColor: AppColorScheme.accent,
+          child: Text(AppLocalizations.of(ctx).cancel),
         ),
-        FilledButton(
+        adaptiveDialogAction(
           onPressed: () => Navigator.pop(ctx, true),
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFFD32F2F),
+          isDestructive: true,
+          backgroundColor: _destructiveRedDim,
+          focusedBackgroundColor: _destructiveRed,
+          child: Text(
+            AppLocalizations.of(ctx).delete,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          child: Text(AppLocalizations.of(ctx).delete),
         ),
       ],
     ),
@@ -3251,20 +3307,8 @@ class _DetailContentState extends State<_DetailContent> {
     );
     if (!confirmed) return;
 
-    final success = await viewModel.deleteItem();
-    if (!context.mounted) return;
-    if (success) {
-      context.pop(true);
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isPlaylist ? l10n.failedToDeletePlaylist : l10n.failedToDeleteItem,
-        ),
-      ),
-    );
+    appRouter.go(Destinations.home);
+    _deleteItemInBackground(viewModel, isPlaylist: isPlaylist);
   }
 
   Future<void> _showRenamePlaylistDialog(
@@ -6508,7 +6552,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogCtx) {
         return AlertDialog(
           backgroundColor: const Color(0xFF1E1E24),
           title: Text(
@@ -6524,7 +6568,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
               Focus(
                 onKeyEvent: (_, event) {
                   if (isActivateKey(event)) {
-                    Navigator.of(context).pop();
+                    Navigator.of(dialogCtx).pop();
                     ChangeArtworkDialog.show(context, item: item).then((
                       changed,
                     ) {
@@ -6537,11 +6581,11 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                   return KeyEventResult.ignored;
                 },
                 child: Builder(
-                  builder: (context) {
-                    final hasFocus = Focus.of(context).hasFocus;
+                  builder: (buttonCtx) {
+                    final hasFocus = Focus.of(buttonCtx).hasFocus;
                     return InkWell(
                       onTap: () async {
-                        Navigator.of(context).pop();
+                        Navigator.of(dialogCtx).pop();
                         final changed = await ChangeArtworkDialog.show(
                           context,
                           item: item,
@@ -6578,18 +6622,18 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                 Focus(
                   onKeyEvent: (_, event) {
                     if (isActivateKey(event)) {
-                      Navigator.of(context).pop();
+                      Navigator.of(dialogCtx).pop();
                       context.push(Destinations.adminMetadata(item.id));
                       return KeyEventResult.handled;
                     }
                     return KeyEventResult.ignored;
                   },
                   child: Builder(
-                    builder: (context) {
-                      final hasFocus = Focus.of(context).hasFocus;
+                    builder: (buttonCtx) {
+                      final hasFocus = Focus.of(buttonCtx).hasFocus;
                       return InkWell(
                         onTap: () {
-                          Navigator.of(context).pop();
+                          Navigator.of(dialogCtx).pop();
                           context.push(Destinations.adminMetadata(item.id));
                         },
                         child: Container(
@@ -6625,18 +6669,18 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                 Focus(
                   onKeyEvent: (_, event) {
                     if (isActivateKey(event)) {
-                      Navigator.of(context).pop();
+                      Navigator.of(dialogCtx).pop();
                       _confirmDeleteItem(context, item);
                       return KeyEventResult.handled;
                     }
                     return KeyEventResult.ignored;
                   },
                   child: Builder(
-                    builder: (context) {
-                      final hasFocus = Focus.of(context).hasFocus;
+                    builder: (buttonCtx) {
+                      final hasFocus = Focus.of(buttonCtx).hasFocus;
                       return InkWell(
                         onTap: () {
-                          Navigator.of(context).pop();
+                          Navigator.of(dialogCtx).pop();
                           _confirmDeleteItem(context, item);
                         },
                         child: Container(
@@ -6685,23 +6729,8 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     );
     if (!confirmed) return;
 
-    final success = await viewModel.deleteItem();
-    if (!mounted || !context.mounted) return;
-
-    if (success) {
-      if (Navigator.of(context).canPop()) {
-        context.pop(true);
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.itemDeleted)));
-      }
-      return;
-    }
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.failedToDeleteItem)));
+    appRouter.go(Destinations.home);
+    _deleteItemInBackground(viewModel, isPlaylist: false);
   }
 
   int? _activePlaybackAudioIndex() {
@@ -6746,8 +6775,9 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
 
   int? _effectiveSubtitleStreamIndex(
     List<Map<String, dynamic>> subtitleStreams,
-    List<Map<String, dynamic>> audioStreams,
-  ) {
+    List<Map<String, dynamic>> audioStreams, {
+    AggregatedItem? item,
+  }) {
     final prefs = GetIt.instance<UserPreferences>();
     final audioStreamIndex = _effectiveAudioStreamIndex(audioStreams);
     String? activeAudioLanguage;
@@ -6759,18 +6789,21 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       activeAudioLanguage = activeAudioStream['Language'] as String?;
     }
 
-    final item = widget.viewModel.item;
+    final targetItem = item ?? widget.viewModel.item;
     var preferredLanguage = prefs.get(UserPreferences.defaultSubtitleLanguage);
     var subtitleMode = prefs.get(UserPreferences.subtitleMode);
 
-    if (item != null && item.type == 'Episode' && item.seriesId != null) {
-      final seriesLanguage = prefs.getSeriesSubtitleLanguage(item.seriesId!);
-      if (seriesLanguage == 'none') {
-        return -1;
-      } else if (seriesLanguage.isNotEmpty) {
-        preferredLanguage = seriesLanguage;
-        if (subtitleMode == SubtitleMode.none) {
-          subtitleMode = SubtitleMode.always;
+    if (targetItem != null) {
+      final seriesId = targetItem.seriesId;
+      if (seriesId != null && seriesId.isNotEmpty) {
+        final seriesLanguage = prefs.getSeriesSubtitleLanguage(seriesId);
+        if (seriesLanguage == 'none') {
+          return -1;
+        } else if (seriesLanguage.isNotEmpty) {
+          preferredLanguage = seriesLanguage;
+          if (subtitleMode == SubtitleMode.none) {
+            subtitleMode = SubtitleMode.always;
+          }
         }
       }
     }
@@ -7015,6 +7048,23 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     return clientFactory.getClientIfExists(item.serverId) ?? defaultClient;
   }
 
+  Future<AggregatedItem> _ensureHydrated(AggregatedItem target) async {
+    if (target.mediaSources.isNotEmpty) {
+      return target;
+    }
+    try {
+      final client = _clientForItem(target);
+      final fullData = await client.itemsApi.getItem(target.id);
+      return AggregatedItem(
+        id: target.id,
+        serverId: target.serverId,
+        rawData: Map<String, dynamic>.from(fullData),
+      );
+    } catch (_) {
+      return target;
+    }
+  }
+
   Future<List<AggregatedItem>> _moviePrerollsForStart(
     AggregatedItem item,
     Duration startPosition,
@@ -7057,8 +7107,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
   }
 
   Future<List<AggregatedItem>> _shuffleQueueForItem(AggregatedItem item) async {
-    const shuffleQueueFields =
-        'MediaStreams,MediaSources,RunTimeTicks,Trickplay,Chapters';
+    const shuffleQueueFields = 'Overview,RunTimeTicks,UserData';
     switch (item.type) {
       case 'Series':
         if (viewModel.episodes.length > 1) {
@@ -7144,20 +7193,25 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
         .toList();
   }
 
-  List<AggregatedItem> _truncateQueueIfImmediateNextUnplayable(
+  Future<List<AggregatedItem>> _truncateQueueIfImmediateNextUnplayable(
     List<AggregatedItem> queue, {
     required int startIndex,
-  }) {
+  }) async {
     if (startIndex < 0 || startIndex >= queue.length - 1) {
       return queue;
     }
 
-    final immediateNext = queue[startIndex + 1];
+    // Queues arrive without MediaSources and a missing key reads as playable,
+    // so hydrate the next item first or a broken episode passes the check and
+    // fails once the current one ends.
+    final nextIndex = startIndex + 1;
+    final immediateNext = await _ensureHydrated(queue[nextIndex]);
+    queue[nextIndex] = immediateNext;
     if (isEligibleNextEpisodeCandidate(immediateNext)) {
       return queue;
     }
 
-    return queue.sublist(0, startIndex + 1);
+    return queue.sublist(0, nextIndex);
   }
 
   Future<bool> _pushPlayerRouteWhileStartingPlayback(
@@ -7296,6 +7350,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     final subtitleStreamIndex = _effectiveSubtitleStreamIndex(
       subtitleStreams,
       audioStreams,
+      item: item,
     );
 
     if (item.type == 'Photo') {
@@ -7348,8 +7403,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
       () async {
         switch (item.type) {
           case 'Series':
-            const episodeQueueFields =
-                'Overview,MediaStreams,MediaSources,RunTimeTicks,Trickplay,UserData,Chapters';
+            const episodeQueueFields = 'Overview,RunTimeTicks,UserData';
 
             final client = _clientForItem(item);
             final data = await client.itemsApi.getEpisodes(
@@ -7419,8 +7473,11 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
               (e) => e.id == targetEpisode.id,
             );
             final idx = startIndex >= 0 ? startIndex : 0;
-            final selectedEpisode = queueEpisodes[idx];
-            final seriesQueue = _truncateQueueIfImmediateNextUnplayable(
+            var selectedEpisode = queueEpisodes[idx];
+            selectedEpisode = await _ensureHydrated(selectedEpisode);
+            queueEpisodes[idx] = selectedEpisode;
+
+            final seriesQueue = await _truncateQueueIfImmediateNextUnplayable(
               queueEpisodes,
               startIndex: idx,
             );
@@ -7434,15 +7491,25 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
               [selectedEpisode],
             );
             final directAllowed = !dvForceTranscode && !forceTranscode;
+
+            final epMediaStreams = _mediaStreamsForCurrentSelection(selectedEpisode);
+            final epAudioStreams = epMediaStreams.where((s) => s['Type'] == 'Audio').toList();
+            final epSubtitleStreams = epMediaStreams.where((s) => s['Type'] == 'Subtitle').toList();
+            final epAudioStreamIndex = _effectiveAudioStreamIndex(epAudioStreams);
+            final epSubtitleStreamIndex = _effectiveSubtitleStreamIndex(
+              epSubtitleStreams,
+              epAudioStreams,
+              item: selectedEpisode,
+            );
+
             await manager.playItems(
               seriesQueue,
               startIndex: idx,
               startPosition: startPosition,
-              audioStreamIndex: audioStreamIndex,
-              subtitleStreamIndex: subtitleStreamIndex,
-              audioSelectionExplicit: viewModel.selectedAudioIndex != null,
-              subtitleSelectionExplicit:
-                  viewModel.selectedSubtitleIndex != null,
+              audioStreamIndex: epAudioStreamIndex,
+              subtitleStreamIndex: epSubtitleStreamIndex,
+              audioSelectionExplicit: false,
+              subtitleSelectionExplicit: false,
               enableDirectPlay: directAllowed,
               enableDirectStream: directAllowed,
             );
@@ -7458,28 +7525,43 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                   )
                 : episodes.indexWhere((e) => !e.isPlayed);
             final idx = startIndex >= 0 ? startIndex : 0;
-            final selectedEpisode = episodes[idx];
-            final seasonQueue = _truncateQueueIfImmediateNextUnplayable(
+            var selectedEpisode = episodes[idx];
+            selectedEpisode = await _ensureHydrated(selectedEpisode);
+            episodes[idx] = selectedEpisode;
+            if (!context.mounted) return;
+
+            final seasonQueue = await _truncateQueueIfImmediateNextUnplayable(
               episodes,
               startIndex: idx,
             );
             final startPosition = resume
                 ? (selectedEpisode.playbackPosition ?? Duration.zero)
                 : Duration.zero;
+            if (!context.mounted) return;
             final dvForceTranscode = await _shouldForceTranscodeForDolbyVision(
               context,
               [selectedEpisode],
             );
             final directAllowed = !dvForceTranscode && !forceTranscode;
+
+            final epMediaStreams = _mediaStreamsForCurrentSelection(selectedEpisode);
+            final epAudioStreams = epMediaStreams.where((s) => s['Type'] == 'Audio').toList();
+            final epSubtitleStreams = epMediaStreams.where((s) => s['Type'] == 'Subtitle').toList();
+            final epAudioStreamIndex = _effectiveAudioStreamIndex(epAudioStreams);
+            final epSubtitleStreamIndex = _effectiveSubtitleStreamIndex(
+              epSubtitleStreams,
+              epAudioStreams,
+              item: selectedEpisode,
+            );
+
             await manager.playItems(
               seasonQueue,
               startIndex: idx,
               startPosition: startPosition,
-              audioStreamIndex: audioStreamIndex,
-              subtitleStreamIndex: subtitleStreamIndex,
-              audioSelectionExplicit: viewModel.selectedAudioIndex != null,
-              subtitleSelectionExplicit:
-                  viewModel.selectedSubtitleIndex != null,
+              audioStreamIndex: epAudioStreamIndex,
+              subtitleStreamIndex: epSubtitleStreamIndex,
+              audioSelectionExplicit: false,
+              subtitleSelectionExplicit: false,
               enableDirectPlay: directAllowed,
               enableDirectStream: directAllowed,
             );
@@ -7491,8 +7573,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
               final seasonId = item.seasonId;
               if (seriesId != null && seriesId.isNotEmpty) {
                 try {
-                  const episodeQueueFields =
-                      'Overview,MediaStreams,MediaSources,RunTimeTicks,Trickplay,UserData,Chapters';
+                  const episodeQueueFields = 'Overview,RunTimeTicks,UserData';
                   final client = _clientForItem(item);
                   final data = await client.itemsApi.getEpisodes(
                     seriesId,
@@ -7518,11 +7599,17 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
                 (e) => e.id == item.id,
               );
               final idx = startIndex >= 0 ? startIndex : 0;
-              final selectedEpisode = playableEpisodes[idx];
-              final episodeQueue = _truncateQueueIfImmediateNextUnplayable(
-                playableEpisodes,
-                startIndex: idx,
-              );
+              var selectedEpisode = playableEpisodes[idx];
+              selectedEpisode = await _ensureHydrated(selectedEpisode);
+              playableEpisodes[idx] = selectedEpisode;
+              if (!context.mounted) return;
+
+              final episodeQueue =
+                  await _truncateQueueIfImmediateNextUnplayable(
+                    playableEpisodes,
+                    startIndex: idx,
+                  );
+              if (!context.mounted) return;
 
               // Fallback to the master item's position context if it's the target episode
               final startPosition = resume
@@ -7557,8 +7644,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
           case 'BoxSet':
             final playableQueue = await _loadFolderPlayableItemsForShuffle(
               item,
-              fields:
-                  'Overview,MediaStreams,MediaSources,RunTimeTicks,Trickplay,UserData',
+              fields: 'Overview,RunTimeTicks,UserData',
             );
             if (playableQueue.isEmpty) {
               if (context.mounted) {
@@ -7609,21 +7695,35 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             }
 
             if (!context.mounted) return;
-            final targetItem = playableQueue[startIndex];
+            var targetItem = playableQueue[startIndex];
+            targetItem = await _ensureHydrated(targetItem);
+            playableQueue[startIndex] = targetItem;
+            if (!context.mounted) return;
+
             final dvForceTranscode = await _shouldForceTranscodeForDolbyVision(
               context,
               [targetItem],
             );
             final directAllowed = !dvForceTranscode && !forceTranscode;
+
+            final epMediaStreams = _mediaStreamsForCurrentSelection(targetItem);
+            final epAudioStreams = epMediaStreams.where((s) => s['Type'] == 'Audio').toList();
+            final epSubtitleStreams = epMediaStreams.where((s) => s['Type'] == 'Subtitle').toList();
+            final epAudioStreamIndex = _effectiveAudioStreamIndex(epAudioStreams);
+            final epSubtitleStreamIndex = _effectiveSubtitleStreamIndex(
+              epSubtitleStreams,
+              epAudioStreams,
+              item: targetItem,
+            );
+
             await manager.playItems(
               playableQueue,
               startIndex: startIndex,
               startPosition: startPosition,
-              audioStreamIndex: audioStreamIndex,
-              subtitleStreamIndex: subtitleStreamIndex,
-              audioSelectionExplicit: viewModel.selectedAudioIndex != null,
-              subtitleSelectionExplicit:
-                  viewModel.selectedSubtitleIndex != null,
+              audioStreamIndex: epAudioStreamIndex,
+              subtitleStreamIndex: epSubtitleStreamIndex,
+              audioSelectionExplicit: false,
+              subtitleSelectionExplicit: false,
               enableDirectPlay: directAllowed,
               enableDirectStream: directAllowed,
             );
@@ -7845,6 +7945,10 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     if (!context.mounted) return;
 
     final shuffled = List<AggregatedItem>.from(playableQueue)..shuffle();
+    if (shuffled.isNotEmpty) {
+      shuffled[0] = await _ensureHydrated(shuffled.first);
+    }
+    if (!context.mounted) return;
     final isAudio = shuffled.every((queuedItem) {
       final mediaType = queuedItem.rawData['MediaType'] as String?;
       return queuedItem.type == 'Audio' || mediaType == 'Audio';
@@ -7887,6 +7991,7 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
     final subtitleStreamIndex = _effectiveSubtitleStreamIndex(
       subtitleStreams,
       audioStreams,
+      item: item,
     );
     final positionTicks = item.playbackPosition == null
         ? null
@@ -9657,7 +9762,8 @@ class _DetailActionButtonState extends State<_DetailActionButton>
       // so the pill always has enough room for labels like "Resume S12:E24".
       // Flexible in the parent Row lets the pill grow beyond the minimum.
       final Widget pill;
-      if (isExpanded || fullWidth) {
+      final shouldExpand = isExpanded || fullWidth || isMobile;
+      if (shouldExpand) {
         final pillInner = Container(
           height: height,
           width: fullWidth ? double.infinity : null,
@@ -9669,7 +9775,7 @@ class _DetailActionButtonState extends State<_DetailActionButton>
           decoration: BoxDecoration(
             color: showHighlight
                 ? AppColorScheme.buttonFocused
-                : Colors.white.withValues(alpha: 0.06),
+                : AppColorScheme.accent,
             borderRadius: AppRadius.circular(height / 2),
             border: Border.all(
               color: showHighlight ? focusColor : Colors.transparent,
@@ -9746,7 +9852,7 @@ class _DetailActionButtonState extends State<_DetailActionButton>
               height: height,
               width: height,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
+                color: AppColorScheme.accent,
                 borderRadius: AppRadius.circular(height / 2),
                 border: Border.all(color: Colors.transparent, width: 3),
               ),
@@ -10447,7 +10553,10 @@ class DetailSimilarRow extends StatelessWidget {
                     maxHeight: isMobile ? 300 : (400 * desktopScale).round(),
                     tag: item.primaryImageTag,
                   )
-                : null,
+                : (item.rawData['PosterPath'] != null &&
+                        (item.rawData['PosterPath'] as String).isNotEmpty
+                    ? 'https://image.tmdb.org/t/p/w342${item.rawData['PosterPath']}'
+                    : null),
             width: cardWidth,
             aspectRatio: ar,
             focusColor: isNeon
@@ -10467,9 +10576,19 @@ class DetailSimilarRow extends StatelessWidget {
             onLongPress: onItemLongPress == null
                 ? null
                 : () => onItemLongPress!(item),
-            onTap: () => context.push(
-              Destinations.item(item.id, serverId: item.serverId),
-            ),
+            onTap: () {
+              if (item.serverId == 'seerr') {
+                final mediaType = item.seerrMediaType ??
+                    (item.type == 'Series' ? 'tv' : 'movie');
+                context.push(
+                  Destinations.seerrMedia(item.id, mediaType: mediaType),
+                );
+              } else {
+                context.push(
+                  Destinations.item(item.id, serverId: item.serverId),
+                );
+              }
+            },
           );
         },
       ),

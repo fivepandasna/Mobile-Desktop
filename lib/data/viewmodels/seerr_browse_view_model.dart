@@ -11,13 +11,23 @@ class SeerrSortOption {
   const SeerrSortOption(this.label, this.value);
 }
 
-const seerrSortOptions = [
-  SeerrSortOption('Popularity', 'popularity.desc'),
-  SeerrSortOption('Rating', 'vote_average.desc'),
-  SeerrSortOption('Release Date', 'primary_release_date.desc'),
-  SeerrSortOption('Title', 'original_title.asc'),
-  SeerrSortOption('Revenue', 'revenue.desc'),
-];
+List<SeerrSortOption> getSortOptionsFor(String mediaType) {
+  if (mediaType == 'tv') {
+    return const [
+      SeerrSortOption('Popularity', 'popularity.desc'),
+      SeerrSortOption('Rating', 'vote_average.desc'),
+      SeerrSortOption('Release Date', 'first_air_date.desc'),
+      SeerrSortOption('Title', 'name.asc'),
+    ];
+  }
+  return const [
+    SeerrSortOption('Popularity', 'popularity.desc'),
+    SeerrSortOption('Rating', 'vote_average.desc'),
+    SeerrSortOption('Release Date', 'primary_release_date.desc'),
+    SeerrSortOption('Title', 'original_title.asc'),
+    SeerrSortOption('Revenue', 'revenue.desc'),
+  ];
+}
 
 class SeerrBrowseState {
   final bool isLoading;
@@ -69,6 +79,13 @@ class SeerrBrowseState {
 }
 
 class SeerrBrowseViewModel extends ChangeNotifier {
+  /// How many filtered items a load aims for before it stops reading ahead.
+  static const _minMatchesPerLoad = 10;
+
+  /// Ceiling on pages read in one go, so a filter that matches almost nothing
+  /// cannot walk the whole library.
+  static const _maxPagesPerScan = 6;
+
   final SeerrRepository _repo;
   final String? filterId;
   final String mediaType;
@@ -81,12 +98,16 @@ class SeerrBrowseViewModel extends ChangeNotifier {
   SeerrBrowseState _state = const SeerrBrowseState();
   SeerrBrowseState get state => _state;
 
+  List<SeerrSortOption> get sortOptions => getSortOptionsFor(mediaType);
+
   SeerrBrowseViewModel(
     this._repo, {
     this.filterId,
     required this.mediaType,
     this.filterType,
-  });
+  }) {
+    _state = SeerrBrowseState(sortBy: sortOptions.first);
+  }
 
   Future<void> load() async {
     _state = SeerrBrowseState(
@@ -99,14 +120,29 @@ class SeerrBrowseViewModel extends ChangeNotifier {
 
     try {
       await _repo.ensureInitialized();
-      final page = await _fetchPage(1);
       await _ensureRequestLookup();
-      final enriched = _attachRequesters(page.results);
+      var pageNum = 1;
+      final matches = <SeerrDiscoverItem>[];
+      late SeerrDiscoverPage lastPage;
+
+      // A letter or availability filter can reject a whole page, so keep
+      // reading ahead until there is enough to fill the grid.
+      while (matches.length < _minMatchesPerLoad &&
+          pageNum <= _maxPagesPerScan) {
+        final page = await _fetchPage(pageNum);
+        lastPage = page;
+        matches.addAll(_applyFilter(_attachRequesters(page.results)));
+        if (page.page >= page.totalPages || page.results.isEmpty) {
+          break;
+        }
+        pageNum++;
+      }
+
       _state = _state.copyWith(
         isLoading: false,
-        items: _applyFilter(enriched),
-        currentPage: page.page,
-        totalPages: page.totalPages,
+        items: matches,
+        currentPage: lastPage.page,
+        totalPages: lastPage.totalPages,
       );
     } catch (e) {
       _state = _state.copyWith(isLoading: false, error: e.toString());
@@ -121,15 +157,28 @@ class SeerrBrowseViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final nextPage = _state.currentPage + 1;
-      final page = await _fetchPage(nextPage);
       await _ensureRequestLookup();
-      final enriched = _attachRequesters(page.results);
+      final startPage = _state.currentPage + 1;
+      var pageNum = startPage;
+      final matches = <SeerrDiscoverItem>[];
+      late SeerrDiscoverPage lastPage;
+
+      while (matches.length < _minMatchesPerLoad &&
+          pageNum < startPage + _maxPagesPerScan) {
+        final page = await _fetchPage(pageNum);
+        lastPage = page;
+        matches.addAll(_applyFilter(_attachRequesters(page.results)));
+        if (page.page >= page.totalPages || page.results.isEmpty) {
+          break;
+        }
+        pageNum++;
+      }
+
       _state = _state.copyWith(
         isLoadingMore: false,
-        items: [..._state.items, ..._applyFilter(enriched)],
-        currentPage: page.page,
-        totalPages: page.totalPages,
+        items: [..._state.items, ...matches],
+        currentPage: lastPage.page,
+        totalPages: lastPage.totalPages,
       );
     } catch (e) {
       _state = _state.copyWith(isLoadingMore: false);

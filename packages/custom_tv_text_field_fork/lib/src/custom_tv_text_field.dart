@@ -16,6 +16,19 @@ enum TextFieldType {
 
 class CustomTVTextField extends StatefulWidget {
   static final ValueNotifier<bool> isKeyboardVisibleNotifier = ValueNotifier<bool>(false);
+
+  /// Close handles for fields whose on-screen keyboard is open, most recent
+  /// last, so a global back handler can dismiss the keyboard instead of
+  /// popping the route out from under it.
+  static final List<VoidCallback> _openKeyboardCloseHandles = <VoidCallback>[];
+
+  /// Closes the most recently opened on-screen keyboard.
+  /// Returns false when none is open, so callers can fall through.
+  static bool closeTopKeyboard() {
+    if (_openKeyboardCloseHandles.isEmpty) return false;
+    _openKeyboardCloseHandles.last();
+    return true;
+  }
   final TextEditingController controller;
   final bool isFocused;
   final String hint;
@@ -266,7 +279,19 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
   void _notifyVisibilityChanged() {
     final visible = isKeyboardVisible;
     CustomTVTextField.isKeyboardVisibleNotifier.value = visible;
+    _syncCloseHandle(visible);
     widget.onVisibilityChanged?.call(visible);
+  }
+
+  late final VoidCallback _closeHandle = closeKeyboard;
+
+  /// Removes first so repeated visibility notifications can't stack duplicate
+  /// handles for the same field.
+  void _syncCloseHandle(bool visible) {
+    CustomTVTextField._openKeyboardCloseHandles.remove(_closeHandle);
+    if (visible) {
+      CustomTVTextField._openKeyboardCloseHandles.add(_closeHandle);
+    }
   }
 
   @override
@@ -446,6 +471,9 @@ class CustomTVTextFieldState extends State<CustomTVTextField>
     if (isKeyboardVisible) {
       CustomTVTextField.isKeyboardVisibleNotifier.value = false;
     }
+    // Unconditional, because a stale handle would close a disposed field and
+    // swallow every later back press.
+    CustomTVTextField._openKeyboardCloseHandles.remove(_closeHandle);
     widget.controller.removeListener(_onTextChanged);
     _systemInputFocusNode.removeListener(_onSystemInputFocusChanged);
     _keyboardController.removeListener(_onKeyboardStateChanged);

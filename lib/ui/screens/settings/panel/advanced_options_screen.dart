@@ -19,6 +19,15 @@ class _AdvancedOptionsScreenState extends State<_AdvancedOptionsScreen> {
     super.dispose();
   }
 
+  Future<void> _clearImageCache(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    await clearImageDiskCache();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.imageCacheCleared)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -44,6 +53,37 @@ class _AdvancedOptionsScreenState extends State<_AdvancedOptionsScreen> {
                 ),
               ],
             ),
+            if (!PlatformDetection.isWeb) ...[
+              _SectionHeader(l10n.storage),
+              adaptiveListSection(
+                children: [
+                  IntPickerPreferenceTile(
+                    preference: UserPreferences.imageCacheLimitMb,
+                    title: l10n.imageCacheLimit,
+                    icon: Icons.image_outlined,
+                    options: {
+                      0: l10n.noLimit,
+                      100: l10n.mbValue(100),
+                      200: l10n.mbValue(200),
+                      350: l10n.mbValue(350),
+                      500: l10n.mbValue(500),
+                      1024: l10n.mbValue(1024),
+                      2048: l10n.mbValue(2048),
+                    },
+                    onChanged: () {
+                      final mb = GetIt.instance<UserPreferences>()
+                          .get(UserPreferences.imageCacheLimitMb);
+                      unawaited(enforceImageCacheBudget(mb * 1024 * 1024));
+                    },
+                  ),
+                  _TvSettingsListTile(
+                    leading: const Icon(Icons.cleaning_services_outlined),
+                    title: Text(l10n.clearImageCache),
+                    onTap: () => _clearImageCache(context),
+                  ),
+                ],
+              ),
+            ],
             if (PlatformDetection.isAndroid && PlatformDetection.isTV) ...[
               _SectionHeader(l10n.playerRouting),
               adaptiveListSection(

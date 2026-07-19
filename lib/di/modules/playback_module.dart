@@ -492,6 +492,16 @@ void registerPlaybackModule() {
           ? PlatformDetection.audioCapabilitiesSnapshot
           : const <String, dynamic>{},
       audioSpdifCodecs: audioSpdifCodecs,
+      // Preference state behind the channel math, so a report showing an
+      // unexpected stereo cap is attributable without a settings screenshot.
+      audioPreferenceContext: <String, dynamic>{
+        'audioOutputMode': prefs.resolveAudioOutputMode().name,
+        'prefMaxAudioChannels': prefs.resolveMaxAudioChannels(),
+        'audioPassthroughPreset':
+            prefs.get(UserPreferences.audioPassthroughPreset).name,
+        if (Media3PlayerBackend.ffmpegDecoderDiagnostics != null)
+          'ffmpegDecoder': Media3PlayerBackend.ffmpegDecoderDiagnostics,
+      },
     );
   });
   manager.setExternalPlaybackDecider((items) {
@@ -548,11 +558,30 @@ void registerPlaybackModule() {
     );
     final activeAudioLanguage = activeAudioStream.isNotEmpty ? activeAudioStream['Language'] as String? : null;
 
-    final subtitleMode = manager.lastExplicitSubtitleEnabled == false
+    final currentItem = manager.queueService.currentItem;
+    String? seriesId;
+    if (currentItem is AggregatedItem) {
+      seriesId = currentItem.seriesId;
+    }
+
+    var subtitleMode = manager.lastExplicitSubtitleEnabled == false
         ? SubtitleMode.none
         : prefs.get(UserPreferences.subtitleMode);
 
-    final preferredLanguage = manager.lastExplicitSubtitleLanguage ??
+    var preferredLanguage = manager.lastExplicitSubtitleLanguage;
+    if (preferredLanguage == null && seriesId != null && seriesId.isNotEmpty) {
+      final seriesLanguage = prefs.getSeriesSubtitleLanguage(seriesId);
+      if (seriesLanguage == 'none') {
+        return -1;
+      } else if (seriesLanguage.isNotEmpty) {
+        preferredLanguage = seriesLanguage;
+        if (subtitleMode == SubtitleMode.none) {
+          subtitleMode = SubtitleMode.always;
+        }
+      }
+    }
+
+    preferredLanguage ??=
         (prefs.get(UserPreferences.defaultSubtitleLanguage) as String? ?? '');
 
     return computeEffectiveSubtitleIndex(

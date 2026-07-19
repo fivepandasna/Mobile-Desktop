@@ -372,6 +372,7 @@ class MediaBarRepository {
     final posterUrl = _client.imageApi.getPrimaryImageUrl(
       itemId,
       tag: primaryTag,
+      maxWidth: 600,
     );
 
     final runTimeTicks = data['RunTimeTicks'] as int?;

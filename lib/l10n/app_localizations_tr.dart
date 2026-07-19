@@ -32,7 +32,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get quickConnect => 'Hızlı bağlantı';
+  String get quickConnect => 'Quick Connect';
 
   @override
   String get password => 'Şifre';
@@ -61,12 +61,12 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String quickConnectUnavailable(String detail) {
-    return 'Hızlı Bağlantı kullanılamıyor: $detail';
+    return 'QuickConnect kullanılamıyor: $detail';
   }
 
   @override
   String quickConnectUnavailableWithStatus(String status, String detail) {
-    return 'Hızlı Bağlantı kullanılamıyor ($status): $detail';
+    return 'QuickConnect kullanılamıyor ($status): $detail';
   }
 
   @override
@@ -113,7 +113,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get cancel => 'İptal';
 
   @override
-  String get remove => 'Sil';
+  String get remove => 'Kaldır';
 
   @override
   String get connectToServer => 'Sunucuya Bağlan';
@@ -161,11 +161,11 @@ class AppLocalizationsTr extends AppLocalizations {
       'Sekmeler arasında gezinirken sekme içeriğini otomatik olarak göster. Her sekmeyi manuel olarak açıp kapatmak için bu seçeneği kapatın.';
 
   @override
-  String get showTechnicalDetails => 'Show Technical Details?';
+  String get showTechnicalDetails => 'Teknik Detaylar Gösterilsin Mi?';
 
   @override
   String get showTechnicalDetailsSubtitle =>
-      'Show codec, resolution, and stream information in banner summary';
+      'Başlık özetinde kodek, çözünürlük ve akış bilgilerini göster';
 
   @override
   String get recommendationSystem => 'Öneri Sistemi';
@@ -332,6 +332,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get gameSaveState => 'Durumu Kaydet';
+
+  @override
+  String get games => 'Oyunlar';
 
   @override
   String get gameLoadState => 'Durumu Yükle';
@@ -887,9 +890,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get itemListPlaceholder => 'Öğe listesi burada görünecek';
 
   @override
-  String get favoriteTracksPlaceholder => 'Favori parçalar burada görünecek';
-
-  @override
   String get failedToLoad => 'Yüklenemedi';
 
   @override
@@ -1068,7 +1068,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get version => 'Sürüm';
 
   @override
-  String get cast => 'Yansıt';
+  String get cast => 'Yayınla';
 
   @override
   String get trailer => 'Fragman';
@@ -1127,6 +1127,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get failedToDeleteItem => 'Öğe silinemedi';
+
+  @override
+  String failedToDeleteItemWithError(String error) {
+    return 'Deletion operation failed with the following error: $error';
+  }
 
   @override
   String get renamePlaylist => 'Oynatma Listesini Yeniden Adlandır';
@@ -1270,7 +1275,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get writer => 'YAZAR';
 
   @override
-  String get writers => 'YAZARLAR';
+  String get writers => 'SENARİSTLER';
 
   @override
   String get studio => 'STÜDYO';
@@ -1552,7 +1557,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get transcodeReasons => 'Kod Dönüştürme Nedenleri';
 
   @override
-  String get player => 'Oyuncu';
+  String get player => 'Oynatıcı';
 
   @override
   String get container => 'Kapsayıcı';
@@ -1827,7 +1832,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get favoriteChannel => 'Favori Kanal';
 
   @override
-  String get record => 'Kayıt';
+  String get record => 'Kaydet';
 
   @override
   String get cancelRecordingAction => 'Kaydı iptal et';
@@ -2334,10 +2339,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get scrollWheelActionSeek => 'Sar (İleri / Geri)';
 
   @override
-  String get scrollWheelActionVolume => 'Ses';
+  String get scrollWheelActionVolume => 'Ses düzeyi';
 
   @override
-  String get playerTooltipVolume => 'Ses';
+  String get playerTooltipVolume => 'Ses düzeyi';
 
   @override
   String get fit => 'Sığdır';
@@ -2352,7 +2357,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get refreshRateSwitching => 'Yenileme Hızını Değiştir';
 
   @override
-  String get disabled => 'Devre Dışı';
+  String get disabled => 'Devre dışı';
 
   @override
   String get scaleOnTv => 'TV\'de Ölçekle';
@@ -2412,7 +2417,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get transcodingAudio => 'Anlık Dönüştürme (Ses)';
 
   @override
-  String get directStreamRemux => 'Direct Stream (Remux)';
+  String get directStreamRemux => 'Doğrudan Akış (Remux)';
 
   @override
   String get transcodingBitrateOrResolution =>
@@ -2990,6 +2995,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get wifiOnlyDownloads => 'Yalnızca WiFi İndirmeleri';
 
   @override
+  String get reportDownloadsActivity => 'İndirmeleri sunucuda göster';
+
+  @override
+  String get reportDownloadsActivitySubtitle =>
+      'Sunucu yöneticisinin, kodu dönüştürülmüş indirmelerinizi panelde görmesine izin verin';
+
+  @override
   String get onlyDownloadOnWifi => 'Yalnızca Wi-Fi\'ye bağlanıldığında indir';
 
   @override
@@ -3372,6 +3384,13 @@ class AppLocalizationsTr extends AppLocalizations {
       'Ana sayfa satırlarını ekran başına 1 satırla sınırla';
 
   @override
+  String get homeRowsPadding => 'Home Row Padding';
+
+  @override
+  String get homeRowsPaddingDescription =>
+      'Customize padding between home rows';
+
+  @override
   String get perRowImageType => 'Satır Başına Görüntü Türü';
 
   @override
@@ -3702,7 +3721,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Seerr ana sayfasında görmek istediğiniz satırları etkinleştirin. Yeniden sıralamak için sürükleyin. Özel sıralama Moonbase ile senkronize edilir.';
 
   @override
-  String get enabled => 'Etkinleştirildi';
+  String get enabled => 'Etkin';
 
   @override
   String get hidden => 'Gizli';
@@ -3823,6 +3842,20 @@ class AppLocalizationsTr extends AppLocalizations {
   String gbValue(String value) {
     return '$value GB';
   }
+
+  @override
+  String mbValue(int value) {
+    return '$value MB';
+  }
+
+  @override
+  String get imageCacheLimit => 'Görsel önbelleği sınırı';
+
+  @override
+  String get clearImageCache => 'Görsel önbelleğini temizle';
+
+  @override
+  String get imageCacheCleared => 'Görsel önbelleği temizlendi';
 
   @override
   String get clear => 'Temizle';
@@ -3949,7 +3982,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get showMore => 'Daha Fazla Göster';
 
   @override
-  String get appearances => 'Görünümler';
+  String get appearances => 'Rol aldığı yapımlar';
 
   @override
   String get crewSection => 'Ekip';
@@ -4184,7 +4217,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get disable => 'Devre dışı bırak';
 
   @override
-  String get done => 'Tamamlandı';
+  String get done => 'Bitti';
 
   @override
   String get edit => 'Düzenle';
@@ -4196,7 +4229,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get error => 'Hata';
 
   @override
-  String get forward => 'İleri';
+  String get forward => 'İleri sar';
 
   @override
   String get general => 'Genel';
@@ -4244,7 +4277,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get refresh => 'Yenile';
 
   @override
-  String get remote => 'Uzak';
+  String get remote => 'Kumanda';
 
   @override
   String get rename => 'Yeniden adlandır';
@@ -4289,7 +4322,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get time => 'Zaman';
 
   @override
-  String get trickplay => 'Önizleme Resimleri';
+  String get trickplay => 'Trickplay';
 
   @override
   String get uninstall => 'Kaldır';
@@ -4307,7 +4340,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get unmute => 'Sesini aç';
 
   @override
-  String get mute => 'Sesini kapat';
+  String get mute => 'Sessize al';
 
   @override
   String get branding => 'Markalaşma';
@@ -4343,13 +4376,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminDrawerTranscoding => 'Kod dönüştür';
 
   @override
-  String get adminDrawerResume => 'Sürdür';
+  String get adminDrawerResume => 'Devam et';
 
   @override
   String get adminDrawerStreaming => 'Akış';
 
   @override
-  String get adminDrawerTrickplay => 'Önizleme Resimleri';
+  String get adminDrawerTrickplay => 'Trickplay';
 
   @override
   String get adminDrawerDevices => 'Cihazlar';
@@ -4520,7 +4553,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get sessionRewind => 'Geri sarma';
 
   @override
-  String get sessionForward => 'İleri';
+  String get sessionForward => 'İleri sar';
 
   @override
   String get sessionNext => 'Sonraki';
@@ -4538,7 +4571,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get nowPlaying => 'Şimdi Oynuyor';
 
   @override
-  String get volume => 'Ses';
+  String get volume => 'Ses düzeyi';
 
   @override
   String get actions => 'Eylemler';
@@ -5882,10 +5915,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminThrottleBuffering => 'Arabelleğe almayı sınırla';
 
   @override
-  String get adminTrickplaySaved => 'Önizleme ayarları kaydedildi';
+  String get adminTrickplaySaved => 'Trickplay ayarları kaydedildi';
 
   @override
-  String get adminTrickplayLoadFailed => 'Önizleme ayarları yüklenemedi';
+  String get adminTrickplayLoadFailed => 'Trickplay ayarları yüklenemedi';
 
   @override
   String get adminEnableHardwareAcceleration =>
@@ -6161,16 +6194,116 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminAddTuner => 'Tuner Ekle';
 
   @override
+  String get adminEditTuner => 'Tuner\'i Düzenle';
+
+  @override
+  String get adminTunerTypeM3u => 'M3U Tuner';
+
+  @override
+  String get adminTunerTypeHdHomerun => 'HDHomeRun';
+
+  @override
+  String get adminTunerFileOrUrl => 'Dosya veya URL';
+
+  @override
+  String get adminTunerIpAddress => 'Tuner IP Adresi';
+
+  @override
+  String get adminTunerFriendlyName => 'Görünen Ad';
+
+  @override
+  String get adminTunerUserAgent => 'Kullanıcı Aracısı';
+
+  @override
+  String get adminTunerCount => 'Eşzamanlı Bağlantı Sınırı';
+
+  @override
+  String get adminTunerCountHelp =>
+      'Alıcının aynı anda izin verdiği maksimum akış sayısı. Sınırsız yapmak için 0 olarak ayarlayın.';
+
+  @override
+  String get adminTunerFallbackBitrate => 'Yedek Maksimum Akış Hızı';
+
+  @override
+  String get adminTunerImportFavoritesOnly => 'Sadece favori kanalları aktar';
+
+  @override
+  String get adminTunerAllowHwTranscoding =>
+      'Donanım kod dönüştürmeye izin ver';
+
+  @override
+  String get adminTunerAllowFmp4 => 'fMP4 kod dönüştürme taşıyıcısına izin ver';
+
+  @override
+  String get adminTunerAllowStreamSharing => 'Yayın paylaşımına izin ver';
+
+  @override
+  String get adminTunerEnableStreamLooping => 'Yayın döngüsünü etkinleştir';
+
+  @override
+  String get adminTunerIgnoreDts => 'DTS Ses Desteğini Yok Say';
+
+  @override
+  String get adminTunerReadAtNativeFramerate =>
+      'Girdiyi yerel kare hızında oku';
+
+  @override
+  String get adminEditProvider => 'Sağlayıcıyı Düzenle';
+
+  @override
+  String get adminProviderXmltv => 'XMLTV';
+
+  @override
+  String get adminProviderSchedulesDirect => 'Schedules Direct';
+
+  @override
+  String get adminXmltvPath => 'Dosya veya URL';
+
+  @override
+  String get adminXmltvMoviePrefix => 'Film Ön Adı';
+
+  @override
+  String get adminXmltvMovieCategories => 'Film Kategorileri';
+
+  @override
+  String get adminXmltvCategoriesHelp =>
+      'Birden çok kategoriyi dikey çizgi ile ayırın.';
+
+  @override
+  String get adminXmltvKidsCategories => 'Çocuk Kategorileri';
+
+  @override
+  String get adminXmltvNewsCategories => 'Haber Kategorileri';
+
+  @override
+  String get adminXmltvSportsCategories => 'Spor Kategorileri';
+
+  @override
+  String get adminSdUsername => 'Kullanıcı Adı';
+
+  @override
+  String get adminSdPassword => 'Şifre';
+
+  @override
+  String get adminSdCountry => 'Ülke';
+
+  @override
+  String get adminSdCountrySelect => 'Ülke Seç';
+
+  @override
+  String get adminSdPostalCode => 'Posta Kodu';
+
+  @override
+  String get adminSdGetListings => 'Yayın Akışını Al';
+
+  @override
+  String get adminSdListings => 'Yayın Akışları';
+
+  @override
+  String get adminEnableAllTuners => 'Tüm tunerleri aktif et';
+
+  @override
   String get adminTunerType => 'Tuner Türü';
-
-  @override
-  String get adminTunerTypeHint => 'HDHomeRun, M3U, Diğer';
-
-  @override
-  String get adminUrlPath => 'URL / Yol';
-
-  @override
-  String get adminNameOptional => 'Ad (isteğe bağlı)';
 
   @override
   String get adminTunerAdded => 'Ayarlayıcı eklendi';
@@ -6185,15 +6318,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get adminProviderType => 'Sağlayıcı Türü';
-
-  @override
-  String get adminProviderTypeHint => 'SchedulesDirect veya XMLTV';
-
-  @override
-  String get adminUsernameOptional => 'Kullanıcı adı (isteğe bağlı)';
-
-  @override
-  String get adminRefreshInterval => 'Yenileme aralığı (saat)';
 
   @override
   String get adminProviderAdded => 'Sağlayıcı eklendi';
@@ -6746,7 +6870,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get adminReposRemove => 'Kaldırmak';
+  String get adminReposRemove => 'Kaldır';
 
   @override
   String adminReposSaveFailed(String error) {
@@ -6978,6 +7102,14 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminPlaybackTonemappingParam => 'Ton eşleme parametresi';
 
   @override
+  String get adminPlaybackVppTonemappingBrightness =>
+      'VPP ton haritalama parlaklığı';
+
+  @override
+  String get adminPlaybackVppTonemappingContrast =>
+      'VPP ton haritalama kontrastı';
+
+  @override
   String get adminPlaybackPresetsQuality => 'Ön Ayar & Kalite';
 
   @override
@@ -6991,6 +7123,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get adminPlaybackDeinterlaceMethod => 'Tarama giderme yöntemi';
+
+  @override
+  String get adminPlaybackDeinterlaceDoubleRate =>
+      'Taramasızlaştırma yaparken kare hızını ikiye katla';
 
   @override
   String get adminPlaybackAudioSection => 'Ses';
@@ -7128,7 +7264,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminTaskNeverRun => 'Asla çalışma';
 
   @override
-  String get adminTaskStop => 'Dur';
+  String get adminTaskStop => 'Durdur';
 
   @override
   String get adminRunningTasks => 'Çalışan Görevler';
@@ -7268,7 +7404,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get adminTrickplayDescription =>
-      'Önizleme küçük resimlerini aramak için hileli görüntü oluşturmayı yapılandırın.';
+      'İleri sarma önizleme küçük resimleri için Trickplay görüntü oluşturmayı yapılandırın.';
 
   @override
   String get adminNetworkingPublicHttpsPort => 'Genel HTTPS bağlantı noktası';
@@ -7350,6 +7486,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminPlaybackThrottleBuffering => 'Önbelleğe almayı sınırla';
 
   @override
+  String get adminPlaybackThrottleDelay => 'Sınırlama gecikmesi (saniye)';
+
+  @override
+  String get adminPlaybackEnableSubtitleExtraction =>
+      'Anında altyazı çıkarılmasına izin ver';
+
+  @override
   String get adminResumeMinPct => 'Minimum devam etme yüzdesi';
 
   @override
@@ -7407,7 +7550,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Yavaş yanıt uyarılarını etkinleştir';
 
   @override
-  String get adminGeneralQuickConnect => 'Hızlı Bağlantıyı Etkinleştir';
+  String get adminGeneralQuickConnect => 'Quick Connect\'i Etkinleştir';
 
   @override
   String get adminGeneralSectionServer => 'Sunucu';
@@ -7429,6 +7572,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get adminGeneralServerName => 'Sunucu adı';
+
+  @override
+  String get adminGeneralDisplayLanguage => 'Tercih edilen görünüm dili';
 
   @override
   String get adminSettingsLoadFailed => 'Ayarlar yüklenemedi';
@@ -7763,35 +7909,35 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pinBackspace => 'Geri tuşu';
 
   @override
-  String get quickConnectAuthorized => 'Hızlı Bağlantı isteği onaylandı.';
+  String get quickConnectAuthorized => 'Quick Connect isteği onaylandı.';
 
   @override
   String get quickConnectInvalidOrExpired =>
-      'Hızlı Bağlantı kodu geçersiz veya süresi dolmuş.';
+      'Quick Connect kodu geçersiz veya süresi dolmuş.';
 
   @override
   String get quickConnectNotSupported =>
-      'Hızlı Bağlantı bu sunucuda desteklenmiyor.';
+      'Quick Connect bu sunucuda desteklenmiyor.';
 
   @override
   String get quickConnectAuthorizeFailed =>
-      'Hızlı Bağlantı kodu yetkilendirilemedi.';
+      'Quick Connect kodu yetkilendirilemedi.';
 
   @override
   String get quickConnectDisabled =>
-      'Hızlı Bağlantı bu sunucuda devre dışı bırakıldı.';
+      'Quick Connect bu sunucuda devre dışı bırakıldı.';
 
   @override
   String get quickConnectForbidden =>
-      'Hesabınız bu Hızlı Bağlantı isteğine yetki veremez.';
+      'Hesabınız bu Quick Connect isteğine yetki veremez.';
 
   @override
   String get quickConnectNotFound =>
-      'Hızlı Bağlantı kodu bulunamadı. Yeni bir kod deneyin.';
+      'Quick Connect kodu bulunamadı. Yeni bir kod deneyin.';
 
   @override
   String quickConnectFailedWithMessage(String message) {
-    return 'Hızlı Bağlantı başarısız oldu: $message';
+    return 'Quick Connect başarısız oldu: $message';
   }
 
   @override
@@ -7956,7 +8102,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Oynatma duraklatıldı. Hala izliyor musun?';
 
   @override
-  String get stillWatchingStop => 'Dur';
+  String get stillWatchingStop => 'Durdur';
 
   @override
   String get stillWatchingContinue => 'Devam et';
@@ -8018,7 +8164,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get playerTooltipUnlockOrientation => 'Ekran döndürmeye izin ver';
 
   @override
-  String get playerTooltipPrevious => 'Öncesi';
+  String get playerTooltipPrevious => 'Önceki';
 
   @override
   String get playerTooltipSeekBack => 'Geri ara';
@@ -8653,6 +8799,10 @@ class AppLocalizationsTr extends AppLocalizations {
       'Kütüphane sayfalarında, seçilen ögenin detaylarını üst kısımda göster.';
 
   @override
+  String get hideBackdropsInLibraries =>
+      'Göz atarken arka plan resimleri gizlensin mi?';
+
+  @override
   String get useDetailedSubHeadings => 'Detaylı alt başlıklar kullan';
 
   @override
@@ -9276,7 +9426,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminServerPathLogs => 'Günlükler';
 
   @override
-  String get adminServerPathMetadata => 'Metadata';
+  String get adminServerPathMetadata => 'Meta Veri';
 
   @override
   String get adminServerPathTranscode => 'Dönüştür';
@@ -9315,7 +9465,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adminDrawerSectionAdvanced => 'Gelişmiş';
 
   @override
-  String get adminDrawerSectionPlugins => 'Plugins';
+  String get adminDrawerSectionPlugins => 'Eklentiler';
 
   @override
   String get adminDrawerSectionLiveTv => 'Canlı TV';

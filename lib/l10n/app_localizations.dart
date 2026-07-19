@@ -802,6 +802,12 @@ abstract class AppLocalizations {
   /// **'Save state'**
   String get gameSaveState;
 
+  /// Label for the games category tab in search results
+  ///
+  /// In en, this message translates to:
+  /// **'Games'**
+  String get games;
+
   /// In-game menu action to load the saved game state
   ///
   /// In en, this message translates to:
@@ -1762,12 +1768,6 @@ abstract class AppLocalizations {
   /// **'Item list will appear here'**
   String get itemListPlaceholder;
 
-  /// Placeholder text for an empty music favorites screen
-  ///
-  /// In en, this message translates to:
-  /// **'Favorite tracks will appear here'**
-  String get favoriteTracksPlaceholder;
-
   /// Error message when item detail fails to load
   ///
   /// In en, this message translates to:
@@ -2199,6 +2199,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to delete item'**
   String get failedToDeleteItem;
+
+  /// Error message when item deletion fails, including the specific error details
+  ///
+  /// In en, this message translates to:
+  /// **'Deletion operation failed with the following error: {error}'**
+  String failedToDeleteItemWithError(String error);
 
   /// Dialog title for renaming a playlist
   ///
@@ -5404,6 +5410,18 @@ abstract class AppLocalizations {
   /// **'WiFi-Only Downloads'**
   String get wifiOnlyDownloads;
 
+  /// No description provided for @reportDownloadsActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Show downloads on the server'**
+  String get reportDownloadsActivity;
+
+  /// No description provided for @reportDownloadsActivitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let the server admin see your transcoded downloads in the dashboard'**
+  String get reportDownloadsActivitySubtitle;
+
   /// Description for wifi-only downloads
   ///
   /// In en, this message translates to:
@@ -6111,6 +6129,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Limit home rows to 1 row per screen'**
   String get fullScreenRowsDescription;
+
+  /// Title for home rows padding setting
+  ///
+  /// In en, this message translates to:
+  /// **'Home Row Padding'**
+  String get homeRowsPadding;
+
+  /// Description for home rows padding setting
+  ///
+  /// In en, this message translates to:
+  /// **'Customize padding between home rows'**
+  String get homeRowsPaddingDescription;
 
   /// Title for per-row image type screen
   ///
@@ -6915,6 +6945,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{value} GB'**
   String gbValue(String value);
+
+  /// Megabyte value display
+  ///
+  /// In en, this message translates to:
+  /// **'{value} MB'**
+  String mbValue(int value);
+
+  /// No description provided for @imageCacheLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Image cache limit'**
+  String get imageCacheLimit;
+
+  /// No description provided for @clearImageCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear image cache'**
+  String get clearImageCache;
+
+  /// No description provided for @imageCacheCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Image cache cleared'**
+  String get imageCacheCleared;
 
   /// Button to clear
   ///
@@ -11026,29 +11080,221 @@ abstract class AppLocalizations {
   /// **'Add Tuner'**
   String get adminAddTuner;
 
+  /// No description provided for @adminEditTuner.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Tuner'**
+  String get adminEditTuner;
+
+  /// No description provided for @adminTunerTypeM3u.
+  ///
+  /// In en, this message translates to:
+  /// **'M3U Tuner'**
+  String get adminTunerTypeM3u;
+
+  /// No description provided for @adminTunerTypeHdHomerun.
+  ///
+  /// In en, this message translates to:
+  /// **'HDHomeRun'**
+  String get adminTunerTypeHdHomerun;
+
+  /// No description provided for @adminTunerFileOrUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'File or URL'**
+  String get adminTunerFileOrUrl;
+
+  /// No description provided for @adminTunerIpAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuner IP address'**
+  String get adminTunerIpAddress;
+
+  /// No description provided for @adminTunerFriendlyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Friendly name'**
+  String get adminTunerFriendlyName;
+
+  /// No description provided for @adminTunerUserAgent.
+  ///
+  /// In en, this message translates to:
+  /// **'User agent'**
+  String get adminTunerUserAgent;
+
+  /// No description provided for @adminTunerCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Simultaneous connection limit'**
+  String get adminTunerCount;
+
+  /// No description provided for @adminTunerCountHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'The maximum number of streams the tuner allows at once. Set to 0 for unlimited.'**
+  String get adminTunerCountHelp;
+
+  /// No description provided for @adminTunerFallbackBitrate.
+  ///
+  /// In en, this message translates to:
+  /// **'Fallback max streaming bitrate'**
+  String get adminTunerFallbackBitrate;
+
+  /// No description provided for @adminTunerImportFavoritesOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Import only favorite channels'**
+  String get adminTunerImportFavoritesOnly;
+
+  /// No description provided for @adminTunerAllowHwTranscoding.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow hardware transcoding'**
+  String get adminTunerAllowHwTranscoding;
+
+  /// No description provided for @adminTunerAllowFmp4.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow fMP4 transcoding container'**
+  String get adminTunerAllowFmp4;
+
+  /// No description provided for @adminTunerAllowStreamSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow stream sharing'**
+  String get adminTunerAllowStreamSharing;
+
+  /// No description provided for @adminTunerEnableStreamLooping.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable stream looping'**
+  String get adminTunerEnableStreamLooping;
+
+  /// No description provided for @adminTunerIgnoreDts.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore DTS'**
+  String get adminTunerIgnoreDts;
+
+  /// No description provided for @adminTunerReadAtNativeFramerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Read input at native frame rate'**
+  String get adminTunerReadAtNativeFramerate;
+
+  /// No description provided for @adminEditProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Provider'**
+  String get adminEditProvider;
+
+  /// No description provided for @adminProviderXmltv.
+  ///
+  /// In en, this message translates to:
+  /// **'XMLTV'**
+  String get adminProviderXmltv;
+
+  /// No description provided for @adminProviderSchedulesDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedules Direct'**
+  String get adminProviderSchedulesDirect;
+
+  /// No description provided for @adminXmltvPath.
+  ///
+  /// In en, this message translates to:
+  /// **'File or URL'**
+  String get adminXmltvPath;
+
+  /// No description provided for @adminXmltvMoviePrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Movie prefix'**
+  String get adminXmltvMoviePrefix;
+
+  /// No description provided for @adminXmltvMovieCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Movie categories'**
+  String get adminXmltvMovieCategories;
+
+  /// No description provided for @adminXmltvCategoriesHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate multiple categories with a vertical bar.'**
+  String get adminXmltvCategoriesHelp;
+
+  /// No description provided for @adminXmltvKidsCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Kids categories'**
+  String get adminXmltvKidsCategories;
+
+  /// No description provided for @adminXmltvNewsCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'News categories'**
+  String get adminXmltvNewsCategories;
+
+  /// No description provided for @adminXmltvSportsCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Sports categories'**
+  String get adminXmltvSportsCategories;
+
+  /// No description provided for @adminSdUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get adminSdUsername;
+
+  /// No description provided for @adminSdPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get adminSdPassword;
+
+  /// No description provided for @adminSdCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get adminSdCountry;
+
+  /// No description provided for @adminSdCountrySelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a country'**
+  String get adminSdCountrySelect;
+
+  /// No description provided for @adminSdPostalCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Postal code'**
+  String get adminSdPostalCode;
+
+  /// No description provided for @adminSdGetListings.
+  ///
+  /// In en, this message translates to:
+  /// **'Get listings'**
+  String get adminSdGetListings;
+
+  /// No description provided for @adminSdListings.
+  ///
+  /// In en, this message translates to:
+  /// **'Listings'**
+  String get adminSdListings;
+
+  /// No description provided for @adminEnableAllTuners.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable all tuners'**
+  String get adminEnableAllTuners;
+
   /// No description provided for @adminTunerType.
   ///
   /// In en, this message translates to:
   /// **'Tuner Type'**
   String get adminTunerType;
-
-  /// No description provided for @adminTunerTypeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'HDHomeRun, M3U, Other'**
-  String get adminTunerTypeHint;
-
-  /// No description provided for @adminUrlPath.
-  ///
-  /// In en, this message translates to:
-  /// **'URL / Path'**
-  String get adminUrlPath;
-
-  /// No description provided for @adminNameOptional.
-  ///
-  /// In en, this message translates to:
-  /// **'Name (optional)'**
-  String get adminNameOptional;
 
   /// No description provided for @adminTunerAdded.
   ///
@@ -11073,24 +11319,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Provider Type'**
   String get adminProviderType;
-
-  /// No description provided for @adminProviderTypeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'SchedulesDirect or XMLTV'**
-  String get adminProviderTypeHint;
-
-  /// No description provided for @adminUsernameOptional.
-  ///
-  /// In en, this message translates to:
-  /// **'Username (optional)'**
-  String get adminUsernameOptional;
-
-  /// No description provided for @adminRefreshInterval.
-  ///
-  /// In en, this message translates to:
-  /// **'Refresh interval (hours)'**
-  String get adminRefreshInterval;
 
   /// No description provided for @adminProviderAdded.
   ///
@@ -12454,6 +12682,18 @@ abstract class AppLocalizations {
   /// **'Tone mapping parameter'**
   String get adminPlaybackTonemappingParam;
 
+  /// No description provided for @adminPlaybackVppTonemappingBrightness.
+  ///
+  /// In en, this message translates to:
+  /// **'VPP tone mapping brightness'**
+  String get adminPlaybackVppTonemappingBrightness;
+
+  /// No description provided for @adminPlaybackVppTonemappingContrast.
+  ///
+  /// In en, this message translates to:
+  /// **'VPP tone mapping contrast'**
+  String get adminPlaybackVppTonemappingContrast;
+
   /// No description provided for @adminPlaybackPresetsQuality.
   ///
   /// In en, this message translates to:
@@ -12483,6 +12723,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deinterlace method'**
   String get adminPlaybackDeinterlaceMethod;
+
+  /// No description provided for @adminPlaybackDeinterlaceDoubleRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Double the frame rate when deinterlacing'**
+  String get adminPlaybackDeinterlaceDoubleRate;
 
   /// No description provided for @adminPlaybackAudioSection.
   ///
@@ -13114,6 +13360,18 @@ abstract class AppLocalizations {
   /// **'Throttle buffering'**
   String get adminPlaybackThrottleBuffering;
 
+  /// No description provided for @adminPlaybackThrottleDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'Throttle delay (seconds)'**
+  String get adminPlaybackThrottleDelay;
+
+  /// No description provided for @adminPlaybackEnableSubtitleExtraction.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow subtitle extraction on the fly'**
+  String get adminPlaybackEnableSubtitleExtraction;
+
   /// No description provided for @adminResumeMinPct.
   ///
   /// In en, this message translates to:
@@ -13263,6 +13521,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Server name'**
   String get adminGeneralServerName;
+
+  /// No description provided for @adminGeneralDisplayLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred display language'**
+  String get adminGeneralDisplayLanguage;
 
   /// No description provided for @adminSettingsLoadFailed.
   ///
@@ -15375,6 +15639,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show details of the selected item at the top of Library pages.'**
   String get showMediaDetailsOnLibraryPageDescription;
+
+  /// Setting title to show/hide backdrops when browsing library pages
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Backdrops while Browsing?'**
+  String get hideBackdropsInLibraries;
 
   /// Label for setting to toggle detailed or minimal subrow on library pages
   ///

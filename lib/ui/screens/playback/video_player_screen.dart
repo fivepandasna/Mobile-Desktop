@@ -18,6 +18,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../../../util/fullscreen_helper.dart';
 import '../../widgets/playback/seek_icons.dart';
+import '../../widgets/playback/trickplay_tile_image.dart';
 
 import '../../../playback/html_video_backend.dart';
 import '../../../playback/media_kit_player_backend.dart';
@@ -149,6 +150,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   DateTime? _lastPlaybackErrorAt;
   String? _lastPlaybackErrorMessage;
   bool _isInPiP = false;
+  final GlobalKey _videoSurfaceKey = GlobalKey();
   bool _forcedLandscape = false;
   double _playerVolume = 100.0;
   double _volumeBeforeMute = 1.0;
@@ -3533,7 +3535,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         PlaybackEnginePreference.media3;
     final prewarmMedia3 = _activeBackend == null && prefersMedia3;
     if (_activeMedia3Backend != null || prewarmMedia3) {
-      return const Positioned.fill(child: Media3VideoView(fill: Colors.black));
+      return Positioned.fill(
+        child: Media3VideoView(key: _videoSurfaceKey, fill: Colors.black),
+      );
     }
 
     final htmlBackend = _activeHtmlVideoBackend;
@@ -3570,6 +3574,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
             return const ColoredBox(color: Colors.black);
           }
           return Video(
+            key: _videoSurfaceKey,
             controller: controller,
             controls: NoVideoControls,
             width: constraints.maxWidth,
@@ -4399,39 +4404,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           ),
           child: ClipRRect(
             borderRadius: AppRadius.circular(9),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final tileW = thumbWidth * tileWidth;
-                final tileH = thumbHeight * tileHeight;
-                final scaleX = constraints.maxWidth / thumbWidth;
-                final scaleY = constraints.maxHeight / thumbHeight;
-                return OverflowBox(
-                  maxWidth: tileW * scaleX,
-                  maxHeight: tileH * scaleY,
-                  alignment: Alignment(
-                    tileWidth <= 1
-                        ? 0.0
-                        : -1.0 + 2.0 * sourceRect.left / (tileW - thumbWidth),
-                    tileHeight <= 1
-                        ? 0.0
-                        : -1.0 + 2.0 * sourceRect.top / (tileH - thumbHeight),
-                  ),
-                  child: Image.network(
-                    imageUrl,
-                    headers: headers.isEmpty ? null : headers,
-                    fit: BoxFit.fill,
-                    filterQuality: FilterQuality.medium,
-                    errorBuilder: (_, _, _) => Container(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      alignment: Alignment.center,
-                      child: AdaptiveIcon(
-                        Icons.movie,
-                        color: Colors.white.withValues(alpha: 0.45),
-                      ),
-                    ),
-                  ),
-                );
-              },
+            child: TrickplayTileImage(
+              sheet: NetworkImage(
+                imageUrl,
+                headers: headers.isEmpty ? null : headers,
+              ),
+              sourceRect: sourceRect,
+              thumbWidth: thumbWidth,
+              thumbHeight: thumbHeight,
+              tileWidth: tileWidth,
+              tileHeight: tileHeight,
             ),
           ),
         ),
@@ -5596,26 +5578,35 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         final isPlaying = _displayPlaying;
 
         return Row(
-          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (_queue.hasPrevious)
-              _controlButton(
-                Icons.skip_previous_rounded,
-                onPressed: _manager.previous,
-                size: 40,
-                extent: 72,
-                tooltip: l10n.playerTooltipPrevious,
-              ),
-            _controlButton(
-              seekBackIcon(_prefs.get(UserPreferences.skipBackLength)),
-              onPressed: () =>
-                  _seekRelative(-_prefs.get(UserPreferences.skipBackLength)),
-              size: 46,
-              extent: 78,
-              tooltip: _tooltipMessage(
-                l10n.playerTooltipSeekBack,
-                shortcut: 'Left',
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_queue.hasPrevious)
+                      _controlButton(
+                        Icons.skip_previous_rounded,
+                        onPressed: _manager.previous,
+                        size: 40,
+                        extent: 72,
+                        tooltip: l10n.playerTooltipPrevious,
+                      ),
+                    _controlButton(
+                      seekBackIcon(_prefs.get(UserPreferences.skipBackLength)),
+                      onPressed: () =>
+                          _seekRelative(-_prefs.get(UserPreferences.skipBackLength)),
+                      size: 46,
+                      extent: 78,
+                      tooltip: _tooltipMessage(
+                        l10n.playerTooltipSeekBack,
+                        shortcut: 'Left',
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             _controlButton(
@@ -5629,25 +5620,35 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
                 shortcut: 'Space',
               ),
             ),
-            _controlButton(
-              seekForwardIcon(_prefs.get(UserPreferences.skipForwardLength)),
-              onPressed: () =>
-                  _seekRelative(_prefs.get(UserPreferences.skipForwardLength)),
-              size: 46,
-              extent: 78,
-              tooltip: _tooltipMessage(
-                l10n.playerTooltipSeekForward,
-                shortcut: 'Right',
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _controlButton(
+                      seekForwardIcon(_prefs.get(UserPreferences.skipForwardLength)),
+                      onPressed: () =>
+                          _seekRelative(_prefs.get(UserPreferences.skipForwardLength)),
+                      size: 46,
+                      extent: 78,
+                      tooltip: _tooltipMessage(
+                        l10n.playerTooltipSeekForward,
+                        shortcut: 'Right',
+                      ),
+                    ),
+                    if (_queue.hasNext)
+                      _controlButton(
+                        Icons.skip_next_rounded,
+                        onPressed: _manager.next,
+                        size: 40,
+                        extent: 72,
+                        tooltip: l10n.next,
+                      ),
+                  ],
+                ),
               ),
             ),
-            if (_queue.hasNext)
-              _controlButton(
-                Icons.skip_next_rounded,
-                onPressed: _manager.next,
-                size: 40,
-                extent: 72,
-                tooltip: l10n.next,
-              ),
           ],
         );
       },
@@ -5937,10 +5938,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     final streams = allStreams.where((s) => s['Type'] == streamType).toList();
     final displaySubtitleStreams = audio
         ? const <Map<String, dynamic>>[]
-        : [
-            ...streams.where((s) => !_isExternalSubtitleStream(s)),
-            ...streams.where(_isExternalSubtitleStream),
-          ];
+        : sortedSubtitleStreams(streams);
     final optionStreams = audio ? streams : displaySubtitleStreams;
     final audioStreams = allStreams.where((s) => s['Type'] == 'Audio').toList();
     final canDownloadRemote =
@@ -6084,16 +6082,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       }
     }());
     _showControls();
-  }
-
-  bool _isExternalSubtitleStream(Map<String, dynamic> stream) {
-    if (stream['IsExternal'] == true) {
-      return true;
-    }
-    final deliveryMethod = (stream['DeliveryMethod'] as String?)
-        ?.trim()
-        .toLowerCase();
-    return deliveryMethod == 'external';
   }
 
   Widget _buildZoomButton({

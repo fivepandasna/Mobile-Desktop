@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:get_it/get_it.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:moonfin_design/moonfin_design.dart' show LiquidGlassWidgets;
 import 'package:path_provider/path_provider.dart';
 import 'package:playback_core/playback_core.dart';
 import 'package:window_manager/window_manager.dart';
@@ -78,26 +79,30 @@ void _attachIosAudioRouteHandling() {
   });
 }
 
+// The entry counts are generous on purpose: a library grid shows dozens of
+// posters at once, so a small count evicts them after about two screenfuls and
+// scrolling back re-decodes everything. maximumSizeBytes is what really bounds
+// memory here.
 void _configureImageCache() {
   final imageCache = PaintingBinding.instance.imageCache;
   if (PlatformDetection.isWeb) {
-    imageCache.maximumSize = 200;
+    imageCache.maximumSize = 400;
     imageCache.maximumSizeBytes = 96 << 20;
     return;
   }
   if (PlatformDetection.isMobile) {
-    imageCache.maximumSize = 100;
+    imageCache.maximumSize = 400;
     imageCache.maximumSizeBytes = 120 << 20;
     return;
   }
 
   if (PlatformDetection.isTV) {
-    imageCache.maximumSize = 120;
+    imageCache.maximumSize = 500;
     imageCache.maximumSizeBytes = 96 << 20;
     return;
   }
 
-  imageCache.maximumSize = 200;
+  imageCache.maximumSize = 600;
   imageCache.maximumSizeBytes = 256 << 20;
 }
 
@@ -133,17 +138,31 @@ Future<void> _restoreWindowGeometry() async {
   });
 }
 
+/// Resolves whether this Android device is a TV, which decides the leanback UI
+/// and the default playback engine.
 Future<void> _detectAndSetTvMode() async {
   if (const bool.fromEnvironment('MOONFIN_FORCE_TV')) {
     PlatformDetection.setTvMode(true);
     return;
   }
   if (!PlatformDetection.isAndroid) return;
-  try {
-    const channel = MethodChannel('org.moonfin.androidtv/platform');
-    final isTV = await channel.invokeMethod<bool>('isTvDevice') ?? false;
-    PlatformDetection.setTvMode(isTV);
-  } catch (_) {}
+  const channel = MethodChannel('org.moonfin.androidtv/platform');
+  const attempts = 3;
+  for (var attempt = 0; attempt < attempts; attempt++) {
+    try {
+      final isTV = await channel.invokeMethod<bool>('isTvDevice');
+      if (isTV != null) {
+        PlatformDetection.setTvMode(isTV);
+        return;
+      }
+    } catch (_) {}
+    if (attempt < attempts - 1) {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+  }
+  debugPrint(
+    'TV detection failed after $attempts attempts, continuing as a non-TV device',
+  );
 }
 
 Future<void> _detectAndSetDisplayCapabilities() async {
@@ -157,21 +176,58 @@ Future<void> _detectAndSetDisplayCapabilities() async {
   } catch (_) {}
 }
 
+/// A cold-start probe can race codec enumeration and return a map with no
+/// usable H264 support. Every Android device that reaches this code plays
+/// H264, so such a result is a transient failure, not a real capability.
+bool _codecCapsLookDegenerate(Map<String, dynamic> caps) {
+  final supportsAvc = caps['supportsAvc'] == true;
+  final avcMainLevel = caps['avcMainLevel'];
+  return !supportsAvc || avcMainLevel is! int || avcMainLevel <= 0;
+}
+
+Future<Map<String, dynamic>?> _queryCodecCaps(MethodChannel channel) async {
+  final raw = await channel.invokeMethod<Map<dynamic, dynamic>>(
+    'mediaCodecCapabilities',
+    <String, dynamic>{
+      'includeSoftwareDecoders': !PlatformDetection.isTV,
+    },
+  );
+  return raw?.map((key, value) => MapEntry(key.toString(), value));
+}
+
+/// Re-probes in the background when the startup result looked degenerate.
+/// The native query enumerates codecs on the platform main thread, so the
+/// retries must never extend the launch path. The device profile is built
+/// per playback, so a corrected result applied here still fixes the next
+/// playback without a restart.
+Future<void> _retryCodecCapsOffLaunchPath(MethodChannel channel) async {
+  for (var i = 0; i < 2; i++) {
+    await Future<void>.delayed(const Duration(seconds: 2));
+    try {
+      final caps = await _queryCodecCaps(channel);
+      if (caps != null && !_codecCapsLookDegenerate(caps)) {
+        PlatformDetection.setMediaCodecCapabilities(caps);
+        return;
+      }
+    } catch (_) {
+      return;
+    }
+  }
+}
+
 Future<void> _detectAndSetCodecCapabilities() async {
   if (!PlatformDetection.isAndroid) return;
   try {
     const channel = MethodChannel('org.moonfin.androidtv/platform');
 
-    final codecCaps = await channel.invokeMethod<Map<dynamic, dynamic>>(
-      'mediaCodecCapabilities',
-      <String, dynamic>{
-        'includeSoftwareDecoders': !PlatformDetection.isTV,
-      },
-    );
+    final codecCaps = await _queryCodecCaps(channel);
     if (codecCaps != null) {
-      PlatformDetection.setMediaCodecCapabilities(
-        codecCaps.map((key, value) => MapEntry(key.toString(), value)),
-      );
+      PlatformDetection.setMediaCodecCapabilities(codecCaps);
+      // A degenerate cold-start result would otherwise poison the device
+      // profile until app restart and force needless transcodes.
+      if (_codecCapsLookDegenerate(codecCaps)) {
+        unawaited(_retryCodecCapsOffLaunchPath(channel));
+      }
       return;
     }
 
@@ -286,6 +342,23 @@ Future<void> _migrateSeededPassthroughTogglesToAuto(
   await prefs.set(UserPreferences.audioPassthroughMigratedToAuto, true);
 }
 
+void _sweepImageCache(UserPreferences prefs, {bool throttle = false}) {
+  final mb = prefs.get(UserPreferences.imageCacheLimitMb);
+  unawaited(enforceImageCacheBudget(mb * 1024 * 1024, throttle: throttle));
+}
+
+class _ImageCacheSweepObserver with WidgetsBindingObserver {
+  _ImageCacheSweepObserver(this._prefs);
+
+  final UserPreferences _prefs;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    _sweepImageCache(_prefs, throttle: true);
+  }
+}
+
 class _PreferenceWriteFlushObserver with WidgetsBindingObserver {
   _PreferenceWriteFlushObserver(this._prefs);
 
@@ -320,6 +393,12 @@ Future<void> watchNextBackgroundMain() => watch_next_bg.watchNextBackgroundMain(
 void main() async {
   configureHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Pre-warms the liquid_glass_widgets shader programs so the first glass
+  // pane doesn't white-flash. Cheap no-op on tiers where the package
+  // renderer is disabled, and the Impeller pipeline warm-up is deferred
+  // past the first frame internally.
+  await LiquidGlassWidgets.initialize();
 
   registerGameCoreLicenses();
 
@@ -375,7 +454,7 @@ void main() async {
   }
 
   _configureImageCache();
-  await configureAppleTvImageCache();
+  await configureImageDiskCache();
 
   // On Linux the GTK font pipeline loads fonts asynchronously. The first frame
   // can render before MaterialIcons and other fonts are ready, causing icons to
@@ -418,6 +497,8 @@ void main() async {
 
   final prefs = GetIt.instance<UserPreferences>();
   WidgetsBinding.instance.addObserver(_PreferenceWriteFlushObserver(prefs));
+  WidgetsBinding.instance.addObserver(_ImageCacheSweepObserver(prefs));
+  WidgetsBinding.instance.addPostFrameCallback((_) => _sweepImageCache(prefs));
 
   GetIt.instance<PlaybackManager>().queueService.queueChangedStream.listen((_) {
     final activeItem = GetIt.instance<PlaybackManager>().queueService.currentItem;

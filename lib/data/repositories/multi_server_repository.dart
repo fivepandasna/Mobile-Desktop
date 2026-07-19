@@ -19,6 +19,7 @@ import '../utils/genre_browse_utils.dart';
 import '../utils/latest_media_row_normalizer.dart';
 import '../utils/next_up_enrichment.dart';
 import '../utils/playlist_utils.dart';
+import 'user_views_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/current_app_localizations.dart';
 
@@ -155,9 +156,23 @@ class MultiServerRepository {
     final results = await Future.wait(
       sessions.map(
         (session) => _withTimeout(() async {
-          final response = await session.client.userViewsApi.getUserViews();
+          final viewsFuture = session.client.userViewsApi.getUserViews();
+          final configFuture = session.client.usersApi
+              .getUserConfiguration()
+              .then<Set<String>>((config) => config.myMediaExcludes.toSet())
+              .catchError((_) => const <String>{});
+
+          final response = await viewsFuture;
+          final Set<String> excludes = await configFuture;
           final items = response['Items'] as List? ?? [];
-          return items.map((item) {
+
+          final filteredItems = items.where((item) {
+            final data = item as Map<String, dynamic>;
+            final id = data['Id']?.toString() ?? '';
+            return !excludes.contains(id);
+          });
+
+          return filteredItems.map((item) {
             final data = item as Map<String, dynamic>;
             final name = data['Name'] as String? ?? '';
             return AggregatedLibrary(
@@ -905,11 +920,10 @@ class MultiServerRepository {
 
     for (final session in sessions) {
       try {
-        final viewsResponse = await _withTimeout(
-          () => session.client.userViewsApi.getUserViews(),
+        final views = await _withTimeout(
+          () => loadAllViewsIncludingHidden(session.client),
           label: 'views from ${session.server.name}',
         );
-        final views = viewsResponse['Items'] as List? ?? [];
 
         Set<String> latestExcludes = const {};
         try {
@@ -918,10 +932,8 @@ class MultiServerRepository {
         } catch (_) {}
 
         for (final view in views) {
-          final data = view as Map<String, dynamic>;
-          final id = data['Id']?.toString() ?? '';
-          final collectionType = (data['CollectionType'] as String?)
-              ?.toLowerCase();
+          final id = view.id;
+          final collectionType = view.collectionType.toLowerCase();
           if (collectionType == 'playlists' ||
               collectionType == 'boxsets' ||
               collectionType == 'livetv') {
@@ -929,7 +941,7 @@ class MultiServerRepository {
           }
           if (latestExcludes.contains(id)) continue;
 
-          final name = data['Name'] as String? ?? '';
+          final name = view.name;
           final displayName = hasMultiple
               ? '$name (${session.server.name})'
               : name;

@@ -12,6 +12,8 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../widgets/adaptive/adaptive_glass.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../util/platform_detection.dart';
+import '../../../util/focus/gamepad/gamepad_suppressor.dart';
+import '../../../util/focus/gamepad/android_gamepad_channel.dart';
 import '../../../util/insecure_certificates.dart';
 import '../../../util/webview_environment.dart';
 
@@ -83,20 +85,24 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen> {
 
   // Android delivers hardware-gamepad events to the focused WebView (hybrid composition), not
   // to Flutter, and the System WebView does not expose the browser Gamepad API, so the native
-  // Activity forwards buttons over this channel while the screen is active. iOS/desktop WebViews
-  // DO expose the Gamepad API, so player.html forwards those buttons via the moonfinPlayer
-  // handler instead. Both feed `_handleGamepad`.
-  static const MethodChannel _gamepadChannel =
-      MethodChannel('org.moonfin.androidtv/gamepad');
+  // Activity forwards buttons over the gamepad channel while the screen is active. iOS/desktop
+  // WebViews DO expose the Gamepad API, so player.html forwards those buttons via the
+  // moonfinPlayer handler instead. Both feed `_handleGamepad`.
 
   @override
   void initState() {
     super.initState();
     _enterImmersive();
     WakelockPlus.enable();
+    // Outside the Android guard on purpose, because the pad belongs to the
+    // game on every platform. Either way UI navigation shouldn't also react.
+    GamepadSuppressor.push();
     if (PlatformDetection.isAndroid) {
-      _gamepadChannel.setMethodCallHandler(_onNativeGamepad);
-      _gamepadChannel.invokeMethod('setActive', {'active': true});
+      // Routed rather than taking the channel outright, since stick navigation
+      // listens on the same channel and only one handler is allowed.
+      AndroidGamepadChannel.ensureInstalled();
+      AndroidGamepadChannel.setButtonHandler(_onNativeGamepad);
+      AndroidGamepadChannel.setGameActive(true);
     }
     _prepare();
   }
@@ -514,9 +520,10 @@ class _GameEmulatorScreenState extends State<GameEmulatorScreen> {
     _settingsScroll.dispose();
     _overlayScroll.dispose();
     if (PlatformDetection.isAndroid) {
-      _gamepadChannel.invokeMethod('setActive', {'active': false});
-      _gamepadChannel.setMethodCallHandler(null);
+      AndroidGamepadChannel.setGameActive(false);
+      AndroidGamepadChannel.setButtonHandler(null);
     }
+    GamepadSuppressor.pop();
     // Best-effort restore if disposed without going through _exit (e.g. system pop).
     _restoreSystemUi();
     WakelockPlus.disable();

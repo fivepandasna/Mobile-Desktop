@@ -1,4 +1,6 @@
+import 'package:animated_reorderable_list/animated_reorderable_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:server_core/server_core.dart';
@@ -12,6 +14,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../widgets/settings/clean_settings_typography.dart';
 import 'settings_app_bar.dart';
 import '../../widgets/focus/request_initial_focus.dart';
+import '../../../util/focus/scroll_utils.dart';
 
 const _allSources = [
   'tomatoes',
@@ -228,34 +231,44 @@ class _RatingsConfigScreenState extends State<RatingsConfigScreen> {
   }
 
   Widget _buildTvList(AppLocalizations l10n) {
-    return ListView.builder(
-      itemCount: _items.length + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return _buildHeader(l10n);
-        }
-        final itemIndex = index - 1;
-        final item = _items[itemIndex];
-        return _ReorderableTile(
-          key: ValueKey(item.key),
-          focusNode: _focusNodes[itemIndex],
-          label: _sourceLabel(item.key, l10n),
-          enabled: item.enabled,
-          isFirst: itemIndex == 0,
-          isLast: itemIndex == _items.length - 1,
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (itemIndex != 0) const Icon(Icons.arrow_left, size: 18),
-              if (itemIndex != _items.length - 1)
-                const Icon(Icons.arrow_right, size: 18),
-            ],
-          ),
-          onToggle: (enabled) => _toggleRatingItem(itemIndex, enabled),
-          onMoveUp: () => _moveItemTo(itemIndex, itemIndex - 1),
-          onMoveDown: () => _moveItemTo(itemIndex, itemIndex + 1),
-        );
-      },
+    return CustomScrollView(
+      scrollCacheExtent: const ScrollCacheExtent.pixels(3000.0),
+      slivers: [
+        SliverToBoxAdapter(child: _buildHeader(l10n)),
+        ReorderableAnimatedListImpl<_RatingItem>(
+          items: _items,
+          scrollDirection: Axis.vertical,
+          // Comparing the enabled state and turning off swap detection makes a
+          // toggled row read as a removal from its old slot and an insert at
+          // its sorted slot, so it animates instead of jumping.
+          isSameItem: (a, b) => a.key == b.key && a.enabled == b.enabled,
+          enableSwap: true,
+          enterTransition: [FadeIn(), SizeAnimation()],
+          exitTransition: [FadeIn(), SizeAnimation()],
+          itemBuilder: (context, itemIndex) {
+            final item = _items[itemIndex];
+            return _ReorderableTile(
+              key: ValueKey('${item.key}:${item.enabled}'),
+              focusNode: _focusNodes[itemIndex],
+              label: _sourceLabel(item.key, l10n),
+              enabled: item.enabled,
+              isFirst: itemIndex == 0,
+              isLast: itemIndex == _items.length - 1,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (itemIndex != 0) const Icon(Icons.arrow_left, size: 18),
+                  if (itemIndex != _items.length - 1)
+                    const Icon(Icons.arrow_right, size: 18),
+                ],
+              ),
+              onToggle: (enabled) => _toggleRatingItem(itemIndex, enabled),
+              onMoveUp: () => _moveItemTo(itemIndex, itemIndex - 1),
+              onMoveDown: () => _moveItemTo(itemIndex, itemIndex + 1),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -294,26 +307,11 @@ class _RatingsConfigScreenState extends State<RatingsConfigScreen> {
   }
 
   void _focusItemAndEnsureVisible(int index) {
-    if (!mounted || index < 0 || index >= _focusNodes.length) return;
-    final node = _focusNodes[index];
-    if (!node.hasFocus) {
-      node.requestFocus();
-    }
-
-    // Defer the scroll until the reorder rebuild commits, so the target row's
-    // context exists.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || index < 0 || index >= _focusNodes.length) return;
-      final targetContext = _focusNodes[index].context;
-      if (targetContext == null) return;
-      Scrollable.ensureVisible(
-        targetContext,
-        duration: const Duration(milliseconds: 140),
-        curve: Curves.easeOut,
-        alignment: 0.2,
-        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-      );
-    });
+    focusItemAndEnsureVisible(
+      isMounted: () => mounted,
+      focusNodes: _focusNodes,
+      index: index,
+    );
   }
 
   void _moveItemTo(int index, int newIndex) {
@@ -325,11 +323,7 @@ class _RatingsConfigScreenState extends State<RatingsConfigScreen> {
       _focusNodes.insert(newIndex, node);
     });
     _save();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _focusNodes[newIndex].requestFocus();
-      }
-    });
+    _focusItemAndEnsureVisible(newIndex);
   }
 }
 
@@ -431,14 +425,17 @@ class _ReorderableTileState extends State<_ReorderableTile> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 90),
         color: bg,
-        child: ListTile(
-          onTap: () => widget.onToggle(!widget.enabled),
-          leading: Icon(
-            widget.enabled ? Icons.check_box : Icons.check_box_outline_blank,
-            color: widget.enabled ? colorScheme.primary : null,
+        child: Material(
+          type: MaterialType.transparency,
+          child: ListTile(
+            onTap: () => widget.onToggle(!widget.enabled),
+            leading: Icon(
+              widget.enabled ? Icons.check_box : Icons.check_box_outline_blank,
+              color: widget.enabled ? colorScheme.primary : null,
+            ),
+            title: Text(widget.label),
+            trailing: widget.trailing,
           ),
-          title: Text(widget.label),
-          trailing: widget.trailing,
         ),
       ),
     );

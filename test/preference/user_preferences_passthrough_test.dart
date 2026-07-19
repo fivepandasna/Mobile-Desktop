@@ -235,7 +235,7 @@ void main() {
       expect(prefs.get(UserPreferences.maxAudioChannels), 0);
     });
 
-    test('stereo forces stereo and leaves channels untouched', () async {
+    test('stereo forces stereo and resets channels like the other presets', () async {
       final prefs = await _prefs();
       await prefs.set(UserPreferences.maxAudioChannels, 6);
 
@@ -245,7 +245,9 @@ void main() {
         prefs.get(UserPreferences.audioOutputMode),
         AudioOutputMode.forceStereo,
       );
-      expect(prefs.get(UserPreferences.maxAudioChannels), 6);
+      // A leftover explicit cap from Advanced would otherwise keep forcing
+      // 2ch server transcodes after the user picks a preset.
+      expect(prefs.get(UserPreferences.maxAudioChannels), 0);
     });
 
     test('advanced materializes effective values into explicit toggles', () async {

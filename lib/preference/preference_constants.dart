@@ -166,6 +166,13 @@ enum DesktopScrollWheelAction {
 /// `reduced` forces the zero-blur sheen everywhere.
 enum GlassQualityMode { auto, full, reduced }
 
+/// Persisted settled quality of the adaptive glass renderer, mirroring the
+/// package's GlassQuality tiers. `unset` means no benchmark has settled yet,
+/// so the adaptive scope runs its warm-up pass on next launch. Kept as a
+/// Moonfin enum so the preference layer doesn't depend on
+/// liquid_glass_widgets.
+enum GlassSettledQuality { unset, minimal, standard, premium }
+
 enum AppTheme {
   white(0xFFFFFFFF),
   black(0xFF000000),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +14,8 @@ import '../../../di/providers.dart';
 import '../../../preference/user_preferences.dart';
 import '../../../util/download_utils.dart';
 import '../../../util/platform_detection.dart';
+import '../../../util/tv_image_cache_stub.dart'
+    if (dart.library.io) '../../../util/tv_image_cache_io.dart';
 import '../../../l10n/app_localizations.dart';
 import '../downloads/downloads_panel.dart';
 import '../../widgets/adaptive/adaptive_dialog.dart';
@@ -31,7 +35,9 @@ class DownloadSettingsScreen extends ConsumerWidget {
     final prefs = ref.watch(userPreferencesProvider);
     final qualityName = prefs.get(UserPreferences.defaultDownloadQuality);
     final wifiOnly = prefs.get(UserPreferences.downloadWifiOnly);
+    final reportActivity = prefs.get(UserPreferences.reportDownloadsAsActivity);
     final storageLimitMb = prefs.get(UserPreferences.downloadStorageLimitMb);
+    final imageCacheLimitMb = prefs.get(UserPreferences.imageCacheLimitMb);
     final customPath = prefs.get(UserPreferences.customDownloadPath);
     final storage = ref.watch(storageUsedProvider);
     final l10n = AppLocalizations.of(context);
@@ -65,6 +71,15 @@ class DownloadSettingsScreen extends ConsumerWidget {
                     value: wifiOnly,
                     onChanged: (v) =>
                         prefs.set(UserPreferences.downloadWifiOnly, v),
+                  ),
+                if (!PlatformDetection.isWeb)
+                  SwitchListTile.adaptive(
+                    secondary: const Icon(Icons.podcasts),
+                    title: Text(l10n.reportDownloadsActivity),
+                    subtitle: Text(l10n.reportDownloadsActivitySubtitle),
+                    value: reportActivity,
+                    onChanged: (v) => prefs.set(
+                        UserPreferences.reportDownloadsAsActivity, v),
                   ),
               ],
             ),
@@ -118,6 +133,25 @@ class DownloadSettingsScreen extends ConsumerWidget {
                     value: customPath == 'mediastore',
                     onChanged: (v) => _toggleMediaStore(context, prefs, v),
                   ),
+                if (!PlatformDetection.isWeb) ...[
+                  ListTile(
+                    leading: const Icon(Icons.image_outlined),
+                    title: Text(l10n.imageCacheLimit),
+                    subtitle: Text(
+                      imageCacheLimitMb == 0
+                          ? l10n.noLimit
+                          : l10n.mbValue(imageCacheLimitMb),
+                    ),
+                    onTap: () =>
+                        _pickImageCacheLimit(context, prefs, imageCacheLimitMb),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.cleaning_services_outlined),
+                    title: Text(l10n.clearImageCache),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _clearImageCache(context),
+                  ),
+                ],
               ],
             ),
 
@@ -219,6 +253,50 @@ class DownloadSettingsScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _pickImageCacheLimit(
+    BuildContext context,
+    UserPreferences prefs,
+    int current,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    final values = [0, 100, 200, 350, 500, 1024, 2048];
+    showFocusRestoringModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: RadioGroup<int>(
+          groupValue: current,
+          onChanged: (v) {
+            if (v != null) {
+              prefs.set(UserPreferences.imageCacheLimitMb, v);
+              unawaited(enforceImageCacheBudget(v * 1024 * 1024));
+            }
+            Navigator.pop(ctx);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: values
+                .map(
+                  (mb) => RadioListTile<int>(
+                    title: Text(mb == 0 ? l10n.noLimit : l10n.mbValue(mb)),
+                    value: mb,
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _clearImageCache(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    await clearImageDiskCache();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.imageCacheCleared)),
     );
   }
 

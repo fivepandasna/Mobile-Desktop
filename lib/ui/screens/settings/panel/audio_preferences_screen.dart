@@ -171,19 +171,12 @@ class _AudioPreferencesScreenState extends State<_AudioPreferencesScreen> {
   }
 
   Future<void> _redetectAndApplyRecommended() async {
-    final profile = await AudioCapabilityProbe.query();
+    // Retry like startup detection does: a one-shot query can race audio
+    // output enumeration and return a degenerate stereo result.
+    final profile = await AudioCapabilityProbe.queryWithRetry();
     AudioCapabilityProbe.apply(profile);
 
-    final AudioPassthroughPreset preset;
-    if (profile != null && profile.maxPcmChannels <= 2) {
-      preset = AudioPassthroughPreset.stereo;
-    } else if (profile != null &&
-        profile.isAvReceiverRoute &&
-        profile.hasCompressedPassthroughRoute) {
-      preset = AudioPassthroughPreset.surroundReceiver;
-    } else {
-      preset = AudioPassthroughPreset.auto;
-    }
+    final preset = AudioCapabilityProbe.recommendedPresetFor(profile);
     await _prefs.applyAudioPassthroughPreset(preset);
 
     if (!mounted) return;
