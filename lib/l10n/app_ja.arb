@@ -9006,5 +9006,15 @@
     "adminLibTrickplayExtraction": "Trickplay画像の抽出を有効にする",
     "adminLibTrickplayDuringScan": "ライブラリのスキャン中にTrickplay画像を抽出する",
     "adminLibSaveTrickplayWithMedia": "Trickplay画像をメディアフォルダーに保存する",
-    "adminBackupTrickplay": "Trickplay画像"
+    "adminBackupTrickplay": "Trickplay画像",
+    "failedToDeleteItemWithError": "削除に失敗しました: {error}",
+    "@failedToDeleteItemWithError": {
+        "description": "Error message when item deletion fails, including the specific error details",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Permission denied"
+            }
+        }
+    }
 }
