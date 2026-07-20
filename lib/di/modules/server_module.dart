@@ -3,6 +3,7 @@ import 'package:server_core/server_core.dart';
 
 import '../../data/offline/connectivity_aware_media_server_client.dart';
 import '../../data/offline/offline_catalog.dart';
+import '../../data/services/background_download_coordinator.dart';
 import '../../data/services/download_notification_service.dart';
 import '../../data/services/download_service.dart';
 import '../../data/services/media_server_client_factory.dart';
@@ -22,6 +23,14 @@ void registerServerModule() {
   if (!_getIt.isRegistered<DownloadNotificationService>()) {
     _getIt.registerLazySingleton<DownloadNotificationService>(
       () => DownloadNotificationService(),
+    );
+  }
+
+  // App-lifetime: owns the background_downloader singleton across server
+  // switches, while DownloadService instances attach/detach to it.
+  if (!_getIt.isRegistered<BackgroundDownloadCoordinator>()) {
+    _getIt.registerLazySingleton<BackgroundDownloadCoordinator>(
+      () => BackgroundDownloadCoordinator(),
     );
   }
 

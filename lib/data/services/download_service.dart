@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
-import 'dart:typed_data';
 
+import 'package:background_downloader/background_downloader.dart' as bgd;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
@@ -22,8 +21,10 @@ import '../database/offline_database.dart';
 import '../models/aggregated_item.dart';
 import '../models/download_quality.dart';
 import '../repositories/offline_repository.dart';
+import 'background_download_coordinator.dart';
 import 'book_reader_service.dart';
 import 'download_notification_service.dart';
+import 'legacy_download_engine.dart';
 import 'media_store_service.dart';
 import 'storage_path_service.dart';
 import 'web_download_helper.dart';
@@ -46,108 +47,43 @@ class DownloadProgress {
   });
 }
 
-Future<void> _downloadIsolateMain(Map<String, Object?> args) async {
-  final sendPort = args['sendPort'] as SendPort;
-  final url = args['url'] as String;
-  final savePath = args['savePath'] as String;
-  final headers = (args['headers'] as Map).cast<String, String>();
+/// Per-attempt state for a media download running on the native
+/// background_downloader engine. Keyed by itemId in
+/// [DownloadService._pluginContexts]. The plugin task carries the itemId in
+/// its metaData so status and progress events can be routed back here.
+class _MediaDownloadContext {
+  final String itemId;
+  final String displayName;
+  final DownloadQuality quality;
+  final String savePath;
+  final void Function(int received, int total) onReceiveProgress;
+  final Completer<Response> completer = Completer<Response>();
+  String currentTaskId = '';
 
-  final cancelPort = ReceivePort();
-  sendPort.send(<String, Object?>{'t': 'r', 'cp': cancelPort.sendPort});
-
-  var cancelled = false;
-  cancelPort.listen((_) => cancelled = true);
-
-  HttpClient? client;
-  RandomAccessFile? raf;
-  try {
-    client = HttpClient();
-    client.badCertificateCallback = (_, _, _) => true;
-    client.idleTimeout = const Duration(seconds: 120);
-
-    final request = await client.getUrl(Uri.parse(url));
-    headers.forEach(
-      (k, v) => request.headers.set(k, v, preserveHeaderCase: true),
-    );
-    request.headers.set('accept-encoding', 'identity');
-
-    final response = await request.close();
-    final statusCode = response.statusCode;
-
-    if (statusCode < 200 || statusCode >= 300) {
-      await response.drain<void>().catchError((_) {});
-      client.close();
-      cancelPort.close();
-      sendPort.send(<String, Object?>{'t': 'e', 'sc': statusCode});
-      return;
-    }
-
-    final contentLength = response.contentLength;
-    final contentType = response.headers.value('content-type') ?? '';
-    sendPort.send(<String, Object?>{
-      't': 'h',
-      'sc': statusCode,
-      'cl': contentLength,
-      'ct': contentType,
-    });
-
-    raf = await File(savePath).open(mode: FileMode.write);
-    var received = 0;
-    const flushAt = 32 * 1024 * 1024;
-    final buf = BytesBuilder(copy: false);
-    var lastPct = -1;
-    var lastReportedBytes = 0;
-    const bytesReportInterval = 1024 * 1024; // 1 MB for chunked streams
-
-    await for (final chunk in response) {
-      if (cancelled) break;
-      buf.add(chunk);
-      received += chunk.length;
-      if (buf.length >= flushAt) await raf.writeFrom(buf.takeBytes());
-
-      if (contentLength > 0) {
-        final pct = received * 100 ~/ contentLength;
-        if (pct != lastPct) {
-          lastPct = pct;
-          sendPort.send(<String, Object?>{
-            't': 'p',
-            'r': received,
-            'l': contentLength,
-          });
-        }
-      } else if (received - lastReportedBytes >= bytesReportInterval) {
-        lastReportedBytes = received;
-        sendPort.send(<String, Object?>{
-          't': 'p',
-          'r': received,
-          'l': contentLength,
-        });
-      }
-    }
-
-    if (buf.length > 0) await raf.writeFrom(buf.takeBytes());
-    await raf.close();
-    raf = null;
-    client.close();
-    client = null;
-    cancelPort.close();
-    sendPort.send(<String, Object?>{'t': cancelled ? 'c' : 'd', 'r': received});
-  } catch (e) {
-    await raf?.close().catchError((_) {});
-    client?.close(force: true);
-    cancelPort.close();
-    sendPort.send(<String, Object?>{'t': 'e', 'msg': e.toString()});
-  }
+  _MediaDownloadContext({
+    required this.itemId,
+    required this.displayName,
+    required this.quality,
+    required this.savePath,
+    required this.onReceiveProgress,
+  });
 }
+
+/// The native engine rejected the server's TLS certificate, so the download
+/// should be retried on the legacy engine, which accepts any certificate.
+class _TlsRejectedException implements Exception {}
 
 enum _DownloadActivityPhase { start, progress, stop }
 
 class DownloadService extends ChangeNotifier {
-  static const String _guardCancelReason = 'download_guard_timeout';
-
   final MediaServerClient _client;
   final DownloadNotificationService _notificationService;
   late final Dio _downloadDio;
+  final LegacyDownloadEngine _legacyEngine = LegacyDownloadEngine();
+
+  /// Contexts of media downloads running on the native plugin engine,
+  /// keyed by itemId.
+  final Map<String, _MediaDownloadContext> _pluginContexts = {};
 
   final Map<String, DownloadProgress> _activeDownloads = {};
   Map<String, DownloadProgress> get activeDownloads =>
@@ -185,9 +121,75 @@ class DownloadService extends ChangeNotifier {
       ),
     );
     configureServerDio(_downloadDio);
+    _coordinator?.attach(
+      statusHandler: _onTaskStatus,
+      progressHandler: _onTaskProgress,
+    );
   }
 
   bool isDownloading(String itemId) => _activeDownloads.containsKey(itemId);
+
+  /// The app-lifetime coordinator for the native download engine, or null
+  /// when it isn't registered (unsupported platform, tests).
+  BackgroundDownloadCoordinator? get _coordinator =>
+      GetIt.instance.isRegistered<BackgroundDownloadCoordinator>()
+      ? GetIt.instance<BackgroundDownloadCoordinator>()
+      : null;
+
+  bool get _pluginEngineSupported =>
+      BackgroundDownloadCoordinator.isSupported &&
+      _coordinator != null &&
+      (PlatformDetection.isIOS ||
+          PlatformDetection.isAndroid ||
+          PlatformDetection.isDesktop);
+
+  /// Whether media downloads for the active server run on the native
+  /// background_downloader engine.
+  bool get _usesPluginEngine =>
+      _pluginEngineSupported && !_serverNeedsLegacyTls;
+
+  /// On iOS and Android the plugin posts its own download notifications.
+  /// The desktop plugin engine and the legacy engine post none, so those
+  /// keep the flutter_local_notifications path.
+  bool get _usesPluginNotifications =>
+      _usesPluginEngine &&
+      (PlatformDetection.isIOS || PlatformDetection.isAndroid);
+
+  // Memoized because this is checked from every progress callback.
+  String? _legacyTlsRawCache;
+  bool _legacyTlsResult = false;
+
+  bool get _serverNeedsLegacyTls {
+    final raw = _prefs.get(UserPreferences.legacyDownloadEngineServers);
+    if (raw != _legacyTlsRawCache) {
+      _legacyTlsRawCache = raw;
+      try {
+        _legacyTlsResult =
+            raw.isNotEmpty &&
+            (jsonDecode(raw) as List).contains(_client.baseUrl);
+      } catch (_) {
+        _legacyTlsResult = false;
+      }
+    }
+    return _legacyTlsResult;
+  }
+
+  Future<void> _markServerNeedsLegacyTls() async {
+    final raw = _prefs.get(UserPreferences.legacyDownloadEngineServers);
+    List<dynamic> servers;
+    try {
+      servers = raw.isEmpty ? <dynamic>[] : jsonDecode(raw) as List;
+    } catch (_) {
+      servers = <dynamic>[];
+    }
+    if (!servers.contains(_client.baseUrl)) {
+      servers.add(_client.baseUrl);
+      await _prefs.set(
+        UserPreferences.legacyDownloadEngineServers,
+        jsonEncode(servers),
+      );
+    }
+  }
 
   UserPreferences get _prefs => GetIt.instance<UserPreferences>();
 
@@ -259,7 +261,8 @@ class DownloadService extends ChangeNotifier {
   ) async {
     var current = start;
 
-    while (p.isWithin(root.path, current.path) && !p.equals(current.path, root.path)) {
+    while (p.isWithin(root.path, current.path) &&
+        !p.equals(current.path, root.path)) {
       if (!await current.exists()) {
         current = current.parent;
         continue;
@@ -468,7 +471,8 @@ class DownloadService extends ChangeNotifier {
         return 'TV/$series/$seasonFolder';
 
       case 'MusicVideo':
-        final artist = item.albumArtist ??
+        final artist =
+            item.albumArtist ??
             (item.artists.isNotEmpty ? item.artists.first : null);
         return artist != null
             ? 'Music Videos/${_sanitizePath(artist)}'
@@ -589,7 +593,8 @@ class DownloadService extends ChangeNotifier {
       );
     }
 
-    if (_totalQueued <= 1 || _completedCount >= _totalQueued) {
+    if (!_usesPluginNotifications &&
+        (_totalQueued <= 1 || _completedCount >= _totalQueued)) {
       await runBestEffort(
         _notificationService.showComplete(
           itemName: item.name,
@@ -605,222 +610,313 @@ class DownloadService extends ChangeNotifier {
     );
   }
 
-  /// Downloads [url] to [savePath] using a dedicated Dart Isolate.
-  Future<Response> _bufferedDownloadToFile(
-    String url,
-    String savePath, {
-    required Options options,
-    required CancelToken cancelToken,
-    required void Function(int, int) onReceiveProgress,
+  String _newTaskId(String itemId) =>
+      '$itemId::${DateTime.now().microsecondsSinceEpoch}';
+
+  String? _itemIdForTask(bgd.Task task) {
+    try {
+      final meta = jsonDecode(task.metaData) as Map<String, dynamic>;
+      return meta['itemId'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? _savePathForTask(bgd.Task task) {
+    try {
+      final meta = jsonDecode(task.metaData) as Map<String, dynamic>;
+      return meta['savePath'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bgd.Task> _buildMediaTask({
+    required String url,
+    required _MediaDownloadContext ctx,
+    required Map<String, String> headers,
   }) async {
-    final fromIsolate = ReceivePort();
-
-    await Isolate.spawn<Map<String, Object?>>(_downloadIsolateMain, {
-      'sendPort': fromIsolate.sendPort,
-      'url': url,
-      'savePath': savePath,
-      'headers': Map<String, String>.from(
-        (options.headers ?? <String, dynamic>{}).map(
-          (k, v) => MapEntry(k.toString(), v?.toString() ?? ''),
-        ),
-      ),
+    final (baseDirectory, directory, filename) = await bgd.Task.split(
+      filePath: ctx.savePath,
+    );
+    final metaData = jsonEncode({
+      'itemId': ctx.itemId,
+      'quality': ctx.quality.name,
+      'savePath': ctx.savePath,
     });
+    final requiresWiFi = _prefs.get(UserPreferences.downloadWifiOnly);
 
-    SendPort? toIsolate;
-    var responseStatus = 200;
-    var responseContentLength = -1;
-    var responseContentType = '';
-    final done = Completer<void>();
-
-    cancelToken.whenCancel.then((_) => toIsolate?.send(null)).ignore();
-
-    fromIsolate.listen((dynamic raw) {
-      if (done.isCompleted) return;
-      final msg = raw as Map<String, Object?>;
-      switch (msg['t'] as String) {
-        case 'r':
-          toIsolate = msg['cp'] as SendPort;
-          if (cancelToken.isCancelled) toIsolate!.send(null);
-          break;
-        case 'h':
-          responseStatus = msg['sc'] as int;
-          responseContentLength = msg['cl'] as int;
-          responseContentType = msg['ct'] as String? ?? '';
-          break;
-        case 'p':
-          onReceiveProgress(msg['r'] as int, msg['l'] as int);
-          break;
-        case 'd':
-          fromIsolate.close();
-          done.complete();
-          break;
-        case 'c':
-          fromIsolate.close();
-          done.completeError(
-            cancelToken.cancelError ??
-                DioException(
-                  type: DioExceptionType.cancel,
-                  requestOptions: RequestOptions(path: url),
-                ),
-          );
-          break;
-        case 'e':
-          fromIsolate.close();
-          final sc = msg['sc'] as int?;
-          done.completeError(
-            DioException(
-              type: sc != null
-                  ? DioExceptionType.badResponse
-                  : DioExceptionType.unknown,
-              requestOptions: RequestOptions(path: url),
-              message: msg['msg'] as String?,
-              response: sc != null
-                  ? Response(
-                      requestOptions: RequestOptions(path: url),
-                      statusCode: sc,
-                    )
-                  : null,
-            ),
-          );
-          break;
-      }
-    });
-
-    await done.future;
-
-    final responseHeaders = Headers();
-    if (responseContentLength >= 0) {
-      responseHeaders.set('content-length', responseContentLength.toString());
-    }
-    if (responseContentType.isNotEmpty) {
-      responseHeaders.set('content-type', responseContentType);
-    }
-    return Response(
-      requestOptions: RequestOptions(path: url, method: 'GET'),
-      statusCode: responseStatus,
-      headers: responseHeaders,
+    // Always a plain single-connection DownloadTask, which issues a direct
+    // GET. ParallelDownloadTask first sends a HEAD request to size the file,
+    // which Jellyfin rejects with 405 on its download and stream endpoints.
+    //
+    // A transcoded stream has an unknown length and no resume support, and a
+    // retry would restart the whole server transcode, so errors surface to
+    // the user instead of retrying automatically.
+    final resumable = !ctx.quality.isTranscoded;
+    return bgd.DownloadTask(
+      taskId: _newTaskId(ctx.itemId),
+      url: url,
+      filename: filename,
+      directory: directory,
+      baseDirectory: baseDirectory,
+      headers: headers,
+      group: BackgroundDownloadCoordinator.mediaGroup,
+      updates: bgd.Updates.statusAndProgress,
+      requiresWiFi: requiresWiFi,
+      retries: resumable ? 3 : 0,
+      allowPause: resumable,
+      metaData: metaData,
+      displayName: ctx.displayName,
     );
   }
 
-  /// Wraps [_bufferedDownloadToFile] so that once all expected bytes have been
-  /// received the future resolves after a short grace period, even if the HTTP
-  /// connection hangs open (common behind reverse proxies / keep-alive).
-  Future<Response> _downloadWithHangGuard(
-    String url,
-    String savePath, {
-    required Options options,
+  /// Downloads [url] via the native background_downloader engine. Resolves
+  /// with a synthesized dio [Response] on completion so the shared
+  /// validation/fallback logic can stay engine-agnostic.
+  Future<Response> _downloadWithPlugin(
+    String url, {
+    required AggregatedItem item,
+    required DownloadQuality quality,
+    required String savePath,
+    required Map<String, String> headers,
     required CancelToken cancelToken,
-    required int estimatedSize,
     required void Function(int, int) onReceiveProgress,
   }) async {
-    final bytesComplete = Completer<void>();
-    Timer? estimatedCompletionTimer;
-    Timer? stallTimer;
-    var lastReceived = 0;
-    var lastTotal = -1;
-    void markBytesCompleteIfPending() {
-      if (!bytesComplete.isCompleted) {
-        bytesComplete.complete();
+    await _coordinator!.ensureInitialized();
+    final ctx = _MediaDownloadContext(
+      itemId: item.id,
+      displayName: item.name,
+      quality: quality,
+      savePath: savePath,
+      onReceiveProgress: onReceiveProgress,
+    );
+    final task = await _buildMediaTask(url: url, ctx: ctx, headers: headers);
+    ctx.currentTaskId = task.taskId;
+    _pluginContexts[item.id] = ctx;
+    cancelToken.whenCancel
+        .then((_) => bgd.FileDownloader().cancelTaskWithId(ctx.currentTaskId))
+        .ignore();
+    try {
+      if (cancelToken.isCancelled) {
+        throw cancelToken.cancelError ??
+            DioException(
+              type: DioExceptionType.cancel,
+              requestOptions: RequestOptions(path: url),
+            );
+      }
+      final enqueued = await bgd.FileDownloader().enqueue(task);
+      if (!enqueued) {
+        throw DioException(
+          type: DioExceptionType.unknown,
+          requestOptions: RequestOptions(path: url),
+          message: 'Failed to enqueue background download',
+        );
+      }
+      return await ctx.completer.future;
+    } finally {
+      if (identical(_pluginContexts[item.id], ctx)) {
+        _pluginContexts.remove(item.id);
       }
     }
+  }
 
-    void armEstimatedCompletionTimer() {
-      estimatedCompletionTimer?.cancel();
-      estimatedCompletionTimer = Timer(
-        const Duration(seconds: 5),
-        markBytesCompleteIfPending,
-      );
+  bool _looksLikeTlsError(bgd.TaskException? exception) {
+    if (exception is! bgd.TaskConnectionException) return false;
+    final description = exception.description.toLowerCase();
+    return description.contains('certificate') ||
+        description.contains('handshake') ||
+        description.contains('ssl') ||
+        description.contains('trust anchor');
+  }
+
+  void _onTaskStatus(bgd.TaskStatusUpdate update) {
+    final itemId = _itemIdForTask(update.task);
+    if (itemId == null) return;
+    final ctx = _pluginContexts[itemId];
+    if (ctx == null || update.task.taskId != ctx.currentTaskId) {
+      _handleUnattendedTaskUpdate(itemId, update);
+      return;
     }
-
-    void armStallTimer() {
-      stallTimer?.cancel();
-      final socketTimeout = const Duration(seconds: 45);
-      stallTimer = Timer(socketTimeout, () {
-        if (lastReceived > 0 && !bytesComplete.isCompleted) {
-          markBytesCompleteIfPending();
-        }
-      });
-    }
-
-    final downloadFuture = _bufferedDownloadToFile(
-      url,
-      savePath,
-      options: options,
-      cancelToken: cancelToken,
-      onReceiveProgress: (received, total) {
-        lastReceived = received;
-        lastTotal = total;
-        onReceiveProgress(received, total);
-        if (total > 0 && received >= total && !bytesComplete.isCompleted) {
-          markBytesCompleteIfPending();
+    switch (update.status) {
+      case bgd.TaskStatus.complete:
+        _completePluginDownload(ctx, update);
+      case bgd.TaskStatus.notFound:
+        _failPluginDownload(ctx, update, statusCode: 404);
+      case bgd.TaskStatus.failed:
+        final exception = update.exception;
+        if (_looksLikeTlsError(exception)) {
+          if (!ctx.completer.isCompleted) {
+            ctx.completer.completeError(_TlsRejectedException());
+          }
           return;
         }
-
-        if (total <= 0 && estimatedSize > 0 && received >= estimatedSize) {
-          armEstimatedCompletionTimer();
-        } else {
-          estimatedCompletionTimer?.cancel();
-        }
-
-        if (total <= 0 && received > 0) {
-          armStallTimer();
-        }
-      },
-    );
-
-    final completion = Completer<Response>();
-
-    void completeIfPending(Response value) {
-      if (!completion.isCompleted) {
-        completion.complete(value);
-      }
-    }
-
-    void completeErrorIfPending(Object error, [StackTrace? stackTrace]) {
-      if (!completion.isCompleted) {
-        completion.completeError(error, stackTrace);
-      }
-    }
-
-    downloadFuture.then(completeIfPending).catchError(completeErrorIfPending);
-
-    bytesComplete.future.then((_) async {
-      if (completion.isCompleted) {
-        return;
-      }
-
-      try {
-        final graceTimeout = const Duration(seconds: 120);
-        final settled = await downloadFuture.timeout(graceTimeout);
-        completeIfPending(settled);
-      } on TimeoutException {
-        cancelToken.cancel(_guardCancelReason);
-        final headers = Headers.fromMap({
-          if (lastTotal > 0) 'content-length': [lastTotal.toString()],
-        });
-        completeIfPending(
-          Response(
-            requestOptions: RequestOptions(
-              path: url,
-              method: options.method ?? 'GET',
-              headers: options.headers,
+        final statusCode = switch (exception) {
+          bgd.TaskHttpException(:final httpResponseCode)
+              when httpResponseCode > 0 =>
+            httpResponseCode,
+          _ => update.responseStatusCode,
+        };
+        _failPluginDownload(ctx, update, statusCode: statusCode);
+      case bgd.TaskStatus.canceled:
+        if (!ctx.completer.isCompleted) {
+          ctx.completer.completeError(
+            DioException(
+              type: DioExceptionType.cancel,
+              requestOptions: RequestOptions(path: update.task.url),
             ),
-            statusCode: 200,
-            headers: headers,
-            data: null,
-            extra: {'guardFinalized': true, 'bytesReceived': lastReceived},
-          ),
-        );
-      } catch (e, st) {
-        completeErrorIfPending(e, st);
-      }
-    }).ignore();
+          );
+        }
+      case bgd.TaskStatus.enqueued:
+      case bgd.TaskStatus.running:
+      case bgd.TaskStatus.paused:
+      case bgd.TaskStatus.waitingToRetry:
+        break;
+    }
+  }
 
+  void _onTaskProgress(bgd.TaskProgressUpdate update) {
+    final itemId = _itemIdForTask(update.task);
+    if (itemId == null) return;
+    final ctx = _pluginContexts[itemId];
+    if (ctx == null || update.task.taskId != ctx.currentTaskId) return;
+    final progress = update.progress;
+    // Negative values are the plugin's failed/paused/retrying sentinels.
+    if (progress < 0 || progress > 1) return;
+    final expected = update.expectedFileSize;
+    if (expected > 0) {
+      ctx.onReceiveProgress((progress * expected).round(), expected);
+    }
+  }
+
+  void _completePluginDownload(
+    _MediaDownloadContext ctx,
+    bgd.TaskStatusUpdate update,
+  ) {
+    if (ctx.completer.isCompleted) return;
+    final headers = Headers();
+    final responseHeaders = update.responseHeaders;
+    final contentType = update.mimeType ?? responseHeaders?['content-type'];
+    if (contentType != null && contentType.isNotEmpty) {
+      headers.set('content-type', contentType);
+    }
+    final disposition = responseHeaders?['content-disposition'];
+    if (disposition != null && disposition.isNotEmpty) {
+      headers.set('content-disposition', disposition);
+    }
+    // Deliberately no content-length header: the byte count reconstructed
+    // from fractional progress updates is approximate, so an exact-match
+    // validation against Content-Length would produce false failures.
+    ctx.completer.complete(
+      Response(
+        requestOptions: RequestOptions(path: update.task.url, method: 'GET'),
+        statusCode: update.responseStatusCode ?? 200,
+        headers: headers,
+      ),
+    );
+  }
+
+  void _failPluginDownload(
+    _MediaDownloadContext ctx,
+    bgd.TaskStatusUpdate update, {
+    int? statusCode,
+  }) {
+    if (ctx.completer.isCompleted) return;
+    final url = update.task.url;
+    final hasStatus = statusCode != null && statusCode > 0;
+    ctx.completer.completeError(
+      DioException(
+        type: hasStatus
+            ? DioExceptionType.badResponse
+            : DioExceptionType.unknown,
+        requestOptions: RequestOptions(path: url),
+        message: update.exception?.description ?? 'Download failed',
+        response: hasStatus
+            ? Response(
+                requestOptions: RequestOptions(path: url),
+                statusCode: statusCode,
+              )
+            : null,
+      ),
+    );
+  }
+
+  /// Handles a status update for a media task no live download is awaiting:
+  /// a task from a previous app run (finished while the app was dead, or
+  /// rescheduled by the plugin at startup) or from before a server switch.
+  void _handleUnattendedTaskUpdate(String itemId, bgd.TaskStatusUpdate update) {
+    switch (update.status) {
+      case bgd.TaskStatus.complete:
+        unawaited(_finalizeUnattendedDownload(itemId, update.task));
+      case bgd.TaskStatus.failed:
+      case bgd.TaskStatus.notFound:
+        unawaited(() async {
+          final savePath = _savePathForTask(update.task);
+          if (savePath != null) {
+            try {
+              await _deleteFileArtifacts(savePath);
+            } catch (_) {}
+          }
+          await _offlineRepo.updateDownloadStatus(
+            itemId,
+            3,
+            error: update.exception?.description ?? 'Download failed',
+          );
+          await bgd.FileDownloader().database.deleteRecordWithId(
+            update.task.taskId,
+          );
+          notifyListeners();
+        }());
+      case bgd.TaskStatus.canceled:
+        unawaited(
+          bgd.FileDownloader().database.deleteRecordWithId(update.task.taskId),
+        );
+      case bgd.TaskStatus.enqueued:
+      case bgd.TaskStatus.running:
+      case bgd.TaskStatus.paused:
+      case bgd.TaskStatus.waitingToRetry:
+        break;
+    }
+  }
+
+  /// Validates a finished file on disk and flips its drift row to complete.
+  /// Throws when validation fails.
+  Future<void> _persistCompletedFile(
+    String itemId,
+    String savePath,
+    DownloadQuality quality,
+  ) async {
+    final file = File(savePath);
+    await _validateDownloadedFile(file, quality, bytesReceived: 0);
+    final finalSize = await file.length();
+    await _offlineRepo.setLocalFilePath(itemId, savePath, fileSize: finalSize);
+    await _offlineRepo.updateDownloadStatus(itemId, 2);
+    if (PlatformDetection.isIOS) {
+      try {
+        await IosStorage.excludeFromBackup(savePath);
+      } catch (_) {}
+    }
+  }
+
+  /// Finalizes a media download that completed without a live
+  /// [_MediaDownloadContext] (app was killed or the service was replaced):
+  /// validates the file and flips the drift row to complete.
+  Future<void> _finalizeUnattendedDownload(String itemId, bgd.Task task) async {
     try {
-      return await completion.future;
+      final row = await _offlineRepo.getItem(itemId);
+      if (row == null || row.downloadStatus == 2) return;
+      final savePath = _savePathForTask(task) ?? await task.filePath();
+      final quality = DownloadQuality.values.firstWhere(
+        (q) => q.name == row.qualityPreset,
+        orElse: () => DownloadQuality.original,
+      );
+      await _persistCompletedFile(itemId, savePath, quality);
+      notifyListeners();
+    } catch (e) {
+      await _offlineRepo.updateDownloadStatus(itemId, 3, error: e.toString());
+      notifyListeners();
     } finally {
-      estimatedCompletionTimer?.cancel();
-      stallTimer?.cancel();
+      await bgd.FileDownloader().database.deleteRecordWithId(task.taskId);
     }
   }
 
@@ -831,7 +927,7 @@ class DownloadService extends ChangeNotifier {
 
   bool _isGuardTimeoutCancel(DioException e) {
     final raw = e.error;
-    return raw is String && raw == _guardCancelReason;
+    return raw is String && raw == LegacyDownloadEngine.guardCancelReason;
   }
 
   bool _supportsTranscodedDownload(String? type) {
@@ -1247,7 +1343,12 @@ class DownloadService extends ChangeNotifier {
         return;
       }
     }
-    if (isDownloading(item.id)) return;
+    // An entry with an error is a finished, failed download, so clear it and
+    // let Retry start over. Anything else is genuinely in flight or complete
+    // and must not be restarted.
+    final existing = _activeDownloads[item.id];
+    if (existing != null && existing.error == null) return;
+    if (existing != null) _activeDownloads.remove(item.id);
     if (_cancelAllRequested) {
       if (_canClearCancelAllGate()) {
         _cancelAllRequested = false;
@@ -1344,15 +1445,18 @@ class DownloadService extends ChangeNotifier {
         fileName: fileName,
         progress: initialProgress,
       );
-      await _notificationService.showProgress(
-        itemName: item.name,
-        progress: initialProgress,
-        batchTotal: _totalQueued,
-        batchCompleted: _completedCount,
-      );
+      if (!_usesPluginNotifications) {
+        await _notificationService.showProgress(
+          itemName: item.name,
+          progress: initialProgress,
+          batchTotal: _totalQueued,
+          batchCompleted: _completedCount,
+        );
+      }
       notifyListeners();
 
-      final reportActivity = quality.isTranscoded &&
+      final reportActivity =
+          quality.isTranscoded &&
           _supportsTranscodedDownload(fullItem.type) &&
           _prefs.get(UserPreferences.reportDownloadsAsActivity);
       if (reportActivity) {
@@ -1368,7 +1472,6 @@ class DownloadService extends ChangeNotifier {
         playSessionId: activityPlaySessionId,
       );
       final headers = _buildDownloadRequestHeaders();
-      final requestOptions = Options(headers: headers, method: 'GET');
 
       if (activityPlaySessionId != null) {
         _reportDownloadActivity(
@@ -1419,7 +1522,8 @@ class DownloadService extends ChangeNotifier {
             ),
           );
         }
-        if (_shouldUpdateSystemNotification(item.id, progress)) {
+        if (!_usesPluginNotifications &&
+            _shouldUpdateSystemNotification(item.id, progress)) {
           unawaited(
             _notificationService.showProgress(
               itemName: item.name,
@@ -1432,6 +1536,39 @@ class DownloadService extends ChangeNotifier {
         notifyListeners();
       }
 
+      var usePluginEngine = _usesPluginEngine;
+
+      Future<Response> engineDownload(String downloadUrl) async {
+        if (usePluginEngine) {
+          try {
+            return await _downloadWithPlugin(
+              downloadUrl,
+              item: fullItem,
+              quality: quality,
+              savePath: savePath!,
+              headers: headers,
+              cancelToken: cancelToken,
+              onReceiveProgress: onReceiveProgress,
+            );
+          } on _TlsRejectedException {
+            // The native engine can't accept this server's certificate,
+            // typically self-signed. Remember that and fall back to the
+            // legacy in-process engine, which accepts any certificate, for
+            // this and all future downloads from this server.
+            usePluginEngine = false;
+            await _markServerNeedsLegacyTls();
+          }
+        }
+        return _legacyEngine.downloadWithHangGuard(
+          downloadUrl,
+          savePath!,
+          options: Options(headers: headers, method: 'GET'),
+          cancelToken: cancelToken,
+          estimatedSize: estimatedSize,
+          onReceiveProgress: onReceiveProgress,
+        );
+      }
+
       Future<Response?> tryFallbackDownload() async {
         final fallbackUrls = _buildDownloadFallbackUrls(
           fullItem,
@@ -1440,18 +1577,7 @@ class DownloadService extends ChangeNotifier {
 
         for (final fallbackUrl in fallbackUrls) {
           try {
-            final fallbackOptions = Options(
-              headers: _buildDownloadRequestHeaders(),
-              method: 'GET',
-            );
-            final response = await _downloadWithHangGuard(
-              fallbackUrl,
-              savePath!,
-              options: fallbackOptions,
-              cancelToken: cancelToken,
-              estimatedSize: estimatedSize,
-              onReceiveProgress: onReceiveProgress,
-            );
+            final response = await engineDownload(fallbackUrl);
             return response;
           } on DioException {
             continue;
@@ -1465,14 +1591,7 @@ class DownloadService extends ChangeNotifier {
 
       Response? downloadResponse;
       try {
-        downloadResponse = await _downloadWithHangGuard(
-          url,
-          savePath,
-          options: requestOptions,
-          cancelToken: cancelToken,
-          estimatedSize: estimatedSize,
-          onReceiveProgress: onReceiveProgress,
-        );
+        downloadResponse = await engineDownload(url);
       } on DioException catch (e) {
         if (!_shouldRetryWithFallback(fullItem, quality, e)) {
           rethrow;
@@ -1572,10 +1691,12 @@ class DownloadService extends ChangeNotifier {
           3,
           error: friendlyError,
         );
-        await _notificationService.showError(
-          itemName: item.name,
-          error: friendlyError,
-        );
+        if (!_usesPluginNotifications) {
+          await _notificationService.showError(
+            itemName: item.name,
+            error: friendlyError,
+          );
+        }
         _emitError('${item.name}: $friendlyError');
       }
     } on TimeoutException catch (e) {
@@ -1589,10 +1710,12 @@ class DownloadService extends ChangeNotifier {
         error: friendlyError,
       );
       await _offlineRepo.updateDownloadStatus(item.id, 3, error: friendlyError);
-      await _notificationService.showError(
-        itemName: item.name,
-        error: friendlyError,
-      );
+      if (!_usesPluginNotifications) {
+        await _notificationService.showError(
+          itemName: item.name,
+          error: friendlyError,
+        );
+      }
       _emitError('${item.name}: $friendlyError');
     } catch (e) {
       final friendlyError = e is PathAccessException
@@ -1609,10 +1732,12 @@ class DownloadService extends ChangeNotifier {
         error: friendlyError,
       );
       await _offlineRepo.updateDownloadStatus(item.id, 3, error: friendlyError);
-      await _notificationService.showError(
-        itemName: item.name,
-        error: friendlyError,
-      );
+      if (!_usesPluginNotifications) {
+        await _notificationService.showError(
+          itemName: item.name,
+          error: friendlyError,
+        );
+      }
       _emitError('${item.name}: $friendlyError');
     } finally {
       activityHeartbeat?.cancel();
@@ -1824,6 +1949,12 @@ class DownloadService extends ChangeNotifier {
   }
 
   Future<bool> deleteDownloadedFiles(AggregatedItem item) async {
+    // Drop any finished (complete or errored) active entry so a fresh
+    // downloadItem call isn't blocked by stale in-memory state.
+    final active = _activeDownloads[item.id];
+    if (active != null && (active.isComplete || active.error != null)) {
+      _activeDownloads.remove(item.id);
+    }
     try {
       final downloadsDir = await _storagePath.getOfflineRoot();
       final subFolder = _buildSubFolder(item);
@@ -2173,6 +2304,15 @@ class DownloadService extends ChangeNotifier {
       token.cancel();
     }
     _cancelTokens.clear();
+    if (_pluginEngineSupported) {
+      // Also cancels media-group tasks with no live context (adopted from a
+      // previous run or pre-server-switch).
+      unawaited(
+        bgd.FileDownloader()
+            .cancelAll(group: BackgroundDownloadCoordinator.mediaGroup)
+            .then((_) {}, onError: (_) {}),
+      );
+    }
     _totalQueued = 0;
     _completedCount = 0;
     _notificationService.dismiss();
@@ -2229,10 +2369,32 @@ class DownloadService extends ChangeNotifier {
   }
 
   Future<void> recoverIncompleteDownloads() async {
+    // Reconcile with the native engine's task database first: tasks may have
+    // finished while the app was dead, still be running natively, or have
+    // been rescheduled by the plugin at startup.
+    var pluginRecords = <String, bgd.TaskRecord>{};
+    if (_pluginEngineSupported) {
+      try {
+        await _coordinator!.ensureInitialized();
+        final records = await bgd.FileDownloader().database.allRecords(
+          group: BackgroundDownloadCoordinator.mediaGroup,
+        );
+        pluginRecords = {
+          for (final record in records)
+            if (_itemIdForTask(record.task) != null)
+              _itemIdForTask(record.task)!: record,
+        };
+      } catch (_) {}
+    }
+
     final allItems = await _offlineRepo.getItems();
 
     for (final item in allItems) {
       if (item.downloadStatus == 1) {
+        final record = pluginRecords[item.itemId];
+        if (record != null && await _recoverFromTaskRecord(item, record)) {
+          continue;
+        }
         if (item.localFilePath != null) {
           final file = File(item.localFilePath!);
           if (await file.exists()) await file.delete();
@@ -2275,8 +2437,175 @@ class DownloadService extends ChangeNotifier {
     }
   }
 
+  /// Resolves an in-progress drift row against its native task record.
+  /// Returns true when the record fully determined the outcome, or false to
+  /// fall through to the interrupted-download handling.
+  Future<bool> _recoverFromTaskRecord(
+    DownloadedItem row,
+    bgd.TaskRecord record,
+  ) async {
+    switch (record.status) {
+      case bgd.TaskStatus.complete:
+        await _finalizeUnattendedDownload(row.itemId, record.task);
+        return true;
+      case bgd.TaskStatus.enqueued:
+      case bgd.TaskStatus.running:
+      case bgd.TaskStatus.paused:
+      case bgd.TaskStatus.waitingToRetry:
+        _adoptRunningTask(row, record);
+        return true;
+      case bgd.TaskStatus.failed:
+      case bgd.TaskStatus.notFound:
+        final savePath = _savePathForTask(record.task);
+        if (savePath != null) {
+          try {
+            await _deleteFileArtifacts(savePath);
+          } catch (_) {}
+        }
+        await _offlineRepo.updateDownloadStatus(
+          row.itemId,
+          3,
+          error: record.exception?.description ?? 'Download failed',
+        );
+        await bgd.FileDownloader().database.deleteRecordWithId(
+          record.task.taskId,
+        );
+        return true;
+      case bgd.TaskStatus.canceled:
+        await bgd.FileDownloader().database.deleteRecordWithId(
+          record.task.taskId,
+        );
+        return false;
+    }
+  }
+
+  /// Re-attaches in-memory state to a native task that is still alive
+  /// (running, enqueued, or rescheduled by the plugin at startup), so its
+  /// progress shows in the UI and its completion is finalized.
+  void _adoptRunningTask(DownloadedItem row, bgd.TaskRecord record) {
+    final itemId = row.itemId;
+    if (_pluginContexts.containsKey(itemId)) return;
+    final savePath = _savePathForTask(record.task);
+    if (savePath == null) {
+      // Without a save path the context can't validate or finalize, so
+      // completion is handled by _handleUnattendedTaskUpdate instead.
+      return;
+    }
+    final quality = DownloadQuality.values.firstWhere(
+      (q) => q.name == row.qualityPreset,
+      orElse: () => DownloadQuality.original,
+    );
+    final fileName = p.basename(savePath);
+
+    final ctx = _MediaDownloadContext(
+      itemId: itemId,
+      displayName: row.name,
+      quality: quality,
+      savePath: savePath,
+      onReceiveProgress: (received, total) {
+        final rawProgress = _calculateProgress(
+          received: received,
+          total: total,
+          estimatedSize: 0,
+          quality: quality,
+        );
+        final progress = rawProgress >= 1.0 ? 0.99 : rawProgress;
+        _activeDownloads[itemId] = DownloadProgress(
+          itemId: itemId,
+          fileName: fileName,
+          progress: progress,
+          bytesReceived: received,
+        );
+        if (_shouldPersistProgress(itemId, progress)) {
+          unawaited(
+            _offlineRepo.updateDownloadStatus(
+              itemId,
+              1,
+              progress: _storedProgress(progress),
+            ),
+          );
+        }
+        notifyListeners();
+      },
+    );
+    ctx.currentTaskId = record.task.taskId;
+    _pluginContexts[itemId] = ctx;
+
+    final cancelToken = CancelToken();
+    _cancelTokens[itemId] = cancelToken;
+    cancelToken.whenCancel
+        .then((_) => bgd.FileDownloader().cancelTaskWithId(ctx.currentTaskId))
+        .ignore();
+
+    _activeDownloads[itemId] = DownloadProgress(
+      itemId: itemId,
+      fileName: fileName,
+      progress: record.progress > 0 && record.progress <= 1
+          ? record.progress
+          : _initialProgressForQuality(quality),
+    );
+    notifyListeners();
+
+    ctx.completer.future
+        .then((_) async {
+          _pluginContexts.remove(itemId);
+          _cancelTokens.remove(itemId);
+          try {
+            await _persistCompletedFile(itemId, savePath, quality);
+            _activeDownloads[itemId] = DownloadProgress(
+              itemId: itemId,
+              fileName: fileName,
+              progress: 1.0,
+              isComplete: true,
+            );
+          } catch (e) {
+            try {
+              await _deleteFileArtifacts(savePath);
+            } catch (_) {}
+            await _offlineRepo.updateDownloadStatus(
+              itemId,
+              3,
+              error: e.toString(),
+            );
+            _activeDownloads[itemId] = DownloadProgress(
+              itemId: itemId,
+              fileName: fileName,
+              error: e.toString(),
+            );
+          }
+          notifyListeners();
+        })
+        .catchError((Object e) async {
+          _pluginContexts.remove(itemId);
+          _cancelTokens.remove(itemId);
+          if (e is DioException && e.type == DioExceptionType.cancel) {
+            _activeDownloads.remove(itemId);
+            try {
+              await _deleteFileArtifacts(savePath);
+            } catch (_) {}
+            await _offlineRepo.deleteItem(itemId);
+          } else {
+            final message = e is DioException
+                ? _friendlyDioError(e)
+                : e.toString();
+            try {
+              await _deleteFileArtifacts(savePath);
+            } catch (_) {}
+            await _offlineRepo.updateDownloadStatus(itemId, 3, error: message);
+            _activeDownloads[itemId] = DownloadProgress(
+              itemId: itemId,
+              fileName: fileName,
+              error: message,
+            );
+            _emitError('${row.name}: $message');
+          }
+          notifyListeners();
+        });
+  }
+
   @override
   void dispose() {
+    _coordinator?.detach(statusHandler: _onTaskStatus);
     cancelAll();
     _downloadDio.close();
     _errorController.close();

@@ -2265,6 +2265,14 @@ class UserPreferences extends ChangeNotifier {
     defaultValue: false,
   );
 
+  // JSON-encoded list of server base URLs whose TLS certificate the native
+  // download engine rejected (typically self-signed). Downloads for these
+  // servers run on the legacy in-process engine, which accepts any cert.
+  static final legacyDownloadEngineServers = Preference(
+    key: 'download_legacy_engine_servers',
+    defaultValue: '',
+  );
+
   static final downloadStorageLimitMb = Preference(
     key: 'download_storage_limit_mb',
     defaultValue: 0,

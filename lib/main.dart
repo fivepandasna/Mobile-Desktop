@@ -18,6 +18,7 @@ import 'data/services/carplay_service.dart';
 import 'data/services/cast/airplay_command_bridge.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+import 'data/services/background_download_coordinator.dart';
 import 'data/services/download_notification_service.dart';
 import 'data/services/push_messaging_service.dart';
 import 'data/services/seerr_notification_service.dart';
@@ -584,6 +585,12 @@ Future<void> _initDeferredStartupServices(UserPreferences prefs) async {
 
   try {
     await GetIt.instance<DownloadNotificationService>().initialize();
+  } catch (_) {}
+
+  // Starts the native download engine and re-attaches to any downloads that
+  // ran while the app was suspended or dead. No-op where unsupported.
+  try {
+    await GetIt.instance<BackgroundDownloadCoordinator>().ensureInitialized();
   } catch (_) {}
 
   try {

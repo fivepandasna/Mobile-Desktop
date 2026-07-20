@@ -29,6 +29,7 @@ dependencies:
   # Networking
   dio: ^5.9.2
   dio_cookie_manager: ^3.4.0
+  background_downloader: ^9.5.6
   cookie_jar: ^4.0.9
   web_socket_channel: ^3.0.3
 
