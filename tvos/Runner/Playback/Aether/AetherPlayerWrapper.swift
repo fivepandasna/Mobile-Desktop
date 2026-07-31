@@ -121,6 +121,61 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
             wireNowPlaying()
         }
         subscribeToEngine()
+        observeForegroundReturn()
+    }
+
+    // MARK: - Background teardown recovery
+
+    private var foregroundObserver: NSObjectProtocol?
+
+    /// The engine tears the video pipeline down when the app is suspended
+    /// without PiP or background playback keeping it alive, and by its own
+    /// contract the host reloads and repauses on foreground return. Without
+    /// this the picture comes back black and play does nothing until the
+    /// player is reopened. macOS never suspends the app this way, so there is
+    /// nothing to observe there.
+    private func observeForegroundReturn() {
+        #if canImport(UIKit)
+            foregroundObserver = NotificationCenter.default.addObserver(
+                forName: UIApplication.didBecomeActiveNotification,
+                object: nil, queue: .main
+            ) { [weak self] _ in
+                // Queued as a task so the engine's own activation handler,
+                // which registered first, has already run by the time this
+                // executes.
+                Task { @MainActor in
+                    await self?.reloadAfterBackgroundTeardownIfNeeded()
+                }
+            }
+        #endif
+    }
+
+    private func stopObservingForegroundReturn() {
+        if let observer = foregroundObserver {
+            NotificationCenter.default.removeObserver(observer)
+            foregroundObserver = nil
+        }
+    }
+
+    private func reloadAfterBackgroundTeardownIfNeeded() async {
+        guard !isAudioOnlySession else { return }
+        // The teardown leaves the session paused with no backend, which is
+        // the one state an ordinary pause never produces.
+        guard state == .paused else { return }
+        guard let engine = Self.sharedEngine(),
+            engine.playbackBackend == .none
+        else { return }
+        do {
+            try await engine.reloadAtCurrentPosition()
+            engine.pause()
+        } catch {
+            onPlayerError?([
+                "event": "playerError",
+                "kind": "backgroundReload",
+                "recoverable": true,
+                "message": "Reload after background return failed: \(error)",
+            ])
+        }
     }
 
     // MARK: - Engine subscriptions
@@ -568,6 +623,7 @@ final class AetherPlayerWrapper: NSObject, ObservableObject {
     /// Full teardown on dismiss: resets display criteria, releases the view
     /// binding and the audio session. The engine itself stays alive.
     func shutdown() {
+        stopObservingForegroundReturn()
         guard let engine = Self.sharedEngine() else { return }
         engine.stop(resetDisplayCriteria: true)
         cancellables.removeAll()

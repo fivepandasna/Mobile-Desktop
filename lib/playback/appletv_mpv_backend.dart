@@ -367,6 +367,7 @@ class AppleTvMpvBackend implements PlayerBackend {
       supportsHevc: PlatformDetection.supportsHevc,
       supportsHevcMain10: PlatformDetection.supportsHevcMain10,
       transcodeHevcAllowed: serverAllowsHevcTranscode(),
+      hevcRequiresFmp4Hls: true,
       hevcMainLevel: PlatformDetection.hevcMainLevel,
       supportsHevcDolbyVision: PlatformDetection.supportsHevcDolbyVision,
       supportsHevcDolbyVisionEl: PlatformDetection.supportsHevcDolbyVisionEl,

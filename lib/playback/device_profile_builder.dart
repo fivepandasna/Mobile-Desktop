@@ -143,6 +143,12 @@ class DeviceProfileBuilder {
     // the probed Jellyfin encoding options so servers that never enabled
     // HEVC encoding keep receiving an H264-only offer.
     bool transcodeHevcAllowed = false,
+    // Keeps HEVC out of the MPEG-TS transcode offer and lists the fMP4
+    // profile first so the server prefers it. The HLS spec only carries HEVC
+    // in fMP4, and AVFoundation leaves an HEVC in TS transcode as a black
+    // picture with working audio. Servers without fMP4 HLS fall through to
+    // the TS profile and encode H264, which renders.
+    bool hevcRequiresFmp4Hls = false,
     int hevcMainLevel = 0,
     bool supportsHevcDolbyVision = false,
     bool supportsHevcDolbyVisionEl = false,
@@ -348,47 +354,55 @@ class DeviceProfileBuilder {
             codecSets: webCodecSets!,
           );
 
-    final transcodingProfiles = webCapabilities == null
-        ? <Map<String, dynamic>>[
-            <String, dynamic>{
-              'Type': 'Video',
-              'Context': 'Streaming',
-              'Container': 'ts',
-              'Protocol': 'hls',
-              'VideoCodec': hlsVideoCodecs,
-              'AudioCodec': mpegTsAudioCodecs.join(','),
-              'CopyTimestamps': false,
-              'EnableSubtitlesInManifest': true,
-              if (capTranscodeToStereo) 'MaxAudioChannels': '2',
-            },
-            <String, dynamic>{
-              'Type': 'Video',
-              'Context': 'Streaming',
-              'Container': 'mp4',
-              'Protocol': 'hls',
-              'VideoCodec': hlsVideoCodecs,
-              'AudioCodec': _fmp4AudioCodecsForFallback(
-                effectiveAudioFallbackCodec: effectiveAudioFallbackCodec,
-                allowedAudioCodecs: effectiveAllowedAudioCodecs,
-              ).join(','),
-              'CopyTimestamps': false,
-              'EnableSubtitlesInManifest': true,
-              if (capTranscodeToStereo) 'MaxAudioChannels': '2',
-            },
-            <String, dynamic>{
-              'Type': 'Audio',
-              'Context': 'Streaming',
-              'Container': 'ts',
-              'Protocol': 'hls',
-              'AudioCodec': 'aac',
-              if (capTranscodeToStereo) 'MaxAudioChannels': '2',
-            },
-          ]
-        : _buildWebTranscodingProfiles(
-            capabilities: webCapabilities,
-            audioCodecs: effectiveAllowedAudioCodecs,
-            codecSets: webCodecSets!,
-          );
+    final List<Map<String, dynamic>> transcodingProfiles;
+    if (webCapabilities == null) {
+      final tsVideoProfile = <String, dynamic>{
+        'Type': 'Video',
+        'Context': 'Streaming',
+        'Container': 'ts',
+        'Protocol': 'hls',
+        'VideoCodec': hevcRequiresFmp4Hls ? 'h264' : hlsVideoCodecs,
+        'AudioCodec': mpegTsAudioCodecs.join(','),
+        'CopyTimestamps': false,
+        'EnableSubtitlesInManifest': true,
+        if (capTranscodeToStereo) 'MaxAudioChannels': '2',
+      };
+      final fmp4VideoProfile = <String, dynamic>{
+        'Type': 'Video',
+        'Context': 'Streaming',
+        'Container': 'mp4',
+        'Protocol': 'hls',
+        'VideoCodec': hlsVideoCodecs,
+        'AudioCodec': _fmp4AudioCodecsForFallback(
+          effectiveAudioFallbackCodec: effectiveAudioFallbackCodec,
+          allowedAudioCodecs: effectiveAllowedAudioCodecs,
+        ).join(','),
+        'CopyTimestamps': false,
+        'EnableSubtitlesInManifest': true,
+        if (capTranscodeToStereo) 'MaxAudioChannels': '2',
+      };
+      transcodingProfiles = <Map<String, dynamic>>[
+        // The server takes the first profile it can satisfy, so the order
+        // decides the container.
+        if (hevcRequiresFmp4Hls) fmp4VideoProfile,
+        tsVideoProfile,
+        if (!hevcRequiresFmp4Hls) fmp4VideoProfile,
+        <String, dynamic>{
+          'Type': 'Audio',
+          'Context': 'Streaming',
+          'Container': 'ts',
+          'Protocol': 'hls',
+          'AudioCodec': 'aac',
+          if (capTranscodeToStereo) 'MaxAudioChannels': '2',
+        },
+      ];
+    } else {
+      transcodingProfiles = _buildWebTranscodingProfiles(
+        capabilities: webCapabilities,
+        audioCodecs: effectiveAllowedAudioCodecs,
+        codecSets: webCodecSets!,
+      );
+    }
 
     final codecProfiles = _codecProfiles(
       maxAudioChannels: advertisedMaxChannels,

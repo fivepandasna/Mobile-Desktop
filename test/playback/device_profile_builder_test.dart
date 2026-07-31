@@ -127,6 +127,18 @@ Set<String> _videoDirectPlayAudioCodecs(Map<String, dynamic> profile) {
   return <String>{};
 }
 
+List<Map<dynamic, dynamic>> _hlsVideoTranscodingProfiles(
+  Map<String, dynamic> profile,
+) {
+  final transcodingProfiles =
+      profile['TranscodingProfiles'] as List<dynamic>? ?? const [];
+
+  return transcodingProfiles
+      .cast<Map<dynamic, dynamic>>()
+      .where((raw) => raw['Type'] == 'Video' && raw['Protocol'] == 'hls')
+      .toList(growable: false);
+}
+
 List<String> _videoTranscodingVideoCodecs(Map<String, dynamic> profile) {
   final transcodingProfiles =
       profile['TranscodingProfiles'] as List<dynamic>? ?? const [];
@@ -414,6 +426,33 @@ void main() {
       for (final codec in videoTargets) {
         expect(codec, 'h264');
       }
+    });
+
+    test('hevcRequiresFmp4Hls keeps HEVC out of the TS offer and lists fMP4 '
+        'first', () {
+      final profile = DeviceProfileBuilder.build(
+        supportsHevc: true,
+        transcodeHevcAllowed: true,
+        hevcRequiresFmp4Hls: true,
+      );
+
+      final videoProfiles = _hlsVideoTranscodingProfiles(profile);
+      expect(videoProfiles.first['Container'], 'mp4');
+      expect(videoProfiles.first['VideoCodec'], 'hevc,h264');
+      final ts = videoProfiles.firstWhere((p) => p['Container'] == 'ts');
+      expect(ts['VideoCodec'], 'h264');
+    });
+
+    test('without hevcRequiresFmp4Hls the TS offer keeps HEVC and stays '
+        'first', () {
+      final profile = DeviceProfileBuilder.build(
+        supportsHevc: true,
+        transcodeHevcAllowed: true,
+      );
+
+      final videoProfiles = _hlsVideoTranscodingProfiles(profile);
+      expect(videoProfiles.first['Container'], 'ts');
+      expect(videoProfiles.first['VideoCodec'], 'hevc,h264');
     });
   });
 
